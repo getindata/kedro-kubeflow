@@ -6,7 +6,7 @@ with open("README.md") as f:
     readme = f.read()
 
 # Runtime Requirements.
-install_requires = ["click", "kfp"]
+install_requires = ["click", "kfp", "tabulate"]
 
 # Dev Requirements
 extra_require = {

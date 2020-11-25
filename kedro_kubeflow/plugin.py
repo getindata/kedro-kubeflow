@@ -1,10 +1,13 @@
 import click
-from kedro.cli import get_project_context
+from kedro.framework.cli import get_project_context
 from kedro.config import MissingConfigException
-from kfp import Client
+from .kfpclient import KubeflowClient
 
 
-@click.group("K")
+CONFIG_FILE_PATTERN = "kubeflow*"
+
+
+@click.group("Kubeflow")
 def commands():
     """Kedro plugin adding support for Kubeflow Pipelines"""
     pass
@@ -13,23 +16,37 @@ def commands():
 @commands.group(name="kubeflow", context_settings=dict(help_option_names=["-h", "--help"]))
 def kubeflow_group():
     """Interact with Kubeflow Pipelines"""
-    if 'host' not in _get_config().keys():
-        raise MissingConfigException("No kubeflow pipelines host defined")
+    if 'host' not in config().keys():
+        raise MissingConfigException("No 'host' defined in kubeflow.yml")
 
 
 @kubeflow_group.command()
 def list_pipelines():
-    client = Client(host=_get_config()['host'])
+    """List deployed pipeline definitions"""
+    client = KubeflowClient(config())
     print(client.list_pipelines())
 
 
-@commands.command()
-@click.option("-i", "--image", type=str, required=True)
-@click.option("-e", "--env", "env", type=str, default="base")
-def run_experiment(image: str, host: str, pipeline: str, branch: str, run: str, env: str):
-    pass
+@kubeflow_group.command()
+@click.option("-i", "--image", type=str, help="Docker image to use for pipeline execution.")
+@click.option("-p", "--pipeline", "pipeline", type=str, help="Name of pipeline to run", default="__default__")
+@click.option("-x", "--experiment-name", "experiment_name", type=str, help="Name of experiment associated with this run.")
+@click.option("-r", "--run-name", "run_name", type=str, help="Name for this run.")
+@click.option("-e", "--env", "env", type=str, default="base", help="Environment to use.")
+@click.option("-w", "--wait", "wait", type=bool, help="Wait for completion.")
+def run_once(image: str, pipeline: str, experiment_name: str, run_name: str, env: str, wait: bool):
+    """Deploy pipeline as a single run within given experiment"""
+    conf = config()
+    run_conf = conf.get("run_config", {})
+    image = image if image else run_conf['image']
+    experiment_name = experiment_name if experiment_name else run_conf['experiment_name']
+    run_name = run_name if run_name else run_conf['run_name']
+    wait = wait if wait is not None else bool(run_conf["wait_for_completion"])
+
+    client = KubeflowClient(config())
+    client.run_once(pipeline, image, experiment_name, run_name, env, wait)
 
 
-def _get_config():
+def config():
     ctx = get_project_context()
-    return ctx.config_loader.get("kubeflow*")
+    return ctx.config_loader.get(CONFIG_FILE_PATTERN)
