@@ -35,7 +35,7 @@ def list_pipelines():
 @click.option("-e", "--env", "env", type=str, default="base", help="Environment to use.")
 @click.option("-w", "--wait", "wait", type=bool, help="Wait for completion.")
 def run_once(image: str, pipeline: str, experiment_name: str, run_name: str, env: str, wait: bool):
-    """Deploy pipeline as a single run within given experiment"""
+    """Deploy pipeline as a single run within given experiment. Config can be specified in kubeflow.yml as well."""
     conf = config()
     run_conf = conf.get("run_config", {})
     image = image if image else run_conf['image']

@@ -17,7 +17,7 @@ extra_require = {
 
 setup(
     name="kedro-kubeflow",
-    version="0.1.0",
+    version="0.1.1",
     description="Kedro plugin with Kubeflow support",
     long_description=readme,
     long_description_content_type="text/markdown",
