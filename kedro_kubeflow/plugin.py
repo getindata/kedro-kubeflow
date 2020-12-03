@@ -47,6 +47,13 @@ def run_once(image: str, pipeline: str, experiment_name: str, run_name: str, env
     client.run_once(pipeline, image, experiment_name, run_name, env, wait)
 
 
+@kubeflow_group.command()
+def ui() -> None:
+    import webbrowser
+    host = config()['host']
+    webbrowser.open_new_tab(host)
+
+
 def config():
     ctx = get_project_context()
     return ctx.config_loader.get(CONFIG_FILE_PATTERN)
