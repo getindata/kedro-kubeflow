@@ -49,9 +49,20 @@ def run_once(image: str, pipeline: str, experiment_name: str, run_name: str, env
 
 @kubeflow_group.command()
 def ui() -> None:
+    """Open Kubeflow Pipelines UI in new browser tab"""
     import webbrowser
     host = config()['host']
     webbrowser.open_new_tab(host)
+
+
+@kubeflow_group.command()
+@click.option("-i", "--image", type=str, help="Docker image to use for pipeline execution.")
+@click.option("-p", "--pipeline", "pipeline", type=str, help="Name of pipeline to run", default="__default__")
+@click.option("-e", "--env", "env", type=str, default="base", help="Environment to use.")
+@click.option("-o", "--output", type=str, default="pipeline.yml", help="Pipeline YAML definition file.")
+def compile(image, pipeline, env, output) -> None:
+    client = KubeflowClient(config())
+    client.compile(pipeline, image, env, output)
 
 
 def config():
