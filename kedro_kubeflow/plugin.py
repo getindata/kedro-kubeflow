@@ -24,7 +24,7 @@ def kubeflow_group():
 def list_pipelines():
     """List deployed pipeline definitions"""
     client = KubeflowClient(config())
-    print(client.list_pipelines())
+    click.echo(client.list_pipelines())
 
 
 @kubeflow_group.command()
