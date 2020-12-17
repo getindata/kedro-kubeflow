@@ -13,9 +13,6 @@ import logging
 
 IAP_CLIENT_ID = "IAP_CLIENT_ID"
 
-_PIPELINE = None
-_IMAGE = None
-
 WAIT_TIMEOUT = 24*60*60
 
 class KubeflowClient(object):
@@ -30,21 +27,13 @@ class KubeflowClient(object):
 
     def list_pipelines(self):
         pipelines = self.client.list_pipelines(page_size=30).pipelines
-        print(tabulate(map(lambda x: [x.name, x.id], pipelines), headers=["Name", "ID"]))
+        return tabulate(map(lambda x: [x.name, x.id], pipelines), headers=["Name", "ID"])
 
     def run_once(self, pipeline, image, experiment_name, run_name, env, wait) -> None:
-        global _PIPELINE
-        global _IMAGE
-
         context = load_context(Path.cwd(), env=env)
 
-        _IMAGE = image
-        _PIPELINE = context.pipelines.get(pipeline)
-
-        convert_kedro_pipeline_to_kfp._component_human_name = context.project_name
-
         run = self.client.create_run_from_pipeline_func(
-            convert_kedro_pipeline_to_kfp,
+            self.generate_pipeline(context, pipeline, image),
             arguments={},
             experiment_name=experiment_name,
             run_name=run_name
@@ -81,50 +70,47 @@ class KubeflowClient(object):
         finally:
             return jwt_token
 
+    def generate_pipeline(self, context, pipeline, image):
+        @dsl.pipeline(name=context.project_name, description="Kubeflow pipeline for Kedro project")
+        def convert_kedro_pipeline_to_kfp() -> None:
+            """Convert from a Kedro pipeline into a kfp container graph."""
+
+            node_dependencies = context.pipelines.get(pipeline).node_dependencies
+            kfp_ops = _build_kfp_ops(node_dependencies)
+            for node, dependencies in node_dependencies.items():
+                for dependency in dependencies:
+                    kfp_ops[node.name].after(kfp_ops[dependency.name])
+
+        def _build_kfp_ops(node_dependencies: Dict[Node, Set[Node]]) -> Dict[str, dsl.ContainerOp]:
+            """Build kfp container graph from Kedro node dependencies. """
+            kfp_ops = {}
+
+            env = V1EnvVar(name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, ""))
+
+            for node in node_dependencies:
+                name = _clean_name(node.name)
+                kfp_ops[node.name] = dsl.ContainerOp(
+                    name=name,
+                    image=image,
+                    command=["kedro"],
+                    arguments=["run", "--node", node.name],
+                )
+
+                kfp_ops[node.name].container.add_env_variable(env)
+                kfp_ops[node.name].container.set_image_pull_policy('Never')
+
+            return kfp_ops
+
+        return convert_kedro_pipeline_to_kfp
+
+
     def compile(self, pipeline, image, env, output):
-        global _PIPELINE
-        global _IMAGE
-
         context = load_context(Path.cwd(), env=env)
-
-        _IMAGE = image
-        _PIPELINE = context.pipelines.get(pipeline)
-        print(_PIPELINE)
-        convert_kedro_pipeline_to_kfp._component_human_name = context.project_name
-        Compiler().compile(convert_kedro_pipeline_to_kfp, output)
+        Compiler().compile(self.generate_pipeline(context, pipeline, image), output)
         self.log.info("Generated pipeline definition was saved to %s" % output)
-
-
-@dsl.pipeline(name="Kedro pipeline", description="Kubeflow pipeline for Kedro project")
-def convert_kedro_pipeline_to_kfp() -> None:
-    """Convert from a Kedro pipeline into a kfp container graph."""
-
-    node_dependencies = _PIPELINE.node_dependencies
-    kfp_ops = _build_kfp_ops(node_dependencies)
-    for node, dependencies in node_dependencies.items():
-        for dependency in dependencies:
-            kfp_ops[node.name].after(kfp_ops[dependency.name])
 
 
 def _clean_name(name: str) -> str:
     return re.sub(r"[\W_]+", "-", name).strip("-")
 
 
-def _build_kfp_ops(node_dependencies: Dict[Node, Set[Node]]) -> Dict[str, dsl.ContainerOp]:
-    """Build kfp container graph from Kedro node dependencies. """
-    kfp_ops = {}
-
-    env = V1EnvVar(name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, ""))
-
-    for node in node_dependencies:
-        name = _clean_name(node.name)
-        kfp_ops[node.name] = dsl.ContainerOp(
-            name=name,
-            image=_IMAGE,
-            command=["kedro"],
-            arguments=["run", "--node", node.name],
-        )
-
-        kfp_ops[node.name].container.add_env_variable(env)
-
-    return kfp_ops
