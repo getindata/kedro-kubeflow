@@ -34,7 +34,8 @@ def list_pipelines():
 @click.option("-r", "--run-name", "run_name", type=str, help="Name for this run.")
 @click.option("-e", "--env", "env", type=str, default="base", help="Environment to use.")
 @click.option("-w", "--wait", "wait", type=bool, help="Wait for completion.")
-def run_once(image: str, pipeline: str, experiment_name: str, run_name: str, env: str, wait: bool):
+@click.option("--image-pull-policy", type=str, default="IfNotPresent", help="Image pull policy.")
+def run_once(image: str, pipeline: str, experiment_name: str, run_name: str, env: str, wait: bool, image_pull_policy: str):
     """Deploy pipeline as a single run within given experiment. Config can be specified in kubeflow.yml as well."""
     conf = config()
     run_conf = conf.get("run_config", {})
@@ -42,9 +43,10 @@ def run_once(image: str, pipeline: str, experiment_name: str, run_name: str, env
     experiment_name = experiment_name if experiment_name else run_conf['experiment_name']
     run_name = run_name if run_name else run_conf['run_name']
     wait = wait if wait is not None else bool(run_conf["wait_for_completion"])
+    image_pull_policy = run_conf.get('image_pull_policy', image_pull_policy)
 
     client = KubeflowClient(config())
-    client.run_once(pipeline, image, experiment_name, run_name, env, wait)
+    client.run_once(pipeline, image, experiment_name, run_name, env, wait, image_pull_policy)
 
 
 @kubeflow_group.command()
@@ -60,9 +62,10 @@ def ui() -> None:
 @click.option("-p", "--pipeline", "pipeline", type=str, help="Name of pipeline to run", default="__default__")
 @click.option("-e", "--env", "env", type=str, default="base", help="Environment to use.")
 @click.option("-o", "--output", type=str, default="pipeline.yml", help="Pipeline YAML definition file.")
-def compile(image, pipeline, env, output) -> None:
+@click.option("--image-pull-policy", type=str, default="IfNotPresent", help="Image pull policy.")
+def compile(image, pipeline, env, output, image_pull_policy) -> None:
     client = KubeflowClient(config())
-    client.compile(pipeline, image, env, output)
+    client.compile(pipeline, image, env, output, image_pull_policy)
 
 
 def config():
