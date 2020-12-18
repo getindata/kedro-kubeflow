@@ -89,6 +89,7 @@ class TestKubeflowClient(unittest.TestCase):
             args[0]()
 
         assert dsl_pipeline.ops["node1"].image == "unittest-image"
+        assert dsl_pipeline.ops["node1"].container.image_pull_policy == "IfNotPresent"
 
     @patch("kedro_kubeflow.kfpclient.load_context")
     @patch("kedro_kubeflow.kfpclient.Client")
@@ -187,6 +188,68 @@ class TestKubeflowClient(unittest.TestCase):
 
         # then
         kfp_client_mock.assert_called_with("http://unittest", existing_token=None)
+
+    @patch("kedro_kubeflow.kfpclient.load_context")
+    @patch("kedro_kubeflow.kfpclient.Client")
+    def test_should_modify_pull_policy_in_run(self, kfp_client_mock, context_mock):
+        # given
+        run_mock = unittest.mock.MagicMock()
+        kfp_client_mock().create_run_from_pipeline_func.return_value = run_mock
+        context_mock.return_value = type(
+            "obj",
+            (object,),
+            {"project_name": "name", "pipelines": {"pipeline": self.create_pipeline()}},
+        )
+
+        # when
+        KubeflowClient({"host": "http://unittest"}).run_once(
+            run_name="unittest",
+            pipeline="pipeline",
+            image="unittest-image",
+            experiment_name="experiment",
+            env="dev",
+            wait=False,
+            image_pull_policy="Never",
+        )
+
+        # then
+        args, kwargs = kfp_client_mock().create_run_from_pipeline_func.call_args
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            args[0]()
+
+        assert dsl_pipeline.ops["node1"].image == "unittest-image"
+        assert dsl_pipeline.ops["node1"].container.image_pull_policy == "Never"
+
+    @patch("kedro_kubeflow.kfpclient.load_context")
+    @patch("kedro_kubeflow.kfpclient.Client")
+    def test_should_compile_pipeline_with_modified_pull_policy(
+        self, kfp_client_mock, context_mock
+    ):
+        # given
+        context_mock.return_value = type(
+            "obj",
+            (object,),
+            {
+                "project_name": "my-awesome-project",
+                "pipelines": {"pipeline": self.create_pipeline()},
+            },
+        )
+
+        with NamedTemporaryFile(suffix=".yaml") as f:
+            # when
+            KubeflowClient({"host": "http://unittest"}).compile(
+                pipeline="pipeline",
+                image="unittest-image",
+                env="dev",
+                output=f.name,
+                image_pull_policy="Always",
+            )
+
+            # then
+            with open(f.name) as yamlfile:
+                compiled_file = yamlfile.read()
+                assert "generateName: my-awesome-project-" in compiled_file
+                assert "imagePullPolicy: Always" in compiled_file
 
     def tearDown(self):
         os.environ["IAP_CLIENT_ID"] = ""

@@ -28,11 +28,11 @@ class KubeflowClient(object):
         pipelines = self.client.list_pipelines(page_size=30).pipelines
         return tabulate(map(lambda x: [x.name, x.id], pipelines), headers=["Name", "ID"])
 
-    def run_once(self, pipeline, image, experiment_name, run_name, env, wait) -> None:
+    def run_once(self, pipeline, image, experiment_name, run_name, env, wait, image_pull_policy="IfNotPresent") -> None:
         context = load_context(Path.cwd(), env=env)
 
         run = self.client.create_run_from_pipeline_func(
-            self.generate_pipeline(context, pipeline, image),
+            self.generate_pipeline(context, pipeline, image, image_pull_policy),
             arguments={},
             experiment_name=experiment_name,
             run_name=run_name
@@ -68,7 +68,7 @@ class KubeflowClient(object):
         finally:
             return jwt_token
 
-    def generate_pipeline(self, context, pipeline, image):
+    def generate_pipeline(self, context, pipeline, image, image_pull_policy):
         @dsl.pipeline(name=context.project_name, description="Kubeflow pipeline for Kedro project")
         def convert_kedro_pipeline_to_kfp() -> None:
             """Convert from a Kedro pipeline into a kfp container graph."""
@@ -95,16 +95,16 @@ class KubeflowClient(object):
                 )
 
                 kfp_ops[node.name].container.add_env_variable(env)
-                kfp_ops[node.name].container.set_image_pull_policy('Never')
+                kfp_ops[node.name].container.set_image_pull_policy(image_pull_policy)
 
             return kfp_ops
 
         return convert_kedro_pipeline_to_kfp
 
 
-    def compile(self, pipeline, image, env, output):
+    def compile(self, pipeline, image, env, output, image_pull_policy='IfNotPresent'):
         context = load_context(Path.cwd(), env=env)
-        Compiler().compile(self.generate_pipeline(context, pipeline, image), output)
+        Compiler().compile(self.generate_pipeline(context, pipeline, image, image_pull_policy), output)
         self.log.info("Generated pipeline definition was saved to %s" % output)
 
 
