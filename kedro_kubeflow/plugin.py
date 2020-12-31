@@ -64,8 +64,37 @@ def ui() -> None:
 @click.option("-o", "--output", type=str, default="pipeline.yml", help="Pipeline YAML definition file.")
 @click.option("--image-pull-policy", type=str, default="IfNotPresent", help="Image pull policy.")
 def compile(image, pipeline, env, output, image_pull_policy) -> None:
-    client = KubeflowClient(config())
-    client.compile(pipeline, image, env, output, image_pull_policy)
+    conf = config()
+    run_conf = conf.get("run_config", {})
+    image = image if image else run_conf['image']
+    KubeflowClient(conf).compile(pipeline, image, env, output, image_pull_policy)
+
+
+@kubeflow_group.command()
+@click.option("-i", "--image", type=str, help="Docker image to use for pipeline execution.")
+@click.option("-p", "--pipeline", "pipeline", type=str, help="Name of pipeline to upload", default="__default__")
+@click.option("-e", "--env", "env", type=str, default="base", help="Environment to use.")
+@click.option("-o", "--output", type=str, default="pipeline.yml", help="Pipeline YAML definition file.")
+@click.option("--image-pull-policy", type=str, default="IfNotPresent", help="Image pull policy.")
+def upload_pipeline(image, pipeline, env, output, image_pull_policy) -> None:
+    """Uploads pipeline to Kubeflow"""
+    conf = config()
+    run_conf = conf.get("run_config", {})
+    image = image if image else run_conf['image']
+    KubeflowClient(conf).upload(pipeline, image, env, output, image_pull_policy)
+
+
+@kubeflow_group.command()
+@click.option("-c", "--cron-expression", type=str, help="Cron expression for recurring run", required=True)
+@click.option("-x", "--experiment-name", "experiment_name", type=str, help="Name of experiment associated with this run.")
+@click.option("-e", "--env", "env", type=str, default="base", help="Environment to use.")
+def schedule(experiment_name: str, cron_expression: str, env: str):
+    """Schedules recurring execution of latest version of the pipeline"""
+    conf = config()
+    run_conf = conf.get("run_config", {})
+    experiment_name = experiment_name if experiment_name else run_conf['experiment_name']
+
+    KubeflowClient(config()).schedule(env, experiment_name, cron_expression)
 
 
 def config():
