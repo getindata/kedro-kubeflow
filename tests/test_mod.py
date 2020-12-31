@@ -30,10 +30,18 @@ class TestKubeflowClient(unittest.TestCase):
             ]
         )
 
-    @patch("kedro_kubeflow.kfpclient.Client")
-    def test_should_list_pipelines_tabularized(self, kfp_client_mock):
-        # given
-        kfp_client_mock().list_pipelines.return_value = type(
+    def create_context(self, name="my-awesome-project"):
+        return type(
+            "obj",
+            (object,),
+            {"project_name": name, "pipelines": {"pipeline": self.create_pipeline()}},
+        )
+
+    def create_experiment(self, id="123"):
+        return type("obj", (object,), {"id": id})
+
+    def create_pipelines_list(self):
+        return type(
             "obj",
             (object,),
             {
@@ -42,6 +50,31 @@ class TestKubeflowClient(unittest.TestCase):
                 ]
             },
         )
+
+    def create_recurring_jobs_list(self, id="pipeline_id"):
+        return type(
+            "obj",
+            (object,),
+            {
+                "jobs": [
+                    type(
+                        "obj",
+                        (object,),
+                        {
+                            "id": "jobid",
+                            "pipeline_spec": type(
+                                "obj", (object,), {"pipeline_id": id}
+                            ),
+                        },
+                    )
+                ]
+            },
+        )
+
+    @patch("kedro_kubeflow.kfpclient.Client")
+    def test_should_list_pipelines_tabularized(self, kfp_client_mock):
+        # given
+        kfp_client_mock().list_pipelines.return_value = self.create_pipelines_list()
 
         # when
         output = KubeflowClient({"host": "http://unittest"}).list_pipelines()
@@ -59,11 +92,7 @@ class TestKubeflowClient(unittest.TestCase):
         # given
         run_mock = unittest.mock.MagicMock()
         kfp_client_mock().create_run_from_pipeline_func.return_value = run_mock
-        context_mock.return_value = type(
-            "obj",
-            (object,),
-            {"project_name": "name", "pipelines": {"pipeline": self.create_pipeline()}},
-        )
+        context_mock.return_value = self.create_context()
 
         # when
         KubeflowClient({"host": "http://unittest"}).run_once(
@@ -116,14 +145,7 @@ class TestKubeflowClient(unittest.TestCase):
     @patch("kedro_kubeflow.kfpclient.Client")
     def test_should_compile_pipeline(self, kfp_client_mock, context_mock):
         # given
-        context_mock.return_value = type(
-            "obj",
-            (object,),
-            {
-                "project_name": "my-awesome-project",
-                "pipelines": {"pipeline": self.create_pipeline()},
-            },
-        )
+        context_mock.return_value = self.create_context()
 
         with NamedTemporaryFile(suffix=".yaml") as f:
             # when
@@ -195,11 +217,7 @@ class TestKubeflowClient(unittest.TestCase):
         # given
         run_mock = unittest.mock.MagicMock()
         kfp_client_mock().create_run_from_pipeline_func.return_value = run_mock
-        context_mock.return_value = type(
-            "obj",
-            (object,),
-            {"project_name": "name", "pipelines": {"pipeline": self.create_pipeline()}},
-        )
+        context_mock.return_value = self.create_context()
 
         # when
         KubeflowClient({"host": "http://unittest"}).run_once(
@@ -226,14 +244,7 @@ class TestKubeflowClient(unittest.TestCase):
         self, kfp_client_mock, context_mock
     ):
         # given
-        context_mock.return_value = type(
-            "obj",
-            (object,),
-            {
-                "project_name": "my-awesome-project",
-                "pipelines": {"pipeline": self.create_pipeline()},
-            },
-        )
+        context_mock.return_value = self.create_context()
 
         with NamedTemporaryFile(suffix=".yaml") as f:
             # when
@@ -250,6 +261,93 @@ class TestKubeflowClient(unittest.TestCase):
                 compiled_file = yamlfile.read()
                 assert "generateName: my-awesome-project-" in compiled_file
                 assert "imagePullPolicy: Always" in compiled_file
+
+    @patch("kedro_kubeflow.kfpclient.load_context")
+    @patch("kedro_kubeflow.kfpclient.Client")
+    def test_should_schedule_pipeline(self, kfp_client_mock, context_mock):
+        # given
+        kfp_client_mock().get_experiment.return_value = self.create_experiment()
+        kfp_client_mock().pipelines = unittest.mock.MagicMock()
+        kfp_client_mock().pipelines.list_pipelines.return_value = (
+            self.create_pipelines_list()
+        )
+        context_mock.return_value = self.create_context()
+
+        # when
+        KubeflowClient({"host": "http://unittest"}).schedule(
+            env="dev", experiment_name="EXPERIMENT", cron_expression="0 * * * * *",
+        )
+
+        # then
+        kfp_client_mock().get_experiment.assert_called()
+        kfp_client_mock().create_experiment.assert_not_called()
+        kfp_client_mock().create_recurring_run.assert_called_with(
+            "123",
+            "my-awesome-project on 0 * * * * *",
+            cron_expression="0 * * * * *",
+            pipeline_id="someid",
+        )
+
+    @patch("kedro_kubeflow.kfpclient.load_context")
+    @patch("kedro_kubeflow.kfpclient.Client")
+    def test_should_schedule_pipeline_and_create_experiment_if_needed(
+        self, kfp_client_mock, context_mock
+    ):
+        # given
+        kfp_client_mock().get_experiment.side_effect = Exception()
+        kfp_client_mock().create_experiment.return_value = self.create_experiment()
+        kfp_client_mock().pipelines = unittest.mock.MagicMock()
+        kfp_client_mock().pipelines.list_pipelines.return_value = (
+            self.create_pipelines_list()
+        )
+        context_mock.return_value = self.create_context()
+
+        # when
+        KubeflowClient({"host": "http://unittest"}).schedule(
+            env="dev", experiment_name="EXPERIMENT", cron_expression="0 * * * * *",
+        )
+
+        # then
+        kfp_client_mock().get_experiment.assert_called()
+        kfp_client_mock().create_experiment.assert_called()
+        kfp_client_mock().create_recurring_run.assert_called_with(
+            "123",
+            "my-awesome-project on 0 * * * * *",
+            cron_expression="0 * * * * *",
+            pipeline_id="someid",
+        )
+
+    @patch("kedro_kubeflow.kfpclient.load_context")
+    @patch("kedro_kubeflow.kfpclient.Client")
+    def test_should_disable_old_runs_before_schedule(
+        self, kfp_client_mock, context_mock
+    ):
+        # given
+        kfp_client_mock().get_experiment.return_value = self.create_experiment()
+        kfp_client_mock().pipelines = unittest.mock.MagicMock()
+        kfp_client_mock().pipelines.list_pipelines.return_value = (
+            self.create_pipelines_list()
+        )
+        kfp_client_mock().list_recurring_runs.return_value = self.create_recurring_jobs_list(
+            "someid"
+        )
+        context_mock.return_value = self.create_context()
+
+        # when
+        KubeflowClient({"host": "http://unittest"}).schedule(
+            env="dev", experiment_name="EXPERIMENT", cron_expression="0 * * * * *",
+        )
+
+        # then
+        kfp_client_mock().get_experiment.assert_called()
+        kfp_client_mock().create_experiment.assert_not_called()
+        kfp_client_mock().jobs.delete_job.assert_called()
+        kfp_client_mock().create_recurring_run.assert_called_with(
+            "123",
+            "my-awesome-project on 0 * * * * *",
+            cron_expression="0 * * * * *",
+            pipeline_id="someid",
+        )
 
     def tearDown(self):
         os.environ["IAP_CLIENT_ID"] = ""

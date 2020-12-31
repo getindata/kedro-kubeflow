@@ -188,19 +188,20 @@ class KubeflowClient(object):
     def schedule(self, env, experiment_name, cron_expression):
         context = load_context(Path.cwd(), env=env)
         experiment_id = self._ensure_experiment_exists(experiment_name)
-        self._disable_runs(experiment_id, context.project_name)
+        pipeline_id = self._get_pipeline_id(context.project_name)
+        self._disable_runs(experiment_id, pipeline_id)
         job = self.client.create_recurring_run(
             experiment_id,
             f'{context.project_name} on {cron_expression}',
             cron_expression=cron_expression,
-            pipeline_id=self._get_pipeline_id(context.project_name),
+            pipeline_id=pipeline_id,
         )
         self.log.info("Pipeline scheduled to %s", cron_expression)
 
-    def _disable_runs(self, experiment_id, pipeline_name):
+    def _disable_runs(self, experiment_id, pipeline_id):
         runs = self.client.list_recurring_runs(experiment_id=experiment_id)
         if runs.jobs is not None:
-            my_runs = [job for job in runs.jobs if job.name == pipeline_name]
+            my_runs = [job for job in runs.jobs if job.pipeline_spec.pipeline_id == pipeline_id]
             for job in my_runs:
                 self.client.jobs.delete_job(job.id)
                 self.log.info(f"Previous schedule deleted {job.id}")
