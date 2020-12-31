@@ -349,5 +349,50 @@ class TestKubeflowClient(unittest.TestCase):
             pipeline_id="someid",
         )
 
+    @patch("kedro_kubeflow.kfpclient.load_context")
+    @patch("kedro_kubeflow.kfpclient.Client")
+    def test_should_upload_new_pipeline(self, kfp_client_mock, context_mock):
+        # given
+        context_mock.return_value = self.create_context()
+        kfp_client_mock().pipelines = unittest.mock.MagicMock()
+        kfp_client_mock().pipelines.list_pipelines.side_effect = Exception()
+
+        # when
+        KubeflowClient({"host": "http://unittest"}).upload(
+            pipeline="pipeline",
+            image="unittest-image",
+            env="dev",
+            image_pull_policy="Always",
+        )
+
+        # then
+        kfp_client_mock().pipeline_uploads.upload_pipeline.assert_called()
+        kfp_client_mock().pipeline_uploads.upload_pipeline_version.assert_not_called()
+
+    @patch("kedro_kubeflow.kfpclient.load_context")
+    @patch("kedro_kubeflow.kfpclient.Client")
+    def test_should_upload_new_version_of_existing_pipeline(
+        self, kfp_client_mock, context_mock
+    ):
+        # given
+        context_mock.return_value = self.create_context()
+        kfp_client_mock().pipelines = unittest.mock.MagicMock()
+        kfp_client_mock().pipelines = unittest.mock.MagicMock()
+        kfp_client_mock().pipelines.list_pipelines.return_value = (
+            self.create_pipelines_list()
+        )
+
+        # when
+        KubeflowClient({"host": "http://unittest"}).upload(
+            pipeline="pipeline",
+            image="unittest-image",
+            env="dev",
+            image_pull_policy="Always",
+        )
+
+        # then
+        kfp_client_mock().pipeline_uploads.upload_pipeline.assert_not_called()
+        kfp_client_mock().pipeline_uploads.upload_pipeline_version.assert_called()
+
     def tearDown(self):
         os.environ["IAP_CLIENT_ID"] = ""

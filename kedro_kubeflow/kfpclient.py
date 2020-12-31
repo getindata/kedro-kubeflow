@@ -111,7 +111,7 @@ class KubeflowClient(object):
         Compiler().compile(self.generate_pipeline(context, pipeline, image, image_pull_policy), output)
         self.log.info("Generated pipeline definition was saved to %s" % output)
 
-    def upload(self, pipeline, image, env, output, image_pull_policy='IfNotPresent'):
+    def upload(self, pipeline, image, env, image_pull_policy='IfNotPresent'):
         context = load_context(Path.cwd(), env=env)
         pipeline = self.generate_pipeline(context, pipeline, image, image_pull_policy)
 
@@ -136,7 +136,6 @@ class KubeflowClient(object):
             self._get_pipeline_id(pipeline_name)
             return True
         except:
-            raise
             return False
 
     def _get_pipeline_id(self, pipeline_name):

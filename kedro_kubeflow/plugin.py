@@ -74,14 +74,13 @@ def compile(image, pipeline, env, output, image_pull_policy) -> None:
 @click.option("-i", "--image", type=str, help="Docker image to use for pipeline execution.")
 @click.option("-p", "--pipeline", "pipeline", type=str, help="Name of pipeline to upload", default="__default__")
 @click.option("-e", "--env", "env", type=str, default="base", help="Environment to use.")
-@click.option("-o", "--output", type=str, default="pipeline.yml", help="Pipeline YAML definition file.")
 @click.option("--image-pull-policy", type=str, default="IfNotPresent", help="Image pull policy.")
 def upload_pipeline(image, pipeline, env, output, image_pull_policy) -> None:
     """Uploads pipeline to Kubeflow"""
     conf = config()
     run_conf = conf.get("run_config", {})
     image = image if image else run_conf['image']
-    KubeflowClient(conf).upload(pipeline, image, env, output, image_pull_policy)
+    KubeflowClient(conf).upload(pipeline, image, env, image_pull_policy)
 
 
 @kubeflow_group.command()
