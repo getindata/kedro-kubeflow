@@ -6,7 +6,7 @@ with open("README.md") as f:
     readme = f.read()
 
 # Runtime Requirements.
-install_requires = ["kedro", "click", "kfp", "tabulate"]
+install_requires = ["kedro>=0.17.0", "click", "kfp", "tabulate"]
 
 # Dev Requirements
 extra_require = {
