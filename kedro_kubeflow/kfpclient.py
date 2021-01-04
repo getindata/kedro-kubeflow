@@ -6,7 +6,6 @@ import uuid
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from kedro.framework.context import load_context
 from kfp import Client, dsl
 from kfp.compiler import Compiler
 from kubernetes.client import V1EnvVar
@@ -23,20 +22,20 @@ class KubeflowClient(object):
 
     log = logging.getLogger(__name__)
 
-    def __init__(self, config):
+    def __init__(self, config, project_name, context):
         token = self.obtain_id_token()
         self.host = config['host']
         self.client = Client(self.host, existing_token=token)
+        self.project_name = project_name
+        self.context = context
 
     def list_pipelines(self):
         pipelines = self.client.list_pipelines(page_size=30).pipelines
         return tabulate(map(lambda x: [x.name, x.id], pipelines), headers=["Name", "ID"])
 
-    def run_once(self, pipeline, image, experiment_name, run_name, env, wait, image_pull_policy="IfNotPresent") -> None:
-        context = load_context(Path.cwd(), env=env)
-
+    def run_once(self, pipeline, image, experiment_name, run_name, wait, image_pull_policy="IfNotPresent") -> None:
         run = self.client.create_run_from_pipeline_func(
-            self.generate_pipeline(context, pipeline, image, image_pull_policy),
+            self.generate_pipeline(pipeline, image, image_pull_policy),
             arguments={},
             experiment_name=experiment_name,
             run_name=run_name
@@ -72,12 +71,12 @@ class KubeflowClient(object):
         finally:
             return jwt_token
 
-    def generate_pipeline(self, context, pipeline, image, image_pull_policy):
-        @dsl.pipeline(name=context.project_name, description="Kubeflow pipeline for Kedro project")
+    def generate_pipeline(self, pipeline, image, image_pull_policy):
+        @dsl.pipeline(name=self.project_name, description="Kubeflow pipeline for Kedro project")
         def convert_kedro_pipeline_to_kfp() -> None:
             """Convert from a Kedro pipeline into a kfp container graph."""
 
-            node_dependencies = context.pipelines.get(pipeline).node_dependencies
+            node_dependencies = self.context.pipelines.get(pipeline).node_dependencies
             kfp_ops = _build_kfp_ops(node_dependencies)
             for node, dependencies in node_dependencies.items():
                 for dependency in dependencies:
@@ -106,22 +105,20 @@ class KubeflowClient(object):
         return convert_kedro_pipeline_to_kfp
 
 
-    def compile(self, pipeline, image, env, output, image_pull_policy='IfNotPresent'):
-        context = load_context(Path.cwd(), env=env)
-        Compiler().compile(self.generate_pipeline(context, pipeline, image, image_pull_policy), output)
+    def compile(self, pipeline, image, output, image_pull_policy='IfNotPresent'):
+        Compiler().compile(self.generate_pipeline(pipeline, image, image_pull_policy), output)
         self.log.info("Generated pipeline definition was saved to %s" % output)
 
-    def upload(self, pipeline, image, env, image_pull_policy='IfNotPresent'):
-        context = load_context(Path.cwd(), env=env)
-        pipeline = self.generate_pipeline(context, pipeline, image, image_pull_policy)
+    def upload(self, pipeline, image, image_pull_policy='IfNotPresent'):
+        pipeline = self.generate_pipeline(pipeline, image, image_pull_policy)
 
-        if self._pipeline_exists(context.project_name):
-            pipeline_id = self._get_pipeline_id(context.project_name)
-            version_id = self._upload_pipeline_version(pipeline, pipeline_id, context.project_name)
+        if self._pipeline_exists(self.project_name):
+            pipeline_id = self._get_pipeline_id(self.project_name)
+            version_id = self._upload_pipeline_version(pipeline, pipeline_id, self.project_name)
             self.log.info("New version of pipeline created: %s", version_id)
         else:
             (pipeline_id, version_id) = self._upload_pipeline(
-                pipeline, context.project_name
+                pipeline, self.project_name
             )
             self.log.info("Pipeline created")
 
@@ -184,14 +181,13 @@ class KubeflowClient(object):
         return experiment.id
 
 
-    def schedule(self, env, experiment_name, cron_expression):
-        context = load_context(Path.cwd(), env=env)
+    def schedule(self, experiment_name, cron_expression):
         experiment_id = self._ensure_experiment_exists(experiment_name)
-        pipeline_id = self._get_pipeline_id(context.project_name)
+        pipeline_id = self._get_pipeline_id(self.project_name)
         self._disable_runs(experiment_id, pipeline_id)
         job = self.client.create_recurring_run(
             experiment_id,
-            f'{context.project_name} on {cron_expression}',
+            f'{self.project_name} on {cron_expression}',
             cron_expression=cron_expression,
             pipeline_id=pipeline_id,
         )
