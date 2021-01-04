@@ -1,5 +1,10 @@
 import re
+import os
+import logging
+import json
+import uuid
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 from kedro.framework.context import load_context
 from kfp import Client, dsl
@@ -8,8 +13,7 @@ from kubernetes.client import V1EnvVar
 from tabulate import tabulate
 from typing import Dict, Set
 from kedro.pipeline.node import Node
-import os
-import logging
+
 
 IAP_CLIENT_ID = "IAP_CLIENT_ID"
 
@@ -106,6 +110,100 @@ class KubeflowClient(object):
         context = load_context(Path.cwd(), env=env)
         Compiler().compile(self.generate_pipeline(context, pipeline, image, image_pull_policy), output)
         self.log.info("Generated pipeline definition was saved to %s" % output)
+
+    def upload(self, pipeline, image, env, image_pull_policy='IfNotPresent'):
+        context = load_context(Path.cwd(), env=env)
+        pipeline = self.generate_pipeline(context, pipeline, image, image_pull_policy)
+
+        if self._pipeline_exists(context.project_name):
+            pipeline_id = self._get_pipeline_id(context.project_name)
+            version_id = self._upload_pipeline_version(pipeline, pipeline_id, context.project_name)
+            self.log.info("New version of pipeline created: %s", version_id)
+        else:
+            (pipeline_id, version_id) = self._upload_pipeline(
+                pipeline, context.project_name
+            )
+            self.log.info("Pipeline created")
+
+        self.log.info(
+            f"Pipeline link: {self.host}/#/pipelines/details/%s/version/%s",
+            pipeline_id,
+            version_id,
+        )
+
+    def _pipeline_exists(self, pipeline_name):
+        try:
+            self._get_pipeline_id(pipeline_name)
+            return True
+        except:
+            return False
+
+    def _get_pipeline_id(self, pipeline_name):
+        return (
+            self.client.pipelines.list_pipelines(
+                filter=json.dumps(
+                    {
+                        "predicates": [
+                            {"key": "name", "op": 1, "string_value": pipeline_name}
+                        ]
+                    }
+                )
+            )
+            .pipelines[0]
+            .id
+        )
+
+    def _upload_pipeline_version(self, pipeline_func, pipeline_id, pipeline_name):
+        version_name = f"{_clean_name(pipeline_name)}-{uuid.uuid4()}"[:100]
+        with NamedTemporaryFile(suffix=".yaml") as f:
+            Compiler().compile(pipeline_func, f.name)
+            return self.client.pipeline_uploads.upload_pipeline_version(
+                f.name, name=version_name, pipelineid=pipeline_id
+            ).id
+
+    def _upload_pipeline(self, pipeline_func, pipeline_name):
+        with NamedTemporaryFile(suffix=".yaml") as f:
+            Compiler().compile(pipeline_func, f.name)
+            pipeline = self.client.pipeline_uploads.upload_pipeline(
+                f.name, name=pipeline_name
+            )
+            return (pipeline.id, pipeline.default_version.id)
+
+    def _ensure_experiment_exists(self, experiment_name):
+        try:
+            experiment = self.client.get_experiment(
+                experiment_name=experiment_name
+            )
+            self.log.info(f"Existing experiment found: {experiment.id}")
+        except:
+            experiment = self.client.create_experiment(
+                experiment_name
+            )
+            self.log.info(f"New experiment created: {experiment.id}")
+
+        return experiment.id
+
+
+    def schedule(self, env, experiment_name, cron_expression):
+        context = load_context(Path.cwd(), env=env)
+        experiment_id = self._ensure_experiment_exists(experiment_name)
+        pipeline_id = self._get_pipeline_id(context.project_name)
+        self._disable_runs(experiment_id, pipeline_id)
+        job = self.client.create_recurring_run(
+            experiment_id,
+            f'{context.project_name} on {cron_expression}',
+            cron_expression=cron_expression,
+            pipeline_id=pipeline_id,
+        )
+        self.log.info("Pipeline scheduled to %s", cron_expression)
+
+    def _disable_runs(self, experiment_id, pipeline_id):
+        runs = self.client.list_recurring_runs(experiment_id=experiment_id)
+        if runs.jobs is not None:
+            my_runs = [job for job in runs.jobs if job.pipeline_spec.pipeline_id == pipeline_id]
+            for job in my_runs:
+                self.client.jobs.delete_job(job.id)
+                self.log.info(f"Previous schedule deleted {job.id}")
 
 
 def _clean_name(name: str) -> str:
