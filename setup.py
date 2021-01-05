@@ -16,7 +16,7 @@ extra_require = {
 
 setup(
     name="kedro-kubeflow",
-    version="0.1.7",
+    version="0.1.8",
     description="Kedro plugin with Kubeflow support",
     long_description=readme,
     long_description_content_type="text/markdown",
@@ -28,9 +28,9 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     keywords="kedro kubeflow plugin",
-    author=u"Mateusz Pytel",
-    author_email="mateusz@getindata.com",
-    url="getindata.com",
+    author=u"Mateusz Pytel, Mariusz Strzelecki",
+    author_email="mateusz@getindata.com, mariusz.strzelecki@getindata.com",
+    url="https://github.com/getindata/kedro-kubeflow/",
     packages=find_packages(exclude=["ez_setup", "examples", "tests", "docs"]),
     include_package_data=True,
     zip_safe=False,
