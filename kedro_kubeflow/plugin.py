@@ -64,6 +64,7 @@ def ui() -> None:
 @click.option("-o", "--output", type=str, default="pipeline.yml", help="Pipeline YAML definition file.")
 @click.option("--image-pull-policy", type=str, default="IfNotPresent", help="Image pull policy.")
 def compile(image, pipeline, env, output, image_pull_policy) -> None:
+    """Translates Kedro pipeline into YAML file with Kubeflow Pipeline definition"""
     conf = config()
     run_conf = conf.get("run_config", {})
     image = image if image else run_conf['image']
@@ -76,7 +77,7 @@ def compile(image, pipeline, env, output, image_pull_policy) -> None:
 @click.option("-e", "--env", "env", type=str, default="base", help="Environment to use.")
 @click.option("--image-pull-policy", type=str, default="IfNotPresent", help="Image pull policy.")
 def upload_pipeline(image, pipeline, env, output, image_pull_policy) -> None:
-    """Uploads pipeline to Kubeflow"""
+    """Uploads pipeline to Kubeflow server"""
     conf = config()
     run_conf = conf.get("run_config", {})
     image = image if image else run_conf['image']

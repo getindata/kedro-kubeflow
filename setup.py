@@ -5,14 +5,23 @@ from setuptools import find_packages, setup
 with open("README.md") as f:
     readme = f.read()
 
+
+def _parse_requirements(path, encoding="utf-8"):
+    with open(path, mode="r", encoding=encoding) as file_handler:
+        requirements = [
+            x.strip() for x in file_handler if x.strip() and not x.startswith("-r")
+        ]
+    return requirements
+
 # Runtime Requirements.
-install_requires = ["kedro", "click", "kfp", "tabulate"]
+install_requires = _parse_requirements("requirements.txt")
 
 # Dev Requirements
 extra_require = {
-    "test": ["pytest", "pytest-cov"],
-    "dev": ["pytest", "pytest-cov", "pre-commit"],
+    "test": _parse_requirements("requirements-dev.txt"),
+    "dev": _parse_requirements("requirements-dev.txt"),
 }
+
 
 
 setup(
@@ -21,6 +30,7 @@ setup(
     description="Kedro plugin with Kubeflow support",
     long_description=readme,
     long_description_content_type="text/markdown",
+    license="Apache Software License (Apache 2.0)",
     python_requires=">=3",
     classifiers=[
         "Programming Language :: Python :: 3.6",
@@ -31,7 +41,7 @@ setup(
     author=u"Mateusz Pytel",
     author_email="mateusz@getindata.com",
     url="getindata.com",
-    packages=find_packages(exclude=["ez_setup", "examples", "tests"]),
+    packages=find_packages(exclude=["ez_setup", "examples", "tests", "docs"]),
     include_package_data=True,
     zip_safe=False,
     install_requires=install_requires,
