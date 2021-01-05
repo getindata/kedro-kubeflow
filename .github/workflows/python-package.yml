@@ -34,9 +34,10 @@ jobs:
     name: coverage
     runs-on: ubuntu-latest
     steps:
-    - uses: paambaati/codeclimate-action@v2.5.2
+    - uses: paambaati/codeclimate-action@v2.7.5
       env:
         CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE }}
       with:
         coverageCommand: coverage xml
         debug: true
+        coverageLocations: .coverage:coverage.py
