@@ -6,7 +6,7 @@ with open("README.md") as f:
     readme = f.read()
 
 # Runtime Requirements.
-install_requires = ["kedro", "click", "kfp", "tabulate"]
+install_requires = ["kedro>=0.16,<=0.18", "click", "kfp", "tabulate"]
 
 # Dev Requirements
 extra_require = {
@@ -17,7 +17,7 @@ extra_require = {
 
 setup(
     name="kedro-kubeflow",
-    version="0.1.6",
+    version="0.1.7",
     description="Kedro plugin with Kubeflow support",
     long_description=readme,
     long_description_content_type="text/markdown",
@@ -37,6 +37,7 @@ setup(
     install_requires=install_requires,
     extras_require=extra_require,
     entry_points={
-        "kedro.project_commands": ["kubeflow = kedro_kubeflow.plugin:commands"]
+        "kedro.project_commands": ["kubeflow = kedro_kubeflow.plugin:commands"],
+        "kedro.global_commands": ["kubeflow = kedro_kubeflow.plugin:commands"]
     },
 )
