@@ -16,6 +16,7 @@ jobs:
       uses: actions/setup-python@v2.2.1
       with:
         python-version: 3.7
+
     - name: Setup virtualenv
       run: |
         python -V
@@ -25,19 +26,15 @@ jobs:
    
     - name: Test with tox
       run: |
-        python -m pip install flake8 tox
+        python -m pip install flake8 tox coverage
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         tox -e py37
 
-  coverage:
-    needs: [ build ]
-    name: coverage
-    runs-on: ubuntu-latest
-    steps:
-    - uses: paambaati/codeclimate-action@v2.7.5
+    - name: Report coverage
+      uses: paambaati/codeclimate-action@v2.7.5
       env:
         CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE }}
       with:
         coverageCommand: coverage xml
         debug: true
-        coverageLocations: .coverage:coverage.py
+        coverageLocations: coverage.xml:coverage.py
