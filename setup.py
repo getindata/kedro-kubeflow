@@ -1,28 +1,18 @@
 """kedro_kubeflow module."""
 
 from setuptools import find_packages, setup
-
+import os
 with open("README.md") as f:
     readme = f.read()
-
-
-def _parse_requirements(path, encoding="utf-8"):
-    with open(path, mode="r", encoding=encoding) as file_handler:
-        requirements = [
-            x.strip() for x in file_handler if x.strip() and not x.startswith("-r")
-        ]
-    return requirements
 
 # Runtime Requirements.
 install_requires = ["kedro>=0.16,<=0.18", "click", "kfp", "tabulate"]
 
 # Dev Requirements
 extra_require = {
-    "test": _parse_requirements("requirements-dev.txt"),
-    "dev": _parse_requirements("requirements-dev.txt"),
+    "test": ["pytest", "pytest-cov"],
+    "dev": ["pytest", "pytest-cov", "pre-commit"],
 }
-
-
 
 setup(
     name="kedro-kubeflow",
