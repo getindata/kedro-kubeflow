@@ -1,13 +1,32 @@
 import click
 
 from semver import VersionInfo
-from kedro.framework.cli import get_project_context
+from kedro import __version__ as kedro_version
 from kedro.config import MissingConfigException
-from kedro.framework.session import KedroSession
 from .kfpclient import KubeflowClient
 
-CONFIG_FILE_PATTERN = "kubeflow*"
+KEDRO_VERSION = VersionInfo.parse(kedro_version)
 
+if KEDRO_VERSION.match(">=0.17.0"):
+    from kedro.framework.session import KedroSession
+
+    def get_context(metadata, env):
+        return KedroSession.create(metadata.package_name, env=env).load_context()
+
+    def get_project_name(metadata, env):
+        return metadata.project_name
+else: # <0.17
+    from kedro.framework.context import load_context
+    from pathlib import Path
+
+    def get_context(metadata, env):
+        return load_context(Path.cwd(), env=env)
+
+    def get_project_name(metadata, env):
+        return get_context(metadata, env).project_name
+
+
+CONFIG_FILE_PATTERN = "kubeflow*"
 
 @click.group("Kubeflow")
 def commands():
@@ -21,12 +40,13 @@ def commands():
 def kubeflow_group(ctx, metadata, env):
     """Interact with Kubeflow Pipelines"""
     ctx.ensure_object(dict)
-    ctx.obj['kedro_ctx'] = KedroSession.create(metadata.package_name, env=env).load_context()
+    ctx.obj['kedro_ctx'] = get_context(metadata, env)
     ctx.obj['config'] = ctx.obj['kedro_ctx'].config_loader.get(CONFIG_FILE_PATTERN)
     if 'host' not in ctx.obj['config'].keys():
         raise MissingConfigException("No 'host' defined in kubeflow.yml")
 
-    ctx.obj['kfp_client'] = KubeflowClient(ctx.obj['config'], metadata.project_name, ctx.obj['kedro_ctx'])
+    ctx.obj['kfp_client'] = KubeflowClient(ctx.obj['config'], get_project_name(metadata, env), ctx.obj['kedro_ctx'])
+
 
 @kubeflow_group.command()
 @click.pass_context

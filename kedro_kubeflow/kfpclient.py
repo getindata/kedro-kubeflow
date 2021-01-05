@@ -28,6 +28,7 @@ class KubeflowClient(object):
         self.client = Client(self.host, existing_token=token)
         self.project_name = project_name
         self.context = context
+        dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
 
     def list_pipelines(self):
         pipelines = self.client.list_pipelines(page_size=30).pipelines
@@ -96,7 +97,6 @@ class KubeflowClient(object):
                     command=["kedro"],
                     arguments=["run", "--node", node.name],
                 )
-
                 kfp_ops[node.name].container.add_env_variable(env)
                 kfp_ops[node.name].container.set_image_pull_policy(image_pull_policy)
 
