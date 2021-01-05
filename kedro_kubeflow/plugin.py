@@ -92,6 +92,7 @@ def ui(ctx) -> None:
 @click.option("--image-pull-policy", type=str, default="IfNotPresent", help="Image pull policy.")
 @click.pass_context
 def compile(ctx, image, pipeline, output, image_pull_policy) -> None:
+    """Translates Kedro pipeline into YAML file with Kubeflow Pipeline definition"""
     conf = ctx.obj['config']
     run_conf = conf.get("run_config", {})
     image = image if image else run_conf['image']
@@ -104,7 +105,7 @@ def compile(ctx, image, pipeline, output, image_pull_policy) -> None:
 @click.option("--image-pull-policy", type=str, default="IfNotPresent", help="Image pull policy.")
 @click.pass_context
 def upload_pipeline(ctx, image, pipeline, image_pull_policy) -> None:
-    """Uploads pipeline to Kubeflow"""
+    """Uploads pipeline to Kubeflow server"""
     conf = ctx.obj['config']
     run_conf = conf.get("run_config", {})
     image = image if image else run_conf['image']
