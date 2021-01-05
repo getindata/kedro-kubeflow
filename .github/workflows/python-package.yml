@@ -28,3 +28,15 @@ jobs:
         python -m pip install flake8 tox
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         tox -e py37
+
+  coverage:
+    needs: [ build ]
+    name: coverage
+    runs-on: ubuntu-latest
+    steps:
+    - uses: paambaati/codeclimate-action@v2.5.2
+      env:
+        CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE }}
+      with:
+        coverageCommand: coverage xml
+        debug: true

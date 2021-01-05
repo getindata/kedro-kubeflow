@@ -23,7 +23,7 @@ setup(
     license="Apache Software License (Apache 2.0)",
     python_requires=">=3",
     classifiers=[
-        "Programming Language :: Python :: 3.6",
+        "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
