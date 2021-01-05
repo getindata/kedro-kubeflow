@@ -105,7 +105,7 @@ class TestKubeflowClient(unittest.TestCase):
         with kfp.dsl.Pipeline(None) as dsl_pipeline:
             args[0]()
 
-        assert dsl_pipeline.ops["node1"].image == "unittest-image"
+        assert dsl_pipeline.ops["node1"].container.image == "unittest-image"
         assert dsl_pipeline.ops["node1"].container.image_pull_policy == "IfNotPresent"
 
     def test_should_run_pipeline_and_wait(self):
@@ -215,7 +215,7 @@ class TestKubeflowClient(unittest.TestCase):
         with kfp.dsl.Pipeline(None) as dsl_pipeline:
             args[0]()
 
-        assert dsl_pipeline.ops["node1"].image == "unittest-image"
+        assert dsl_pipeline.ops["node1"].container.image == "unittest-image"
         assert dsl_pipeline.ops["node1"].container.image_pull_policy == "Never"
 
     def test_should_compile_pipeline_with_modified_pull_policy(self):
