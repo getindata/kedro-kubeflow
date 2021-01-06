@@ -91,13 +91,13 @@ class KubeflowClient(object):
                 resource_name="data-volume",
                 size=self.volume_meta.get('size', '1Gi'),
                 modes=self.volume_meta.get('accessModes', ['ReadWriteMany']),
-                storage_class=self.volume_meta.get('storage_class', 'default'),
+                storage_class=self.volume_meta.get('storage_class'),
             )
             volume_init = dsl.ContainerOp(
                 name='data-volume-init',
                 image=image,
                 command=["sh", "-c"],
-                arguments=["cp --verbose -r /home/kedro/data/* /home/kedro/datavolume"],
+                arguments=[" ".join(["cp", "--verbose", "-r", "/home/kedro/data/*", "/home/kedro/datavolume"])],
                 pvolumes={"/home/kedro/datavolume": vop.volume}
             )
             volume_init.container.set_image_pull_policy(image_pull_policy)

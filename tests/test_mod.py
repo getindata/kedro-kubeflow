@@ -369,24 +369,32 @@ class TestKubeflowClient(unittest.TestCase):
             args[0]()
 
         assert len(dsl_pipeline.ops) == 4
-        volume_spec = dsl_pipeline.ops['data-volume-create'].k8s_resource.spec
-        assert volume_spec.resources.requests['storage'] == '1Gi'
-        assert volume_spec.access_modes == ['ReadWriteMany']
-        assert volume_spec.storage_class_name == 'default'
+        volume_spec = dsl_pipeline.ops["data-volume-create"].k8s_resource.spec
+        assert volume_spec.resources.requests["storage"] == "1Gi"
+        assert volume_spec.access_modes == ["ReadWriteMany"]
+        assert volume_spec.storage_class_name is None
         volume_init_spec = dsl_pipeline.ops["data-volume-init"].container
-        assert volume_init_spec.image == 'unittest-image'
-        assert volume_init_spec.image_pull_policy == 'IfNotPresent'
-        assert volume_init_spec.args[0].startswith('cp --verbose -r')
-        for node in ['data-volume-init', 'node1', 'node2']:
+        assert volume_init_spec.image == "unittest-image"
+        assert volume_init_spec.image_pull_policy == "IfNotPresent"
+        assert volume_init_spec.args[0].startswith("cp --verbose -r")
+        for node in ["data-volume-init", "node1", "node2"]:
             volumes = dsl_pipeline.ops[node].container.volume_mounts
             assert len(volumes) == 1
-            assert volumes[0].name == 'data-volume-create'
+            assert volumes[0].name == "data-volume-create"
 
     def test_should_support_inter_steps_volume_with_given_spec(self):
         # given
         run_mock = unittest.mock.MagicMock()
         self.kfp_client_mock.create_run_from_pipeline_func.return_value = run_mock
-        self.create_client({"volume": {'storage_class': 'nfs', 'size': '1Mi', 'accessModes': ['ReadWriteOnce']}})
+        self.create_client(
+            {
+                "volume": {
+                    "storage_class": "nfs",
+                    "size": "1Mi",
+                    "accessModes": ["ReadWriteOnce"],
+                }
+            }
+        )
 
         # when
         self.client_under_test.run_once(
@@ -411,10 +419,10 @@ class TestKubeflowClient(unittest.TestCase):
             args[0]()
 
         assert len(dsl_pipeline.ops) == 4
-        volume_spec = dsl_pipeline.ops['data-volume-create'].k8s_resource.spec
-        assert volume_spec.resources.requests['storage'] == '1Mi'
-        assert volume_spec.access_modes == ['ReadWriteOnce']
-        assert volume_spec.storage_class_name == 'nfs'
+        volume_spec = dsl_pipeline.ops["data-volume-create"].k8s_resource.spec
+        assert volume_spec.resources.requests["storage"] == "1Mi"
+        assert volume_spec.access_modes == ["ReadWriteOnce"]
+        assert volume_spec.storage_class_name == "nfs"
 
     def tearDown(self):
         os.environ["IAP_CLIENT_ID"] = ""
