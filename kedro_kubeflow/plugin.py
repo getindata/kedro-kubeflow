@@ -153,7 +153,7 @@ def init(ctx, kfp_url: str, experiment_name: str):
     |  volume:
     |    storageclass: # default
     |    #size: 1Gi
-    |    #access_modes: [ReadWriteMnce]
+    |    #access_modes: [ReadWriteOnce]
     """
     config_path = Path.cwd().joinpath('conf/base/kubeflow.yaml')
     with open(config_path, 'w') as f:
