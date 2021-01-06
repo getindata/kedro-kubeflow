@@ -391,7 +391,7 @@ class TestKubeflowClient(unittest.TestCase):
                 "volume": {
                     "storage_class": "nfs",
                     "size": "1Mi",
-                    "accessModes": ["ReadWriteOnce"],
+                    "access_modes": ["ReadWriteOnce"],
                 }
             }
         )
