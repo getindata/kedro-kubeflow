@@ -89,9 +89,9 @@ class KubeflowClient(object):
             vop = dsl.VolumeOp(
                 name="data-volume-create",
                 resource_name="data-volume",
-                size=self.volume_meta.get('size'),
-                modes=self.volume_meta.get('accessModes'),
-                storage_class=self.volume_meta.get('storage_class'),
+                size=self.volume_meta.get('size', '1Gi'),
+                modes=self.volume_meta.get('accessModes', ['ReadWriteMany']),
+                storage_class=self.volume_meta.get('storage_class', 'default'),
             )
             volume_init = dsl.ContainerOp(
                 name='data-volume-init',
