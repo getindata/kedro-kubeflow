@@ -93,13 +93,18 @@ class KubeflowClient(object):
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
         @dsl.pipeline(
-            name=self.project_name, description="Kubeflow pipeline for Kedro project"
+            name=self.project_name,
+            description="Kubeflow pipeline for Kedro project",
         )
         def convert_kedro_pipeline_to_kfp() -> None:
             """Convert from a Kedro pipeline into a kfp container graph."""
 
-            node_volumes = _setup_volumes() if self.volume_meta is not None else {}
-            node_dependencies = self.context.pipelines.get(pipeline).node_dependencies
+            node_volumes = (
+                _setup_volumes() if self.volume_meta is not None else {}
+            )
+            node_dependencies = self.context.pipelines.get(
+                pipeline
+            ).node_dependencies
             kfp_ops = _build_kfp_ops(node_dependencies, node_volumes)
             for node, dependencies in node_dependencies.items():
                 for dependency in dependencies:
@@ -139,7 +144,9 @@ class KubeflowClient(object):
             """Build kfp container graph from Kedro node dependencies. """
             kfp_ops = {}
 
-            env = V1EnvVar(name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, ""))
+            env = V1EnvVar(
+                name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
+            )
 
             for node in node_dependencies:
                 name = _clean_name(node.name)
@@ -151,13 +158,17 @@ class KubeflowClient(object):
                     pvolumes=node_volumes,
                 )
                 kfp_ops[node.name].container.add_env_variable(env)
-                kfp_ops[node.name].container.set_image_pull_policy(image_pull_policy)
+                kfp_ops[node.name].container.set_image_pull_policy(
+                    image_pull_policy
+                )
 
             return kfp_ops
 
         return convert_kedro_pipeline_to_kfp
 
-    def compile(self, pipeline, image, output, image_pull_policy="IfNotPresent"):
+    def compile(
+        self, pipeline, image, output, image_pull_policy="IfNotPresent"
+    ):
         Compiler().compile(
             self.generate_pipeline(pipeline, image, image_pull_policy), output
         )
@@ -197,7 +208,11 @@ class KubeflowClient(object):
                 filter=json.dumps(
                     {
                         "predicates": [
-                            {"key": "name", "op": 1, "string_value": pipeline_name}
+                            {
+                                "key": "name",
+                                "op": 1,
+                                "string_value": pipeline_name,
+                            }
                         ]
                     }
                 )
@@ -206,7 +221,9 @@ class KubeflowClient(object):
             .id
         )
 
-    def _upload_pipeline_version(self, pipeline_func, pipeline_id, pipeline_name):
+    def _upload_pipeline_version(
+        self, pipeline_func, pipeline_id, pipeline_name
+    ):
         version_name = f"{_clean_name(pipeline_name)}-{uuid.uuid4()}"[:100]
         with NamedTemporaryFile(suffix=".yaml") as f:
             Compiler().compile(pipeline_func, f.name)
@@ -224,7 +241,9 @@ class KubeflowClient(object):
 
     def _ensure_experiment_exists(self, experiment_name):
         try:
-            experiment = self.client.get_experiment(experiment_name=experiment_name)
+            experiment = self.client.get_experiment(
+                experiment_name=experiment_name
+            )
             self.log.info(f"Existing experiment found: {experiment.id}")
         except:
             experiment = self.client.create_experiment(experiment_name)
@@ -248,7 +267,9 @@ class KubeflowClient(object):
         runs = self.client.list_recurring_runs(experiment_id=experiment_id)
         if runs.jobs is not None:
             my_runs = [
-                job for job in runs.jobs if job.pipeline_spec.pipeline_id == pipeline_id
+                job
+                for job in runs.jobs
+                if job.pipeline_spec.pipeline_id == pipeline_id
             ]
             for job in my_runs:
                 self.client.jobs.delete_job(job.id)
