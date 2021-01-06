@@ -29,6 +29,7 @@ class KubeflowClient(object):
         self.project_name = project_name
         self.context = context
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
+        self.volume_meta = config.get('run_config', {}).get('volume')
 
     def list_pipelines(self):
         pipelines = self.client.list_pipelines(page_size=30).pipelines
@@ -77,13 +78,32 @@ class KubeflowClient(object):
         def convert_kedro_pipeline_to_kfp() -> None:
             """Convert from a Kedro pipeline into a kfp container graph."""
 
+            node_volumes = _setup_volumes() if self.volume_meta is not None else {}
             node_dependencies = self.context.pipelines.get(pipeline).node_dependencies
-            kfp_ops = _build_kfp_ops(node_dependencies)
+            kfp_ops = _build_kfp_ops(node_dependencies, node_volumes)
             for node, dependencies in node_dependencies.items():
                 for dependency in dependencies:
                     kfp_ops[node.name].after(kfp_ops[dependency.name])
 
-        def _build_kfp_ops(node_dependencies: Dict[Node, Set[Node]]) -> Dict[str, dsl.ContainerOp]:
+        def _setup_volumes():
+            vop = dsl.VolumeOp(
+                name="data-volume-create",
+                resource_name="data-volume",
+                size=self.volume_meta.get('size'),
+                modes=self.volume_meta.get('accessModes'),
+                storage_class=self.volume_meta.get('storage_class'),
+            )
+            volume_init = dsl.ContainerOp(
+                name='data-volume-init',
+                image=image,
+                command=["sh", "-c"],
+                arguments=["cp --verbose -r /home/kedro/data/* /home/kedro/datavolume"],
+                pvolumes={"/home/kedro/datavolume": vop.volume}
+            )
+            volume_init.container.set_image_pull_policy(image_pull_policy)
+            return {"/home/kedro/data": volume_init.pvolume}
+
+        def _build_kfp_ops(node_dependencies: Dict[Node, Set[Node]], node_volumes: Dict) -> Dict[str, dsl.ContainerOp]:
             """Build kfp container graph from Kedro node dependencies. """
             kfp_ops = {}
 
@@ -96,6 +116,7 @@ class KubeflowClient(object):
                     image=image,
                     command=["kedro"],
                     arguments=["run", "--node", node.name],
+                    pvolumes=node_volumes,
                 )
                 kfp_ops[node.name].container.add_env_variable(env)
                 kfp_ops[node.name].container.set_image_pull_policy(image_pull_policy)
