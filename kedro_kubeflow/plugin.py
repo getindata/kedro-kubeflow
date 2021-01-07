@@ -1,36 +1,8 @@
 from pathlib import Path
 
 import click
-from kedro import __version__ as kedro_version
-from kedro.config import MissingConfigException
-from semver import VersionInfo
-
-from .kfpclient import KubeflowClient
+from context_helper import ContextHelper
 from .utils import strip_margin
-
-KEDRO_VERSION = VersionInfo.parse(kedro_version)
-
-if KEDRO_VERSION.match(">=0.17.0"):
-    from kedro.framework.session import KedroSession
-
-    def get_context(metadata, env):
-        return KedroSession.create(
-            metadata.package_name, env=env
-        ).load_context()
-
-    def get_project_name(metadata, env):
-        return metadata.project_name
-
-
-else:  # <0.17
-    from kedro.framework.context import load_context
-
-    def get_context(metadata, env):
-        return load_context(Path.cwd(), env=env)
-
-    def get_project_name(metadata, env):
-        return get_context(metadata, env).project_name
-
 
 CONFIG_FILE_PATTERN = "kubeflow*"
 
@@ -52,28 +24,15 @@ def commands():
 def kubeflow_group(ctx, metadata, env):
     """Interact with Kubeflow Pipelines"""
     ctx.ensure_object(dict)
-    ctx.obj["kedro_ctx"] = get_context(metadata, env)
-    ctx.obj["project_name"] = get_project_name(metadata, env)
-
-
-def setup_context(ctx):
-    ctx.obj["config"] = ctx.obj["kedro_ctx"].config_loader.get(
-        CONFIG_FILE_PATTERN
-    )
-    if "host" not in ctx.obj["config"].keys():
-        raise MissingConfigException("No 'host' defined in kubeflow.yml")
-
-    ctx.obj["kfp_client"] = KubeflowClient(
-        ctx.obj["config"], ctx.obj["project_name"], ctx.obj["kedro_ctx"]
-    )
+    ctx.obj["context_helper"] = ContextHelper.init(metadata, env)
 
 
 @kubeflow_group.command()
 @click.pass_context
 def list_pipelines(ctx):
     """List deployed pipeline definitions"""
-    setup_context(ctx)
-    click.echo(ctx.obj["kfp_client"].list_pipelines())
+    ch = ctx.obj["context_helper"]
+    click.echo(ch.kfp_client.list_pipelines())
 
 
 @kubeflow_group.command()
@@ -120,8 +79,8 @@ def run_once(
 ):
     """Deploy pipeline as a single run within given experiment.
     Config can be specified in kubeflow.yml as well."""
-    setup_context(ctx)
-    conf = ctx.obj["config"]
+    ch = ctx.obj["context_helper"]
+    conf = ch.config
     run_conf = conf.get("run_config", {})
     image = image if image else run_conf["image"]
     experiment_name = (
@@ -131,7 +90,7 @@ def run_once(
     wait = wait if wait is not None else bool(run_conf["wait_for_completion"])
     image_pull_policy = run_conf.get("image_pull_policy", image_pull_policy)
 
-    ctx.obj["kfp_client"].run_once(
+    ch.kfp_client.run_once(
         pipeline, image, experiment_name, run_name, wait, image_pull_policy
     )
 
@@ -140,10 +99,8 @@ def run_once(
 @click.pass_context
 def ui(ctx) -> None:
     """Open Kubeflow Pipelines UI in new browser tab"""
-    setup_context(ctx)
     import webbrowser
-
-    host = ctx.obj["config"]["host"]
+    host = ctx.obj["config_helper"].config["host"]
     webbrowser.open_new_tab(host)
 
 
@@ -178,11 +135,11 @@ def ui(ctx) -> None:
 @click.pass_context
 def compile(ctx, image, pipeline, output, image_pull_policy) -> None:
     """Translates Kedro pipeline into YAML file with Kubeflow Pipeline definition"""
-    setup_context(ctx)
-    conf = ctx.obj["config"]
+    ch = ctx.obj["context_helper"]
+    conf = ch.config
     run_conf = conf.get("run_config", {})
     image = image if image else run_conf["image"]
-    ctx.obj["kfp_client"].compile(pipeline, image, output, image_pull_policy)
+    ch.kfp_client.compile(pipeline, image, output, image_pull_policy)
 
 
 @kubeflow_group.command()
@@ -209,11 +166,11 @@ def compile(ctx, image, pipeline, output, image_pull_policy) -> None:
 @click.pass_context
 def upload_pipeline(ctx, image, pipeline, image_pull_policy) -> None:
     """Uploads pipeline to Kubeflow server"""
-    setup_context(ctx)
-    conf = ctx.obj["config"]
+    ch = ctx.obj["context_helper"]
+    conf = ch.config
     run_conf = conf.get("run_config", {})
     image = image if image else run_conf["image"]
-    ctx.obj["kfp_client"].upload(pipeline, image, image_pull_policy)
+    ch.kfp_client.upload(pipeline, image, image_pull_policy)
 
 
 @kubeflow_group.command()
@@ -234,14 +191,14 @@ def upload_pipeline(ctx, image, pipeline, image_pull_policy) -> None:
 @click.pass_context
 def schedule(ctx, experiment_name: str, cron_expression: str):
     """Schedules recurring execution of latest version of the pipeline"""
-    setup_context(ctx)
-    conf = ctx.obj["config"]
+    ch = ctx.obj["context_helper"]
+    conf = ch.config
     run_conf = conf.get("run_config", {})
     experiment_name = (
         experiment_name if experiment_name else run_conf["experiment_name"]
     )
 
-    ctx.obj["kfp_client"].schedule(experiment_name, cron_expression)
+    ch.kfp_client.schedule(experiment_name, cron_expression)
 
 
 @kubeflow_group.command()
@@ -255,16 +212,17 @@ def schedule(ctx, experiment_name: str, cron_expression: str):
     default="default",
 )
 @click.pass_context
-def init(ctx, kfp_url: str, experiment_name: str):
+def init(ctx, kfp_url: str):
     """Initializes configuration for the plugin"""
-    image = ctx.obj["kedro_ctx"].project_path.name  # default from kedro-docker
+    ch = ctx.obj["context_helper"]
+    image = ch.project_path.name  # default from kedro-docker
     config = f"""
     |host: {kfp_url}
     |
     |run_config:
     |  image: {image}
-    |  experiment_name: {ctx.obj['project_name']}
-    |  run_name: {ctx.obj['project_name']}
+    |  experiment_name: {ch.project_name}
+    |  run_name: {ch.project_name}
     |  wait_for_completion: False
     |  volume:
     |    storageclass: # default

@@ -1,0 +1,4 @@
+run_config:
+  image: "gcr.io/kedro-project-image/${commit_id|dirty}"
+  experiment_name: "[Test] ${branch_name|local}"
+  run_name: "${commit_id|dirty}"
