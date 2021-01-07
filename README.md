@@ -28,9 +28,29 @@ Usage: kedro kubeflow [OPTIONS] COMMAND [ARGS]...
  
  Commands:
    compile          Translates Kedro pipeline into YAML file with Kubeflow pipeline definition
+   init             Initializes configuration for the plugin
    list-pipelines   List deployed pipeline definitions
    run-once         Deploy pipeline as a single run within given experiment.
    schedule         Schedules recurring execution of latest version of the pipeline
    ui               Open Kubeflow Pipelines UI in new browser tab
    upload-pipeline  Uploads pipeline to Kubeflow server
+```
+
+## Configuration file
+
+`kedro init` generates configuration file for the plugin, but users may want
+to adjust it to the requirements of the environment:
+
+```
+host: http://10.43.77.224
+
+run_config:
+  image: new-kedro-project
+  experiment_name: New Kedro Project
+  run_name: New Kedro Project
+  wait_for_completion: False
+  volume:
+    storageclass: # default
+    size: 1Gi
+    access_modes: [ReadWriteOnce]
 ```
