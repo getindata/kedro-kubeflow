@@ -2,13 +2,15 @@
 
 ## [Unreleased]
 
+- Support for inter-steps volume: setup (one volume per pipeline run), initial load (the content of `data/` directory from the image and mount to all the steps for artifacts passing.
+
 ## [0.1.8] - 2021-01-05
 
 ### Added
 
 -   *Initial release* of kedro-kubeflow plugin
 -   Ability to run an anonymous pipeline once as within a specified experiment `kedro kubeflow run-once`.
--   Ability to upload pipeline `kedro kubeflow upload`.
+-   Ability to upload pipeline `kedro kubeflow upload-pipeline`.
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
