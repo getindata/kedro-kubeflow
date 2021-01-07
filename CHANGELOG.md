@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Support for inter-steps volume: setup (one volume per pipeline run), initial load (the content of `data/` directory from the image and mount to all the steps for artifacts passing.
+- `kubeflow init` command added to generate sample configuration file.
 
 ## [0.1.8] - 2021-01-05
 
