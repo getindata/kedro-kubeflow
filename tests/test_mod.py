@@ -105,6 +105,7 @@ class TestKubeflowClient(unittest.TestCase):
         with kfp.dsl.Pipeline(None) as dsl_pipeline:
             args[0]()
 
+        assert len(dsl_pipeline.ops) == 2
         assert dsl_pipeline.ops["node1"].container.image == "unittest-image"
         assert dsl_pipeline.ops["node1"].container.image_pull_policy == "IfNotPresent"
 
@@ -339,16 +340,104 @@ class TestKubeflowClient(unittest.TestCase):
         self.kfp_client_mock.pipeline_uploads.upload_pipeline.assert_not_called()
         self.kfp_client_mock.pipeline_uploads.upload_pipeline_version.assert_called()
 
+    def test_should_support_inter_steps_volume_with_defauls(self):
+        # given
+        run_mock = unittest.mock.MagicMock()
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = run_mock
+        self.create_client({"volume": {}})
+
+        # when
+        self.client_under_test.run_once(
+            run_name="unittest",
+            pipeline="pipeline",
+            image="unittest-image",
+            experiment_name="experiment",
+            wait=False,
+        )
+
+        # then
+        self.kfp_client_mock.create_run_from_pipeline_func.assert_called()
+        run_mock.wait_for_run_completion.assert_not_called()
+        args, kwargs = self.kfp_client_mock.create_run_from_pipeline_func.call_args
+        assert kwargs == {
+            "arguments": {},
+            "experiment_name": "experiment",
+            "run_name": "unittest",
+        }
+
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            args[0]()
+
+        assert len(dsl_pipeline.ops) == 4
+        volume_spec = dsl_pipeline.ops["data-volume-create"].k8s_resource.spec
+        assert volume_spec.resources.requests["storage"] == "1Gi"
+        assert volume_spec.access_modes == ["ReadWriteMany"]
+        assert volume_spec.storage_class_name is None
+        volume_init_spec = dsl_pipeline.ops["data-volume-init"].container
+        assert volume_init_spec.image == "unittest-image"
+        assert volume_init_spec.image_pull_policy == "IfNotPresent"
+        assert volume_init_spec.args[0].startswith("cp --verbose -r")
+        for node in ["data-volume-init", "node1", "node2"]:
+            volumes = dsl_pipeline.ops[node].container.volume_mounts
+            assert len(volumes) == 1
+            assert volumes[0].name == "data-volume-create"
+
+    def test_should_support_inter_steps_volume_with_given_spec(self):
+        # given
+        run_mock = unittest.mock.MagicMock()
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = run_mock
+        self.create_client(
+            {
+                "volume": {
+                    "storage_class": "nfs",
+                    "size": "1Mi",
+                    "access_modes": ["ReadWriteOnce"],
+                }
+            }
+        )
+
+        # when
+        self.client_under_test.run_once(
+            run_name="unittest",
+            pipeline="pipeline",
+            image="unittest-image",
+            experiment_name="experiment",
+            wait=False,
+        )
+
+        # then
+        self.kfp_client_mock.create_run_from_pipeline_func.assert_called()
+        run_mock.wait_for_run_completion.assert_not_called()
+        args, kwargs = self.kfp_client_mock.create_run_from_pipeline_func.call_args
+        assert kwargs == {
+            "arguments": {},
+            "experiment_name": "experiment",
+            "run_name": "unittest",
+        }
+
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            args[0]()
+
+        assert len(dsl_pipeline.ops) == 4
+        volume_spec = dsl_pipeline.ops["data-volume-create"].k8s_resource.spec
+        assert volume_spec.resources.requests["storage"] == "1Mi"
+        assert volume_spec.access_modes == ["ReadWriteOnce"]
+        assert volume_spec.storage_class_name == "nfs"
+
     def tearDown(self):
         os.environ["IAP_CLIENT_ID"] = ""
 
     @patch("kedro_kubeflow.kfpclient.Client")
-    def setUp(self, kfp_client_mock):
+    def create_client(self, config, kfp_client_mock):
         project_name = "my-awesome-project"
         context = type(
             "obj", (object,), {"pipelines": {"pipeline": self.create_pipeline()}},
         )
         self.client_under_test = KubeflowClient(
-            {"host": "http://unittest"}, project_name, context
+            {"host": "http://unittest", "run_config": config}, project_name, context
         )
+        self.client_under_test.client = kfp_client_mock
         self.kfp_client_mock = self.client_under_test.client
+
+    def setUp(self):
+        self.create_client({})
