@@ -29,6 +29,13 @@ class TestKubeflowClient(unittest.TestCase):
     def create_experiment(self, id="123"):
         return type("obj", (object,), {"id": id})
 
+    def create_empty_pipelines_list(self):
+        return type(
+            "obj",
+            (object,),
+            {"pipelines": None},
+        )
+
     def create_pipelines_list(self):
         return type(
             "obj",
@@ -288,7 +295,9 @@ class TestKubeflowClient(unittest.TestCase):
 
     def test_should_schedule_pipeline_and_create_experiment_if_needed(self):
         # given
-        self.kfp_client_mock.get_experiment.side_effect = Exception()
+        self.kfp_client_mock.get_experiment.side_effect = ValueError(
+            "No experiment is found with name ...."
+        )
         self.kfp_client_mock.create_experiment.return_value = (
             self.create_experiment()
         )
@@ -346,7 +355,9 @@ class TestKubeflowClient(unittest.TestCase):
     def test_should_upload_new_pipeline(self):
         # given
         self.kfp_client_mock.pipelines = unittest.mock.MagicMock()
-        self.kfp_client_mock.pipelines.list_pipelines.side_effect = Exception()
+        self.kfp_client_mock.pipelines.list_pipelines.return_value = (
+            self.create_empty_pipelines_list()
+        )
 
         # when
         self.client_under_test.upload(
