@@ -1,11 +1,12 @@
 import unittest
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
+
 from kedro.framework.session import KedroSession
+
 from kedro_kubeflow.context_helper import ContextHelper, ContextHelper16
 
 
 class TestContextHelper(unittest.TestCase):
-
     def test_init_different_kedro_versions(self):
 
         with patch("kedro_kubeflow.context_helper.kedro_version", "0.16.0"):
@@ -16,7 +17,8 @@ class TestContextHelper(unittest.TestCase):
         metadata = Mock()
         metadata.project_name = "test_project"
 
-        assert ContextHelper.init(metadata, "test").project_name == "test_project"
+        helper = ContextHelper.init(metadata, "test")
+        assert helper.project_name == "test_project"
 
     def test_context(self):
         metadata = Mock()
@@ -26,7 +28,8 @@ class TestContextHelper(unittest.TestCase):
 
         with patch.object(KedroSession, "create") as create:
             create().load_context.return_value = "sample_context"
-            assert ContextHelper.init(metadata, "test").context == "sample_context"
+            helper = ContextHelper.init(metadata, "test")
+            assert helper.context == "sample_context"
             create.assert_called_with("test_package", env="test")
 
     def test_config(self):
@@ -38,5 +41,3 @@ class TestContextHelper(unittest.TestCase):
             create().load_context().config_loader.get.return_value = "one"
             helper = ContextHelper.init(metadata, "test")
             assert helper.config == "one"
-
-

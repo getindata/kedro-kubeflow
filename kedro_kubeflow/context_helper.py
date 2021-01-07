@@ -1,8 +1,8 @@
 from functools import lru_cache
 from pathlib import Path
 
-from semver import VersionInfo
 from kedro import __version__ as kedro_version
+from semver import VersionInfo
 
 from .kfpclient import KubeflowClient
 
@@ -22,7 +22,10 @@ class ContextHelper(object):
     @property
     def context(self):
         from kedro.framework.session import KedroSession
-        return KedroSession.create(self._metadata.package_name, env=self._env).load_context()
+
+        return KedroSession.create(
+            self._metadata.package_name, env=self._env
+        ).load_context()
 
     @property
     @lru_cache()
@@ -53,4 +56,5 @@ class ContextHelper16(ContextHelper):
     @property
     def context(self):
         from kedro.framework.context import load_context
+
         return load_context(Path.cwd(), env=self._env)

@@ -2,6 +2,7 @@ from pathlib import Path
 
 import click
 from context_helper import ContextHelper
+
 from .utils import strip_margin
 
 CONFIG_FILE_PATTERN = "kubeflow*"
@@ -100,6 +101,7 @@ def run_once(
 def ui(ctx) -> None:
     """Open Kubeflow Pipelines UI in new browser tab"""
     import webbrowser
+
     host = ctx.obj["config_helper"].config["host"]
     webbrowser.open_new_tab(host)
 
