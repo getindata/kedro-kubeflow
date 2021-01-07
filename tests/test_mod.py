@@ -10,6 +10,7 @@ import kfp
 from google.auth.exceptions import DefaultCredentialsError
 
 from kedro_kubeflow.kfpclient import KubeflowClient
+from kedro_kubeflow.utils import strip_margin
 from kedro.pipeline import Pipeline, node
 
 
@@ -18,10 +19,6 @@ def identity(input1: str):
 
 
 class TestKubeflowClient(unittest.TestCase):
-    @staticmethod
-    def _strip_margin(text: str) -> str:
-        return re.sub("\n[ \t]*\\|", "\n", text).strip()
-
     def create_pipeline(self):
         return Pipeline(
             [
@@ -76,7 +73,7 @@ class TestKubeflowClient(unittest.TestCase):
         |Name      ID
         |--------  ------
         |somename  someid"""
-        self.assertEqual(output, TestKubeflowClient._strip_margin(expected_output))
+        self.assertEqual(output, strip_margin(expected_output))
 
     def test_should_run_pipeline_without_waiting(self):
         # given
