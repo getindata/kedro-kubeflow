@@ -1,17 +1,16 @@
 """Test kedro_kubeflow module."""
 
 import os
-import re
 import unittest
-from unittest.mock import patch
 from tempfile import NamedTemporaryFile
+from unittest.mock import patch
 
 import kfp
 from google.auth.exceptions import DefaultCredentialsError
+from kedro.pipeline import Pipeline, node
 
 from kedro_kubeflow.kfpclient import KubeflowClient
 from kedro_kubeflow.utils import strip_margin
-from kedro.pipeline import Pipeline, node
 
 
 def identity(input1: str):
@@ -36,7 +35,9 @@ class TestKubeflowClient(unittest.TestCase):
             (object,),
             {
                 "pipelines": [
-                    type("obj", (object,), {"name": "somename", "id": "someid"})
+                    type(
+                        "obj", (object,), {"name": "somename", "id": "someid"}
+                    )
                 ]
             },
         )
@@ -63,7 +64,9 @@ class TestKubeflowClient(unittest.TestCase):
 
     def test_should_list_pipelines_tabularized(self):
         # given
-        self.kfp_client_mock.list_pipelines.return_value = self.create_pipelines_list()
+        self.kfp_client_mock.list_pipelines.return_value = (
+            self.create_pipelines_list()
+        )
 
         # when
         output = self.client_under_test.list_pipelines()
@@ -78,7 +81,9 @@ class TestKubeflowClient(unittest.TestCase):
     def test_should_run_pipeline_without_waiting(self):
         # given
         run_mock = unittest.mock.MagicMock()
-        self.kfp_client_mock.create_run_from_pipeline_func.return_value = run_mock
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
 
         # when
         self.client_under_test.run_once(
@@ -92,7 +97,10 @@ class TestKubeflowClient(unittest.TestCase):
         # then
         self.kfp_client_mock.create_run_from_pipeline_func.assert_called()
         run_mock.wait_for_run_completion.assert_not_called()
-        args, kwargs = self.kfp_client_mock.create_run_from_pipeline_func.call_args
+        (
+            args,
+            kwargs,
+        ) = self.kfp_client_mock.create_run_from_pipeline_func.call_args
         assert kwargs == {
             "arguments": {},
             "experiment_name": "experiment",
@@ -104,12 +112,17 @@ class TestKubeflowClient(unittest.TestCase):
 
         assert len(dsl_pipeline.ops) == 2
         assert dsl_pipeline.ops["node1"].container.image == "unittest-image"
-        assert dsl_pipeline.ops["node1"].container.image_pull_policy == "IfNotPresent"
+        assert (
+            dsl_pipeline.ops["node1"].container.image_pull_policy
+            == "IfNotPresent"
+        )
 
     def test_should_run_pipeline_and_wait(self):
         # given
         run_mock = unittest.mock.MagicMock()
-        self.kfp_client_mock.create_run_from_pipeline_func.return_value = run_mock
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
 
         # when
         self.client_under_test.run_once(
@@ -145,7 +158,9 @@ class TestKubeflowClient(unittest.TestCase):
         fetch_id_token_mock.return_value = "unittest-token"
 
         # when
-        self.client_under_test = KubeflowClient({"host": "http://unittest"}, None, None)
+        self.client_under_test = KubeflowClient(
+            {"host": "http://unittest"}, None, None
+        )
 
         # then
         kfp_client_mock.assert_called_with(
@@ -161,7 +176,9 @@ class TestKubeflowClient(unittest.TestCase):
         os.environ["IAP_CLIENT_ID"] = "unittest-client-id"
         fetch_id_token_mock.side_effect = DefaultCredentialsError()
 
-        with self.assertLogs("kedro_kubeflow.kfpclient", level="WARNING") as cm:
+        with self.assertLogs(
+            "kedro_kubeflow.kfpclient", level="WARNING"
+        ) as cm:
             # when
             self.client_under_test = KubeflowClient(
                 {"host": "http://unittest"}, None, None
@@ -173,11 +190,15 @@ class TestKubeflowClient(unittest.TestCase):
             )
 
         # then
-        kfp_client_mock.assert_called_with("http://unittest", existing_token=None)
+        kfp_client_mock.assert_called_with(
+            "http://unittest", existing_token=None
+        )
 
     @patch("google.oauth2.id_token.fetch_id_token")
     @patch("kedro_kubeflow.kfpclient.Client")
-    def test_should_error_on_invalid_creds(self, kfp_client_mock, fetch_id_token_mock):
+    def test_should_error_on_invalid_creds(
+        self, kfp_client_mock, fetch_id_token_mock
+    ):
         # given
         os.environ["IAP_CLIENT_ID"] = "unittest-client-id"
         fetch_id_token_mock.side_effect = Exception()
@@ -191,12 +212,16 @@ class TestKubeflowClient(unittest.TestCase):
             assert "Failed to obtain IAP access token" in cm.output[0]
 
         # then
-        kfp_client_mock.assert_called_with("http://unittest", existing_token=None)
+        kfp_client_mock.assert_called_with(
+            "http://unittest", existing_token=None
+        )
 
     def test_should_modify_pull_policy_in_run(self):
         # given
         run_mock = unittest.mock.MagicMock()
-        self.kfp_client_mock.create_run_from_pipeline_func.return_value = run_mock
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
 
         # when
         self.client_under_test.run_once(
@@ -209,7 +234,10 @@ class TestKubeflowClient(unittest.TestCase):
         )
 
         # then
-        args, kwargs = self.kfp_client_mock.create_run_from_pipeline_func.call_args
+        (
+            args,
+            kwargs,
+        ) = self.kfp_client_mock.create_run_from_pipeline_func.call_args
         with kfp.dsl.Pipeline(None) as dsl_pipeline:
             args[0]()
 
@@ -234,7 +262,9 @@ class TestKubeflowClient(unittest.TestCase):
 
     def test_should_schedule_pipeline(self):
         # given
-        self.kfp_client_mock.get_experiment.return_value = self.create_experiment()
+        self.kfp_client_mock.get_experiment.return_value = (
+            self.create_experiment()
+        )
         self.kfp_client_mock.pipelines = unittest.mock.MagicMock()
         self.kfp_client_mock.pipelines.list_pipelines.return_value = (
             self.create_pipelines_list()
@@ -242,7 +272,8 @@ class TestKubeflowClient(unittest.TestCase):
 
         # when
         self.client_under_test.schedule(
-            experiment_name="EXPERIMENT", cron_expression="0 * * * * *",
+            experiment_name="EXPERIMENT",
+            cron_expression="0 * * * * *",
         )
 
         # then
@@ -258,7 +289,9 @@ class TestKubeflowClient(unittest.TestCase):
     def test_should_schedule_pipeline_and_create_experiment_if_needed(self):
         # given
         self.kfp_client_mock.get_experiment.side_effect = Exception()
-        self.kfp_client_mock.create_experiment.return_value = self.create_experiment()
+        self.kfp_client_mock.create_experiment.return_value = (
+            self.create_experiment()
+        )
         self.kfp_client_mock.pipelines = unittest.mock.MagicMock()
         self.kfp_client_mock.pipelines.list_pipelines.return_value = (
             self.create_pipelines_list()
@@ -266,7 +299,8 @@ class TestKubeflowClient(unittest.TestCase):
 
         # when
         self.client_under_test.schedule(
-            experiment_name="EXPERIMENT", cron_expression="0 * * * * *",
+            experiment_name="EXPERIMENT",
+            cron_expression="0 * * * * *",
         )
 
         # then
@@ -281,18 +315,21 @@ class TestKubeflowClient(unittest.TestCase):
 
     def test_should_disable_old_runs_before_schedule(self):
         # given
-        self.kfp_client_mock.get_experiment.return_value = self.create_experiment()
+        self.kfp_client_mock.get_experiment.return_value = (
+            self.create_experiment()
+        )
         self.kfp_client_mock.pipelines = unittest.mock.MagicMock()
         self.kfp_client_mock.pipelines.list_pipelines.return_value = (
             self.create_pipelines_list()
         )
-        self.kfp_client_mock.list_recurring_runs.return_value = self.create_recurring_jobs_list(
-            "someid"
+        self.kfp_client_mock.list_recurring_runs.return_value = (
+            self.create_recurring_jobs_list("someid")
         )
 
         # when
         self.client_under_test.schedule(
-            experiment_name="EXPERIMENT", cron_expression="0 * * * * *",
+            experiment_name="EXPERIMENT",
+            cron_expression="0 * * * * *",
         )
 
         # then
@@ -313,7 +350,9 @@ class TestKubeflowClient(unittest.TestCase):
 
         # when
         self.client_under_test.upload(
-            pipeline="pipeline", image="unittest-image", image_pull_policy="Always",
+            pipeline="pipeline",
+            image="unittest-image",
+            image_pull_policy="Always",
         )
 
         # then
@@ -330,7 +369,9 @@ class TestKubeflowClient(unittest.TestCase):
 
         # when
         self.client_under_test.upload(
-            pipeline="pipeline", image="unittest-image", image_pull_policy="Always",
+            pipeline="pipeline",
+            image="unittest-image",
+            image_pull_policy="Always",
         )
 
         # then
@@ -340,7 +381,9 @@ class TestKubeflowClient(unittest.TestCase):
     def test_should_support_inter_steps_volume_with_defauls(self):
         # given
         run_mock = unittest.mock.MagicMock()
-        self.kfp_client_mock.create_run_from_pipeline_func.return_value = run_mock
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
         self.create_client({"volume": {}})
 
         # when
@@ -355,7 +398,10 @@ class TestKubeflowClient(unittest.TestCase):
         # then
         self.kfp_client_mock.create_run_from_pipeline_func.assert_called()
         run_mock.wait_for_run_completion.assert_not_called()
-        args, kwargs = self.kfp_client_mock.create_run_from_pipeline_func.call_args
+        (
+            args,
+            kwargs,
+        ) = self.kfp_client_mock.create_run_from_pipeline_func.call_args
         assert kwargs == {
             "arguments": {},
             "experiment_name": "experiment",
@@ -374,15 +420,17 @@ class TestKubeflowClient(unittest.TestCase):
         assert volume_init_spec.image == "unittest-image"
         assert volume_init_spec.image_pull_policy == "IfNotPresent"
         assert volume_init_spec.args[0].startswith("cp --verbose -r")
-        for node in ["data-volume-init", "node1", "node2"]:
-            volumes = dsl_pipeline.ops[node].container.volume_mounts
+        for node_name in ["data-volume-init", "node1", "node2"]:
+            volumes = dsl_pipeline.ops[node_name].container.volume_mounts
             assert len(volumes) == 1
             assert volumes[0].name == "data-volume-create"
 
     def test_should_support_inter_steps_volume_with_given_spec(self):
         # given
         run_mock = unittest.mock.MagicMock()
-        self.kfp_client_mock.create_run_from_pipeline_func.return_value = run_mock
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
         self.create_client(
             {
                 "volume": {
@@ -405,7 +453,10 @@ class TestKubeflowClient(unittest.TestCase):
         # then
         self.kfp_client_mock.create_run_from_pipeline_func.assert_called()
         run_mock.wait_for_run_completion.assert_not_called()
-        args, kwargs = self.kfp_client_mock.create_run_from_pipeline_func.call_args
+        (
+            args,
+            kwargs,
+        ) = self.kfp_client_mock.create_run_from_pipeline_func.call_args
         assert kwargs == {
             "arguments": {},
             "experiment_name": "experiment",
@@ -428,10 +479,14 @@ class TestKubeflowClient(unittest.TestCase):
     def create_client(self, config, kfp_client_mock):
         project_name = "my-awesome-project"
         context = type(
-            "obj", (object,), {"pipelines": {"pipeline": self.create_pipeline()}},
+            "obj",
+            (object,),
+            {"pipelines": {"pipeline": self.create_pipeline()}},
         )
         self.client_under_test = KubeflowClient(
-            {"host": "http://unittest", "run_config": config}, project_name, context
+            {"host": "http://unittest", "run_config": config},
+            project_name,
+            context,
         )
         self.client_under_test.client = kfp_client_mock
         self.kfp_client_mock = self.client_under_test.client

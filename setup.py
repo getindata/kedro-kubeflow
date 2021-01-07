@@ -37,7 +37,9 @@ setup(
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRA_REQUIRE,
     entry_points={
-        "kedro.project_commands": ["kubeflow = kedro_kubeflow.plugin:commands"],
-        "kedro.global_commands": ["kubeflow = kedro_kubeflow.plugin:commands"]
+        "kedro.project_commands": [
+            "kubeflow = kedro_kubeflow.plugin:commands"
+        ],
+        "kedro.global_commands": ["kubeflow = kedro_kubeflow.plugin:commands"],
     },
 )

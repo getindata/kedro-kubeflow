@@ -25,6 +25,11 @@ jobs:
         virtualenv venv
         source venv/bin/activate
    
+    - name: Check pre-commit status
+      run: |
+        python -m pip install pre-commit
+        pre-commit run --all-files
+
     - name: Test with tox
       run: |
         python -m pip install flake8 tox coverage

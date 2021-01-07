@@ -1,18 +1,16 @@
-import re
-import os
-import logging
 import json
+import logging
+import os
+import re
 import uuid
-from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import Dict, Set
 
+from kedro.pipeline.node import Node
 from kfp import Client, dsl
 from kfp.compiler import Compiler
 from kubernetes.client import V1EnvVar
 from tabulate import tabulate
-from typing import Dict, Set
-from kedro.pipeline.node import Node
-
 
 IAP_CLIENT_ID = "IAP_CLIENT_ID"
 
@@ -80,10 +78,11 @@ class KubeflowClient(object):
             self.log.warning(
                 str(ex)
                 + (
-                    " Note that this authentication method does not work with default credentials"
-                    " obtained via 'gcloud auth application-default login' command. Refer to"
-                    " documentation on how to configure service account locally "
-                    "(https://cloud.google.com/docs/authentication/production#manually)"
+                    " Note that this authentication method does not work with default"
+                    " credentials obtained via 'gcloud auth application-default login'"
+                    " command. Refer to documentation on how to configure service account"
+                    " locally"
+                    " (https://cloud.google.com/docs/authentication/production#manually)"
                 )
             )
         except Exception as e:
@@ -196,30 +195,25 @@ class KubeflowClient(object):
         )
 
     def _pipeline_exists(self, pipeline_name):
-        try:
-            self._get_pipeline_id(pipeline_name)
-            return True
-        except:
-            return False
+        return self._get_pipeline_id(pipeline_name) is not None
 
     def _get_pipeline_id(self, pipeline_name):
-        return (
-            self.client.pipelines.list_pipelines(
-                filter=json.dumps(
-                    {
-                        "predicates": [
-                            {
-                                "key": "name",
-                                "op": 1,
-                                "string_value": pipeline_name,
-                            }
-                        ]
-                    }
-                )
+        pipelines = self.client.pipelines.list_pipelines(
+            filter=json.dumps(
+                {
+                    "predicates": [
+                        {
+                            "key": "name",
+                            "op": 1,
+                            "string_value": pipeline_name,
+                        }
+                    ]
+                }
             )
-            .pipelines[0]
-            .id
-        )
+        ).pipelines
+
+        if pipelines:
+            return pipelines[0].id
 
     def _upload_pipeline_version(
         self, pipeline_func, pipeline_id, pipeline_name
@@ -245,7 +239,10 @@ class KubeflowClient(object):
                 experiment_name=experiment_name
             )
             self.log.info(f"Existing experiment found: {experiment.id}")
-        except:
+        except ValueError as e:
+            if not str(e).startswith("No experiment is found"):
+                raise
+
             experiment = self.client.create_experiment(experiment_name)
             self.log.info(f"New experiment created: {experiment.id}")
 
@@ -255,7 +252,7 @@ class KubeflowClient(object):
         experiment_id = self._ensure_experiment_exists(experiment_name)
         pipeline_id = self._get_pipeline_id(self.project_name)
         self._disable_runs(experiment_id, pipeline_id)
-        job = self.client.create_recurring_run(
+        self.client.create_recurring_run(
             experiment_id,
             f"{self.project_name} on {cron_expression}",
             cron_expression=cron_expression,
