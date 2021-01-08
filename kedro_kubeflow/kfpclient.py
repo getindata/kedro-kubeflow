@@ -12,6 +12,8 @@ from kfp.compiler import Compiler
 from kubernetes.client import V1EnvVar
 from tabulate import tabulate
 
+from .utils import is_mlflow_enabled
+
 IAP_CLIENT_ID = "IAP_CLIENT_ID"
 
 WAIT_TIMEOUT = 24 * 60 * 60
@@ -143,9 +145,33 @@ class KubeflowClient(object):
             """Build kfp container graph from Kedro node dependencies. """
             kfp_ops = {}
 
-            env = V1EnvVar(
-                name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
-            )
+            env = [
+                V1EnvVar(
+                    name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
+                )
+            ]
+
+            if is_mlflow_enabled():
+                kfp_ops["mlflow-start-run"] = dsl.ContainerOp(
+                    name="mlflow-start-run",
+                    image=image,
+                    command=["kedro"],
+                    arguments=[
+                        "kubeflow",
+                        "mlflow-start",
+                        dsl.RUN_ID_PLACEHOLDER,
+                    ],
+                    file_outputs={"mlflow_run_id": "/tmp/mlflow_run_id"},
+                )
+                kfp_ops["mlflow-start-run"].container.set_image_pull_policy(
+                    image_pull_policy
+                )
+                env.append(
+                    V1EnvVar(
+                        name="MLFLOW_PARENT_ID",
+                        value=kfp_ops["mlflow-start-run"].output,
+                    )
+                )
 
             for node in node_dependencies:
                 name = _clean_name(node.name)
@@ -155,8 +181,8 @@ class KubeflowClient(object):
                     command=["kedro"],
                     arguments=["run", "--node", node.name],
                     pvolumes=node_volumes,
+                    container_kwargs={"env": env},
                 )
-                kfp_ops[node.name].container.add_env_variable(env)
                 kfp_ops[node.name].container.set_image_pull_policy(
                     image_pull_policy
                 )

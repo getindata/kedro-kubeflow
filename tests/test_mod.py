@@ -483,8 +483,49 @@ class TestKubeflowClient(unittest.TestCase):
         assert volume_spec.access_modes == ["ReadWriteOnce"]
         assert volume_spec.storage_class_name == "nfs"
 
-    def tearDown(self):
-        os.environ["IAP_CLIENT_ID"] = ""
+    def test_should_add_mlflow_init_step_if_enabled(self):
+        # given
+        run_mock = unittest.mock.MagicMock()
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
+        self.mock_mlflow(True)
+
+        # when
+        self.client_under_test.run_once(
+            run_name="unittest",
+            pipeline="pipeline",
+            image="unittest-image",
+            experiment_name="experiment",
+            wait=False,
+        )
+
+        # then
+        self.kfp_client_mock.create_run_from_pipeline_func.assert_called()
+        run_mock.wait_for_run_completion.assert_not_called()
+        (
+            args,
+            kwargs,
+        ) = self.kfp_client_mock.create_run_from_pipeline_func.call_args
+
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            args[0]()
+
+        assert len(dsl_pipeline.ops) == 3
+        init_step = dsl_pipeline.ops["mlflow-start-run"].container
+        assert init_step.image == "unittest-image"
+        assert init_step.args == [
+            "kubeflow",
+            "mlflow-start",
+            "{{workflow.uid}}",
+        ]
+        for node_name in ["node1", "node2"]:
+            env = dsl_pipeline.ops[node_name].container.env
+            assert env[1].name == "MLFLOW_PARENT_ID"
+            assert (
+                env[1].value
+                == "{{pipelineparam:op=mlflow-start-run;name=mlflow_run_id}}"
+            )
 
     @patch("kedro_kubeflow.kfpclient.Client")
     def create_client(self, config, kfp_client_mock):
@@ -502,5 +543,18 @@ class TestKubeflowClient(unittest.TestCase):
         self.client_under_test.client = kfp_client_mock
         self.kfp_client_mock = self.client_under_test.client
 
+    def mock_mlflow(self, enabled=False):
+        def fakeimport(name, *args, **kw):
+            if not enabled and name == "mlflow":
+                raise ImportError
+            return self.realimport(name, *args, **kw)
+
+        __builtins__["__import__"] = fakeimport
+
     def setUp(self):
+        self.realimport = __builtins__["__import__"]
+        self.mock_mlflow(False)
         self.create_client({})
+
+    def tearDown(self):
+        os.environ["IAP_CLIENT_ID"] = ""

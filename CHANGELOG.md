@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Support for MLFlow - if the package is installed then additional step is added with parent run init. Then all separate nodes runs register under this run.
 - Support for inter-steps volume: setup (one volume per pipeline run), initial load (the content of `data/` directory from the image and mount to all the steps for artifacts passing.
 - `kubeflow init` command added to generate sample configuration file.
 

@@ -10,6 +10,7 @@ INSTALL_REQUIRES = ["kedro>=0.16,<=0.18", "click", "kfp", "tabulate", "semver"]
 
 # Dev Requirements
 EXTRA_REQUIRE = {
+    "mlflow": ["kedro-mlflow"],
     "test": ["pytest", "pytest-cov"],
     "dev": ["pytest", "pytest-cov", "pre-commit"],
 }
@@ -41,5 +42,8 @@ setup(
             "kubeflow = kedro_kubeflow.plugin:commands"
         ],
         "kedro.global_commands": ["kubeflow = kedro_kubeflow.plugin:commands"],
+        "kedro.hooks": [
+            "kubeflow_mlflow_hook = kedro_kubeflow.hooks:mlflow_activate_parent_run",
+        ],
     },
 )
