@@ -1,3 +1,3 @@
 """kedro_kubeflow."""
 
-version = "0.1.8"
+version = "0.1.9"
