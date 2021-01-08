@@ -4,6 +4,7 @@ from pathlib import Path
 from kedro import __version__ as kedro_version
 from semver import VersionInfo
 
+from .config import PluginConfig
 from .kfpclient import KubeflowClient
 
 
@@ -29,8 +30,9 @@ class ContextHelper(object):
 
     @property
     @lru_cache()
-    def config(self):
-        return self.context.config_loader.get(self.CONFIG_FILE_PATTERN)
+    def config(self) -> PluginConfig:
+        raw = self.context.config_loader.get(self.CONFIG_FILE_PATTERN)
+        return PluginConfig(raw)
 
     @property
     @lru_cache()

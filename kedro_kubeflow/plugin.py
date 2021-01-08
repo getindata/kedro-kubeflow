@@ -1,9 +1,9 @@
 from pathlib import Path
 
 import click
-from context_helper import ContextHelper
 
-from .utils import strip_margin
+from .config import PluginConfig
+from .context_helper import ContextHelper
 
 
 @click.group("Kubeflow")
@@ -50,24 +50,19 @@ def list_pipelines(ctx):
     default="__default__",
 )
 @click.pass_context
-def run_once(
-    ctx,
-    image: str,
-    pipeline: str,
-    image_pull_policy: str,
-):
+def run_once(ctx, image: str, pipeline: str):
     """Deploy pipeline as a single run within given experiment.
     Config can be specified in kubeflow.yml as well."""
     context_helper = ctx.obj["context_helper"]
-    run_conf = context_helper.config.get("run_config", {})
-    image = image if image else run_conf["image"]
-    experiment_name = run_conf["experiment_name"]
-    run_name = run_conf["run_name"]
-    wait = bool(run_conf["wait_for_completion"])
-    image_pull_policy = run_conf.get("image_pull_policy", image_pull_policy)
+    config = context_helper.config.run_config
 
     context_helper.kfp_client.run_once(
-        pipeline, image, experiment_name, run_name, wait, image_pull_policy
+        pipeline=pipeline,
+        image=image if image else config.image,
+        experiment_name=config.experiment_name,
+        run_name=config.run_name,
+        wait=config.wait_for_completion,
+        image_pull_policy=config.image_pull_policy,
     )
 
 
@@ -107,11 +102,13 @@ def ui(ctx) -> None:
 def compile(ctx, image, pipeline, output) -> None:
     """Translates Kedro pipeline into YAML file with Kubeflow Pipeline definition"""
     context_helper = ctx.obj["context_helper"]
-    run_conf = context_helper.config.get("run_config", {})
-    image = image if image else run_conf["image"]
-    image_pull_policy = run_conf["image_pull_policy"]
+    config = context_helper.config.run_config
+
     context_helper.kfp_client.compile(
-        pipeline, image, output, image_pull_policy
+        pipeline=pipeline,
+        image_pull_policy=config.image_pull_policy,
+        image=image if image else config.image,
+        output=output,
     )
 
 
@@ -134,10 +131,13 @@ def compile(ctx, image, pipeline, output) -> None:
 def upload_pipeline(ctx, image, pipeline) -> None:
     """Uploads pipeline to Kubeflow server"""
     context_helper = ctx.obj["context_helper"]
-    run_conf = context_helper.config.get("run_config", {})
-    image = image if image else run_conf["image"]
-    image_pull_policy = run_conf["image_pull_policy"]
-    context_helper.kfp_client.upload(pipeline, image, image_pull_policy)
+    config = context_helper.config.run_config
+
+    context_helper.kfp_client.upload(
+        pipeline=pipeline,
+        image=image if image else config.image,
+        image_pull_policy=config.image_pull_policy,
+    )
 
 
 @kubeflow_group.command()
@@ -159,12 +159,10 @@ def upload_pipeline(ctx, image, pipeline) -> None:
 def schedule(ctx, experiment_name: str, cron_expression: str):
     """Schedules recurring execution of latest version of the pipeline"""
     context_helper = ctx.obj["context_helper"]
-    run_conf = context_helper.config.get("run_config", {})
-    experiment_name = (
-        experiment_name if experiment_name else run_conf["experiment_name"]
-    )
+    config = context_helper.config.run_config
+    experiment = experiment_name if experiment_name else config.experiment_name
 
-    context_helper.kfp_client.schedule(experiment_name, cron_expression)
+    context_helper.kfp_client.schedule(experiment, cron_expression)
 
 
 @kubeflow_group.command()
@@ -174,23 +172,13 @@ def init(ctx, kfp_url: str):
     """Initializes configuration for the plugin"""
     context_helper = ctx.obj["context_helper"]
     image = context_helper.project_path.name  # default from kedro-docker
-    config = f"""
-    |host: {kfp_url}
-    |
-    |run_config:
-    |  image: {image}
-    |  image_pull_policy: IfNotPresent
-    |  experiment_name: {context_helper.project_name}
-    |  run_name: {context_helper.project_name}
-    |  wait_for_completion: False
-    |  volume:
-    |    storageclass: # default
-    |    #size: 1Gi
-    |    #access_modes: [ReadWriteOnce]
-    """
+    sample_config = PluginConfig.sample_config(
+        url=kfp_url, image=image, project_name=context_helper.project_name
+    )
+
     config_path = Path.cwd().joinpath("conf/base/kubeflow.yaml")
     with open(config_path, "w") as f:
-        f.write(strip_margin(config))
+        f.write(sample_config)
 
     click.echo(f"Configuration generated in {config_path}")
 

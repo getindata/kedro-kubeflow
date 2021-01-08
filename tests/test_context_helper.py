@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 from kedro.framework.session import KedroSession
 
+from kedro_kubeflow.config import PluginConfig
 from kedro_kubeflow.context_helper import ContextHelper, ContextHelper16
 
 
@@ -38,6 +39,6 @@ class TestContextHelper(unittest.TestCase):
         context = MagicMock()
         context.config_loader.return_value.get.return_value = ["one", "two"]
         with patch.object(KedroSession, "create", context) as create:
-            create().load_context().config_loader.get.return_value = "one"
+            create().load_context().config_loader.get.return_value = {}
             helper = ContextHelper.init(metadata, "test")
-            assert helper.config == "one"
+            assert helper.config == PluginConfig({})
