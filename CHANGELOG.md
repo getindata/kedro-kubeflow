@@ -2,7 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added sample support for [TemplatedConfigLoader](https://kedro.readthedocs.io/en/latest/kedro.config.TemplatedConfigLoader.html)
+
 ## [0.1.9] - 2021-01-08
+
+### Added 
 
 -   Support for MLFlow - if the package is installed then additional step is added with parent run init. Then all separate nodes runs register under this run.
 -   Support for inter-steps volume: setup (one volume per pipeline run), initial load (the content of `data/` directory from the image and mount to all the steps for artifacts passing.

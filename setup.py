@@ -41,9 +41,9 @@ setup(
         "kedro.project_commands": [
             "kubeflow = kedro_kubeflow.plugin:commands"
         ],
-        "kedro.global_commands": ["kubeflow = kedro_kubeflow.plugin:commands"],
         "kedro.hooks": [
             "kubeflow_mlflow_hook = kedro_kubeflow.hooks:mlflow_activate_parent_run",
+            "kubeflow_cfg_hook = kedro_kubeflow.hooks:register_templated_config_loader",
         ],
     },
 )
