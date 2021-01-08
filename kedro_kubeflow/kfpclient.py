@@ -168,7 +168,7 @@ class KubeflowClient(object):
                 )
                 env.append(
                     V1EnvVar(
-                        name="MLFLOW_PARENT_ID",
+                        name="MLFLOW_RUN_ID",
                         value=kfp_ops["mlflow-start-run"].output,
                     )
                 )
