@@ -2,7 +2,7 @@ import os
 import unittest
 from contextlib import contextmanager
 
-from kedro_kubeflow.hooks.config_loader_hook import ProjectHooks
+from kedro_kubeflow.hooks import RegisterTemplatedConfigLoaderHook
 
 
 @contextmanager
@@ -13,12 +13,14 @@ def environment(env):
     os.environ = original_environ
 
 
-class TestKubeflowClient(unittest.TestCase):
+class TestRegisterTemplatedConfigLoaderHook(unittest.TestCase):
     @staticmethod
     def get_config():
         config_path = [os.path.dirname(os.path.abspath(__file__))]
-        loader = ProjectHooks().register_config_loader(conf_paths=config_path)
-        return loader.get("config.yml")
+        loader = RegisterTemplatedConfigLoaderHook().register_config_loader(
+            conf_paths=config_path
+        )
+        return loader.get("test_config.yml")
 
     def test_loader_with_defaults(self):
         config = self.get_config()
