@@ -1,32 +1,40 @@
 import unittest
-from os import path
 
 import yaml
 from kedro.config.config import MissingConfigException
 
 from kedro_kubeflow.config import PluginConfig
 
+CONFIG_YAML = """
+host: https://example.com
+
+run_config:
+  image: "gcr.io/project-image/test"
+  image_pull_policy: "Always"
+  experiment_name: "Test Experiment"
+  run_name: "test run"
+  wait_for_completion: True
+  volume:
+    storageclass: default
+    size: 3Gi
+    access_modes: "[ReadWriteOnce]"
+"""
+
 
 class TestPluginConfig(unittest.TestCase):
     def test_plugin_config(self):
 
-        test_dir = path.dirname(path.abspath(__file__))
-        with open(path.join(test_dir, "test_config.yml"), "r") as stream:
-            raw_cfg = yaml.safe_load(stream)
-
-        cfg = PluginConfig(raw_cfg)
+        cfg = PluginConfig(yaml.safe_load(CONFIG_YAML))
 
         assert cfg.host == "https://example.com"
-        assert (
-            cfg.run_config.image == "gcr.io/project-image/${commit_id|dirty}"
-        )
+        assert cfg.run_config.image == "gcr.io/project-image/test"
         assert cfg.run_config.image_pull_policy == "Always"
-        assert cfg.run_config.experiment_name == "[Test] ${branch_name|local}"
-        assert cfg.run_config.run_name == "${commit_id|dirty}"
+        assert cfg.run_config.experiment_name == "Test Experiment"
+        assert cfg.run_config.run_name == "test run"
         assert cfg.run_config.wait_for_completion
         assert cfg.run_config.volume.storageclass == "default"
         assert cfg.run_config.volume.size == "3Gi"
-        assert cfg.run_config.volume.access_modes == "[ReadWriteMany]"
+        assert cfg.run_config.volume.access_modes == "[ReadWriteOnce]"
 
     def test_defaults(self):
         cfg = PluginConfig({"run_config": {}})

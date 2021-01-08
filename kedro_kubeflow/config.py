@@ -50,7 +50,7 @@ class VolumeConfig(Config):
 
     @property
     def access_modes(self):
-        return self._get_or_default("access_modes", "[ReadWriteOnce]")
+        return self._get_or_default("access_modes", "[ReadWriteMany]")
 
     def _get_prefix(self):
         return "run_config.volume."
