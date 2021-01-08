@@ -521,7 +521,7 @@ class TestKubeflowClient(unittest.TestCase):
         ]
         for node_name in ["node1", "node2"]:
             env = dsl_pipeline.ops[node_name].container.env
-            assert env[1].name == "MLFLOW_PARENT_ID"
+            assert env[1].name == "MLFLOW_RUN_ID"
             assert (
                 env[1].value
                 == "{{pipelineparam:op=mlflow-start-run;name=mlflow_run_id}}"
