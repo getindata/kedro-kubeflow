@@ -1,4 +1,12 @@
+host: https://example.com
+
 run_config:
   image: "gcr.io/project-image/${commit_id|dirty}"
+  image_pull_policy: "Always"
   experiment_name: "[Test] ${branch_name|local}"
   run_name: "${commit_id|dirty}"
+  wait_for_completion: True
+  volume:
+    storageclass: default
+    size: 3Gi
+    access_modes: "[ReadWriteMany]"
