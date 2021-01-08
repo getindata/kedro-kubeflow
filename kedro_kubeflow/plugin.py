@@ -5,8 +5,6 @@ from context_helper import ContextHelper
 
 from .utils import strip_margin
 
-CONFIG_FILE_PATTERN = "kubeflow*"
-
 
 @click.group("Kubeflow")
 def commands():
@@ -32,8 +30,8 @@ def kubeflow_group(ctx, metadata, env):
 @click.pass_context
 def list_pipelines(ctx):
     """List deployed pipeline definitions"""
-    ch = ctx.obj["context_helper"]
-    click.echo(ch.kfp_client.list_pipelines())
+    context_helper = ctx.obj["context_helper"]
+    click.echo(context_helper.kfp_client.list_pipelines())
 
 
 @kubeflow_group.command()
@@ -51,47 +49,24 @@ def list_pipelines(ctx):
     help="Name of pipeline to run",
     default="__default__",
 )
-@click.option(
-    "-x",
-    "--experiment-name",
-    "experiment_name",
-    type=str,
-    help="Name of experiment associated with this run.",
-)
-@click.option(
-    "-r", "--run-name", "run_name", type=str, help="Name for this run."
-)
-@click.option("-w", "--wait", "wait", type=bool, help="Wait for completion.")
-@click.option(
-    "--image-pull-policy",
-    type=str,
-    default="IfNotPresent",
-    help="Image pull policy.",
-)
 @click.pass_context
 def run_once(
     ctx,
     image: str,
     pipeline: str,
-    experiment_name: str,
-    run_name: str,
-    wait: bool,
     image_pull_policy: str,
 ):
     """Deploy pipeline as a single run within given experiment.
     Config can be specified in kubeflow.yml as well."""
-    ch = ctx.obj["context_helper"]
-    conf = ch.config
-    run_conf = conf.get("run_config", {})
+    context_helper = ctx.obj["context_helper"]
+    run_conf = context_helper.config.get("run_config", {})
     image = image if image else run_conf["image"]
-    experiment_name = (
-        experiment_name if experiment_name else run_conf["experiment_name"]
-    )
-    run_name = run_name if run_name else run_conf["run_name"]
-    wait = wait if wait is not None else bool(run_conf["wait_for_completion"])
+    experiment_name = run_conf["experiment_name"]
+    run_name = run_conf["run_name"]
+    wait = bool(run_conf["wait_for_completion"])
     image_pull_policy = run_conf.get("image_pull_policy", image_pull_policy)
 
-    ch.kfp_client.run_once(
+    context_helper.kfp_client.run_once(
         pipeline, image, experiment_name, run_name, wait, image_pull_policy
     )
 
@@ -102,7 +77,7 @@ def ui(ctx) -> None:
     """Open Kubeflow Pipelines UI in new browser tab"""
     import webbrowser
 
-    host = ctx.obj["config_helper"].config["host"]
+    host = ctx.obj["context_helper"].config["host"]
     webbrowser.open_new_tab(host)
 
 
@@ -128,20 +103,16 @@ def ui(ctx) -> None:
     default="pipeline.yml",
     help="Pipeline YAML definition file.",
 )
-@click.option(
-    "--image-pull-policy",
-    type=str,
-    default="IfNotPresent",
-    help="Image pull policy.",
-)
 @click.pass_context
-def compile(ctx, image, pipeline, output, image_pull_policy) -> None:
+def compile(ctx, image, pipeline, output) -> None:
     """Translates Kedro pipeline into YAML file with Kubeflow Pipeline definition"""
-    ch = ctx.obj["context_helper"]
-    conf = ch.config
-    run_conf = conf.get("run_config", {})
+    context_helper = ctx.obj["context_helper"]
+    run_conf = context_helper.config.get("run_config", {})
     image = image if image else run_conf["image"]
-    ch.kfp_client.compile(pipeline, image, output, image_pull_policy)
+    image_pull_policy = run_conf["image_pull_policy"]
+    context_helper.kfp_client.compile(
+        pipeline, image, output, image_pull_policy
+    )
 
 
 @kubeflow_group.command()
@@ -159,20 +130,14 @@ def compile(ctx, image, pipeline, output, image_pull_policy) -> None:
     help="Name of pipeline to upload",
     default="__default__",
 )
-@click.option(
-    "--image-pull-policy",
-    type=str,
-    default="IfNotPresent",
-    help="Image pull policy.",
-)
 @click.pass_context
-def upload_pipeline(ctx, image, pipeline, image_pull_policy) -> None:
+def upload_pipeline(ctx, image, pipeline) -> None:
     """Uploads pipeline to Kubeflow server"""
-    ch = ctx.obj["context_helper"]
-    conf = ch.config
-    run_conf = conf.get("run_config", {})
+    context_helper = ctx.obj["context_helper"]
+    run_conf = context_helper.config.get("run_config", {})
     image = image if image else run_conf["image"]
-    ch.kfp_client.upload(pipeline, image, image_pull_policy)
+    image_pull_policy = run_conf["image_pull_policy"]
+    context_helper.kfp_client.upload(pipeline, image, image_pull_policy)
 
 
 @kubeflow_group.command()
@@ -193,38 +158,30 @@ def upload_pipeline(ctx, image, pipeline, image_pull_policy) -> None:
 @click.pass_context
 def schedule(ctx, experiment_name: str, cron_expression: str):
     """Schedules recurring execution of latest version of the pipeline"""
-    ch = ctx.obj["context_helper"]
-    conf = ch.config
-    run_conf = conf.get("run_config", {})
+    context_helper = ctx.obj["context_helper"]
+    run_conf = context_helper.config.get("run_config", {})
     experiment_name = (
         experiment_name if experiment_name else run_conf["experiment_name"]
     )
 
-    ch.kfp_client.schedule(experiment_name, cron_expression)
+    context_helper.kfp_client.schedule(experiment_name, cron_expression)
 
 
 @kubeflow_group.command()
 @click.argument("kfp_url", type=str)
-@click.option(
-    "-x",
-    "--experiment-name",
-    "experiment_name",
-    type=str,
-    help="Name of experiment associated with this run.",
-    default="default",
-)
 @click.pass_context
 def init(ctx, kfp_url: str):
     """Initializes configuration for the plugin"""
-    ch = ctx.obj["context_helper"]
-    image = ch.project_path.name  # default from kedro-docker
+    context_helper = ctx.obj["context_helper"]
+    image = context_helper.project_path.name  # default from kedro-docker
     config = f"""
     |host: {kfp_url}
     |
     |run_config:
     |  image: {image}
-    |  experiment_name: {ch.project_name}
-    |  run_name: {ch.project_name}
+    |  image_pull_policy: IfNotPresent
+    |  experiment_name: {context_helper.project_name}
+    |  run_name: {context_helper.project_name}
     |  wait_for_completion: False
     |  volume:
     |    storageclass: # default
