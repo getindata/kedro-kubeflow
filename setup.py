@@ -10,6 +10,7 @@ INSTALL_REQUIRES = ["kedro>=0.16,<=0.18", "click", "kfp", "tabulate", "semver"]
 
 # Dev Requirements
 EXTRA_REQUIRE = {
+    "mlflow": ["kedro-mlflow"],
     "test": ["pytest", "pytest-cov"],
     "dev": ["pytest", "pytest-cov", "pre-commit"],
 }
