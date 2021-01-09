@@ -1,5 +1,5 @@
-kedro
-click
-kfp
+kedro>=0.16,<=0.18
+click<8.0
+kfp==1.2.*
 tabulate
 kedro-mlflow

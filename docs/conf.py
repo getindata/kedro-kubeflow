@@ -43,9 +43,7 @@ extensions = [
     # "sphinx.ext.ifconfig",
     # "sphinx.ext.viewcode",
     # "sphinx.ext.mathjax",
-    "nbsphinx",
     "recommonmark",
-    "sphinx_copybutton",
     "sphinx_rtd_theme",
 ]
 
