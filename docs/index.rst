@@ -10,6 +10,10 @@ Welcome to Kedro Kubeflow Plugin's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   Introduction <source/01_introduction/01_intro.md>
+   Installation <source/02_installation/index.rst>
+   Getting Started <source/03_getting_started/index.rst>
+
 Page Under Construction
 
 Indices and tables
