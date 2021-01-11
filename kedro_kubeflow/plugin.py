@@ -171,9 +171,11 @@ def schedule(ctx, experiment_name: str, cron_expression: str):
 def init(ctx, kfp_url: str):
     """Initializes configuration for the plugin"""
     context_helper = ctx.obj["context_helper"]
-    image = context_helper.project_path.name  # default from kedro-docker
+    image = (
+        context_helper.context.project_path.name
+    )  # default from kedro-docker
     sample_config = PluginConfig.sample_config(
-        url=kfp_url, image=image, project_name=context_helper.project_name
+        url=kfp_url, image=image, project=context_helper.project_name
     )
     config_path = Path.cwd().joinpath("conf/base/kubeflow.yaml")
     with open(config_path, "w") as f:

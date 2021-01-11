@@ -106,4 +106,4 @@ class PluginConfig(Config):
 
     @staticmethod
     def sample_config(**kwargs):
-        return DEFAULT_CONFIG_TEMPLATE.format(kwargs)
+        return DEFAULT_CONFIG_TEMPLATE.format(**kwargs)
