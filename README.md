@@ -8,6 +8,8 @@
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/fff07cbd2e5012a045a3/maintainability)](https://codeclimate.com/github/getindata/kedro-kubeflow/maintainability) 
 [![Test Coverage](https://api.codeclimate.com/v1/badges/fff07cbd2e5012a045a3/test_coverage)](https://codeclimate.com/github/getindata/kedro-kubeflow/test_coverage)
+[![Documentation Status](https://readthedocs.org/projects/kedro-kubeflow/badge/?version=latest)](https://kedro-kubeflow.readthedocs.io/en/latest/?badge=latest)
+      
 ## About
 
 The main purpose of this plugin is to enable running kedro pipeline on Kubeflow Pipelines. It supports translation from 
