@@ -2,16 +2,18 @@
 
 ## [Unreleased]
 
+## [0.1.10] - 2021-01-11
+
 ### Added
 
-- Added sample support for [TemplatedConfigLoader](https://kedro.readthedocs.io/en/latest/kedro.config.TemplatedConfigLoader.html)
-- MLFlow support updated to not use nested runs.
-- Simple configuration validation added.
-- Volume init step is now optional (useful, if there is raw data in the image)
+-   Added sample support for [TemplatedConfigLoader](https://kedro.readthedocs.io/en/latest/kedro.config.TemplatedConfigLoader.html)
+-   MLFlow support updated to not use nested runs.
+-   Simple configuration validation added.
+-   Volume init step is now optional (useful, if there is raw data in the image)
 
 ## [0.1.9] - 2021-01-08
 
-### Added 
+### Added
 
 -   Support for MLFlow - if the package is installed then additional step is added with parent run init. Then all separate nodes runs register under this run.
 -   Support for inter-steps volume: setup (one volume per pipeline run), initial load (the content of `data/` directory from the image and mount to all the steps for artifacts passing.
@@ -27,7 +29,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.1.9...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.1.10...HEAD
+
+[0.1.10]: https://github.com/getindata/kedro-kubeflow/compare/0.1.9...0.1.10
 
 [0.1.9]: https://github.com/getindata/kedro-kubeflow/compare/0.1.8...0.1.9
 
