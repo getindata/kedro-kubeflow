@@ -25,12 +25,12 @@ class KubeflowClient(object):
 
     def __init__(self, config, project_name, context):
         token = self.obtain_id_token()
-        self.host = config["host"]
+        self.host = config.host
         self.client = Client(self.host, existing_token=token)
         self.project_name = project_name
         self.context = context
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
-        self.volume_meta = config.get("run_config", {}).get("volume")
+        self.volume_meta = config.run_config.volume
 
     def list_pipelines(self):
         pipelines = self.client.list_pipelines(page_size=30).pipelines
@@ -115,29 +115,32 @@ class KubeflowClient(object):
             vop = dsl.VolumeOp(
                 name="data-volume-create",
                 resource_name="data-volume",
-                size=self.volume_meta.get("size", "1Gi"),
-                modes=self.volume_meta.get("access_modes", ["ReadWriteMany"]),
-                storage_class=self.volume_meta.get("storage_class"),
+                size=self.volume_meta.size,
+                modes=self.volume_meta.access_modes,
+                storage_class=self.volume_meta.storageclass,
             )
-            volume_init = dsl.ContainerOp(
-                name="data-volume-init",
-                image=image,
-                command=["sh", "-c"],
-                arguments=[
-                    " ".join(
-                        [
-                            "cp",
-                            "--verbose",
-                            "-r",
-                            "/home/kedro/data/*",
-                            "/home/kedro/datavolume",
-                        ]
-                    )
-                ],
-                pvolumes={"/home/kedro/datavolume": vop.volume},
-            )
-            volume_init.container.set_image_pull_policy(image_pull_policy)
-            return {"/home/kedro/data": volume_init.pvolume}
+            if self.volume_meta.skip_init:
+                return {"/home/kedro/data": vop.volume}
+            else:
+                volume_init = dsl.ContainerOp(
+                    name="data-volume-init",
+                    image=image,
+                    command=["sh", "-c"],
+                    arguments=[
+                        " ".join(
+                            [
+                                "cp",
+                                "--verbose",
+                                "-r",
+                                "/home/kedro/data/*",
+                                "/home/kedro/datavolume",
+                            ]
+                        )
+                    ],
+                    pvolumes={"/home/kedro/datavolume": vop.volume},
+                )
+                volume_init.container.set_image_pull_policy(image_pull_policy)
+                return {"/home/kedro/data": volume_init.pvolume}
 
         def _build_kfp_ops(
             node_dependencies: Dict[Node, Set[Node]], node_volumes: Dict

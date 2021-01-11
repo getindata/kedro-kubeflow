@@ -53,4 +53,5 @@ run_config:
     storageclass: # default
     size: 1Gi
     access_modes: [ReadWriteOnce]
+    skip_init: False
 ```
