@@ -7,6 +7,7 @@
 - Added sample support for [TemplatedConfigLoader](https://kedro.readthedocs.io/en/latest/kedro.config.TemplatedConfigLoader.html)
 - MLFlow support updated to not use nested runs.
 - Simple configuration validation added.
+- Volume init step is now optional (useful, if there is raw data in the image)
 
 ## [0.1.9] - 2021-01-08
 
