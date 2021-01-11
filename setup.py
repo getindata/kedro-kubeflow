@@ -17,7 +17,7 @@ EXTRA_REQUIRE = {
 
 setup(
     name="kedro-kubeflow",
-    version="0.1.9",
+    version="0.1.10",
     description="Kedro plugin with Kubeflow support",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -41,9 +41,8 @@ setup(
         "kedro.project_commands": [
             "kubeflow = kedro_kubeflow.plugin:commands"
         ],
-        "kedro.global_commands": ["kubeflow = kedro_kubeflow.plugin:commands"],
         "kedro.hooks": [
-            "kubeflow_mlflow_hook = kedro_kubeflow.hooks:mlflow_activate_parent_run",
+            "kubeflow_cfg_hook = kedro_kubeflow.hooks:register_templated_config_loader",
         ],
     },
 )
