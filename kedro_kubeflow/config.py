@@ -14,6 +14,7 @@ run_config:
     storageclass: # default
     #size: 1Gi
     #access_modes: [ReadWriteOnce]
+    #skip_init: False
 """
 
 
@@ -42,7 +43,7 @@ class Config(object):
 class VolumeConfig(Config):
     @property
     def storageclass(self):
-        return self._get_or_fail("storageclass")
+        return self._get_or_default("storageclass", None)
 
     @property
     def size(self):
@@ -51,6 +52,10 @@ class VolumeConfig(Config):
     @property
     def access_modes(self):
         return self._get_or_default("access_modes", "[ReadWriteMany]")
+
+    @property
+    def skip_init(self):
+        return self._get_or_default("skip_init", False)
 
     def _get_prefix(self):
         return "run_config.volume."
@@ -75,7 +80,7 @@ class RunConfig(Config):
 
     @property
     def volume(self):
-        cfg = self._get_or_fail("volume")
+        cfg = self._get_or_default("volume", None)
         return VolumeConfig(cfg)
 
     @property

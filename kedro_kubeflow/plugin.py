@@ -175,7 +175,6 @@ def init(ctx, kfp_url: str):
     sample_config = PluginConfig.sample_config(
         url=kfp_url, image=image, project_name=context_helper.project_name
     )
-
     config_path = Path.cwd().joinpath("conf/base/kubeflow.yaml")
     with open(config_path, "w") as f:
         f.write(sample_config)

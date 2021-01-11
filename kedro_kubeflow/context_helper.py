@@ -53,7 +53,7 @@ class ContextHelper16(ContextHelper):
 
     @property
     def project_name(self):
-        return self.get_context(self._metadata, self._env).project_name
+        return self.context.project_name
 
     @property
     def context(self):
