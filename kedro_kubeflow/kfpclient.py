@@ -120,7 +120,6 @@ class KubeflowClient(object):
                 storage_class=self.volume_meta.storageclass,
             )
             if self.volume_meta.skip_init:
-                print("SKIP")
                 return {"/home/kedro/data": vop.volume}
             else:
                 volume_init = dsl.ContainerOp(

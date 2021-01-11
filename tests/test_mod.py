@@ -9,6 +9,7 @@ import kfp
 from google.auth.exceptions import DefaultCredentialsError
 from kedro.pipeline import Pipeline, node
 
+from kedro_kubeflow.config import PluginConfig
 from kedro_kubeflow.kfpclient import KubeflowClient
 from kedro_kubeflow.utils import strip_margin
 
@@ -166,7 +167,9 @@ class TestKubeflowClient(unittest.TestCase):
 
         # when
         self.client_under_test = KubeflowClient(
-            {"host": "http://unittest"}, None, None
+            PluginConfig({"host": "http://unittest", "run_config": {}}),
+            None,
+            None,
         )
 
         # then
@@ -188,7 +191,9 @@ class TestKubeflowClient(unittest.TestCase):
         ) as cm:
             # when
             self.client_under_test = KubeflowClient(
-                {"host": "http://unittest"}, None, None
+                PluginConfig({"host": "http://unittest", "run_config": {}}),
+                None,
+                None,
             )
             # then
             assert (
@@ -213,7 +218,9 @@ class TestKubeflowClient(unittest.TestCase):
         with self.assertLogs("kedro_kubeflow.kfpclient", level="ERROR") as cm:
             # when
             self.client_under_test = KubeflowClient(
-                {"host": "http://unittest"}, None, None
+                PluginConfig({"host": "http://unittest", "run_config": {}}),
+                None,
+                None,
             )
             # then
             assert "Failed to obtain IAP access token" in cm.output[0]
@@ -389,7 +396,7 @@ class TestKubeflowClient(unittest.TestCase):
         self.kfp_client_mock.pipeline_uploads.upload_pipeline.assert_not_called()
         self.kfp_client_mock.pipeline_uploads.upload_pipeline_version.assert_called()
 
-    def test_should_support_inter_steps_volume_with_defauls(self):
+    def test_should_support_inter_steps_volume_with_defaults(self):
         # given
         run_mock = unittest.mock.MagicMock()
         self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
@@ -445,7 +452,7 @@ class TestKubeflowClient(unittest.TestCase):
         self.create_client(
             {
                 "volume": {
-                    "storage_class": "nfs",
+                    "storageclass": "nfs",
                     "size": "1Mi",
                     "access_modes": ["ReadWriteOnce"],
                 }
@@ -527,6 +534,46 @@ class TestKubeflowClient(unittest.TestCase):
                 == "{{pipelineparam:op=mlflow-start-run;name=mlflow_run_id}}"
             )
 
+    def test_should_skip_volume_init_if_requested(self):
+        # given
+        run_mock = unittest.mock.MagicMock()
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
+        self.create_client({"volume": {"skip_init": True}})
+
+        # when
+        self.client_under_test.run_once(
+            run_name="unittest",
+            pipeline="pipeline",
+            image="unittest-image",
+            experiment_name="experiment",
+            wait=False,
+        )
+
+        # then
+        self.kfp_client_mock.create_run_from_pipeline_func.assert_called()
+        run_mock.wait_for_run_completion.assert_not_called()
+        (
+            args,
+            kwargs,
+        ) = self.kfp_client_mock.create_run_from_pipeline_func.call_args
+        assert kwargs == {
+            "arguments": {},
+            "experiment_name": "experiment",
+            "run_name": "unittest",
+        }
+
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            args[0]()
+
+        assert len(dsl_pipeline.ops) == 3
+        assert "data-volume-init" not in dsl_pipeline.ops
+        for node_name in ["node1", "node2"]:
+            volumes = dsl_pipeline.ops[node_name].container.volume_mounts
+            assert len(volumes) == 1
+            assert volumes[0].name == "data-volume-create"
+
     @patch("kedro_kubeflow.kfpclient.Client")
     def create_client(self, config, kfp_client_mock):
         project_name = "my-awesome-project"
@@ -536,7 +583,7 @@ class TestKubeflowClient(unittest.TestCase):
             {"pipelines": {"pipeline": self.create_pipeline()}},
         )
         self.client_under_test = KubeflowClient(
-            {"host": "http://unittest", "run_config": config},
+            PluginConfig({"host": "http://unittest", "run_config": config}),
             project_name,
             context,
         )

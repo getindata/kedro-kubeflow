@@ -23,7 +23,7 @@ class Config(object):
         self._raw = raw
 
     def _get_or_default(self, prop, default):
-        return self._raw[prop] if prop in self._raw.keys() else default
+        return self._raw.get(prop, default)
 
     def _get_or_fail(self, prop):
         if prop in self._raw.keys():
@@ -51,7 +51,7 @@ class VolumeConfig(Config):
 
     @property
     def access_modes(self):
-        return self._get_or_default("access_modes", "[ReadWriteMany]")
+        return self._get_or_default("access_modes", ["ReadWriteMany"])
 
     @property
     def skip_init(self):
@@ -80,8 +80,11 @@ class RunConfig(Config):
 
     @property
     def volume(self):
-        cfg = self._get_or_default("volume", None)
-        return VolumeConfig(cfg)
+        if "volume" in self._raw.keys():
+            cfg = self._get_or_fail("volume")
+            return VolumeConfig(cfg)
+        else:
+            return None
 
     @property
     def wait_for_completion(self):
