@@ -1,7 +1,8 @@
 # Kedro Kubeflow Plugin
 
 [![Python Version](https://img.shields.io/badge/python-3.7%20%7C%203.8-blue.svg)](https://github.com/getindata/kedro-kubeflow)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) 
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgetindata%2Fkedro-kubeflow.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgetindata%2Fkedro-kubeflow?ref=badge_shield)
+
 [![SemVer](https://img.shields.io/badge/semver-2.0.0-green)](https://semver.org/)
 [![PyPI version](https://badge.fury.io/py/kedro-kubeflow.svg)](https://pypi.org/project/kedro-kubeflow/)
 [![Downloads](https://pepy.tech/badge/kedro-kubeflow)](https://pepy.tech/project/kedro-kubeflow) 
@@ -55,3 +56,7 @@ run_config:
     access_modes: [ReadWriteOnce]
     skip_init: False
 ```
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgetindata%2Fkedro-kubeflow.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgetindata%2Fkedro-kubeflow?ref=badge_large)
