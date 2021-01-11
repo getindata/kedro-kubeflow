@@ -55,4 +55,32 @@ Commands:
 
 ### `init`
 
-`init` command takes one argument (that is the kubeflow pipelines root url) and generates sample configuration file in `conf/base/kubeflow.yaml`. The YAML file content is described in the [Configuration section](02_installation/02_configuration.html)
+`init` command takes one argument (that is the kubeflow pipelines root url) and generates sample configuration file in `conf/base/kubeflow.yaml`. The YAML file content is described in the [Configuration section](../02_installation/02_configuration.md).
+
+### `ui`
+
+`ui` command opens a web browser pointing to the currently configured Kubeflow Pipelines UI. It's super useful for debugging, especially while working on multiple Kubeflow installations.
+
+### `list-pipelines`
+
+`list-pipelines` uses Kubeflow Pipelines to retrieve all registered pipelines
+
+### `compile`
+
+`compile` transforms Kedro pipeline into Argo workflow (Argo is the engine that powers Kubeflow Pipelines). The resulting `yaml` file can be uploaded to Kubeflow Pipelines via web UI.
+
+### `upload-pipeline`
+
+`upload-pipeline` compiles the pipeline and uploads it as a new pipeline version. The pipeline name is equal to the project name for simplicity.
+
+### `schedule`
+
+`schedule` creates recurring run of the previously uploaded pipeline. The cron expression (required parameter) is used to define at what schedule the pipeline should run.
+
+### `run-once`
+
+`run-once` is all-in-one command to compile the pipeline and run it in the Kubeflow environment.
+
+### `mlflow-start`
+
+`mlflow-start` is internal command to be used as a pipeline starting point with enabled Mlflow support. It should not be called by the users.

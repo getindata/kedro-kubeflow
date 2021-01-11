@@ -1,5 +1,3 @@
 pre-commit
 coverage
 tox
-sphinx_rtd_theme
-recommonmark
