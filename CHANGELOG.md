@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added 
+
+- Created initial documentation hosted on kedro-kubeflow.readthedocs.io
+
+### Fixed
+
+- Fixed broken `kubeflow init` command (#29)
+
+
 ## [0.1.10] - 2021-01-11
 
 ### Added

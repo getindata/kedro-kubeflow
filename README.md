@@ -18,7 +18,13 @@ a running kubeflow cluster with some convenient commands.
 
 The plugin can be used together with `kedro-docker` to simplify preparation of docker image for pipeline execution.   
 
+## Documentation
+
+For detailed documentation refer to https://kedro-kubeflow.readthedocs.io/
+
 ## Usage guide
+
+
 
 ```
 Usage: kedro kubeflow [OPTIONS] COMMAND [ARGS]...
