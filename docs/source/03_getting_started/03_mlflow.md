@@ -33,6 +33,8 @@ And verify how does it look in the Kubeflow UI. You should notice `mlflow-start-
 
 ![Pipeline with Mlflow](pipeline_mlflow.png)
 
-Finally, start the pipeline. While it executes, the new Mlflow run is started and it's constantly updated with the attributes provided by the next steps. Finally, the run page looks like:
+Finally, start the pipeline. While it executes, the new Mlflow run is started and it's constantly updated with the attributes provided by the next steps. Finally, the experiments runs page looks like:
 
 ![Mlflow UI](mlflow_ui.png)
+
+The UI presents the pipeline stauts (in form of the icon) and latest node that was run (for failed runs in indicates at what step did the pipeline fail). Also, the `kubeflow_run_id` tag can be used to correlate Mlflow run with the Kubeflow pipeline execution.

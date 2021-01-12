@@ -2,7 +2,7 @@
 
 ## What is Kubeflow Pipelines?
 
-[Kubeflow Pipelines](https://www.kubeflow.org/docs/pipelines/) is a platform for building and deploying portable, scalable machine learning (ML) workflows based on Docker containers. It works by defining pipelines with nodes (Kubernetes objects, like pod or volume) and edges (dependencies between the nodes, like passing output data as input). The pipelines are stored in the versioned database, allowing user to run the pipeline on-off or schedule recurring run.
+[Kubeflow Pipelines](https://www.kubeflow.org/docs/pipelines/) is a platform for building and deploying portable, scalable machine learning (ML) workflows based on Docker containers. It works by defining pipelines with nodes (Kubernetes objects, like pod or volume) and edges (dependencies between the nodes, like passing output data as input). The pipelines are stored in the versioned database, allowing user to run the pipeline once or schedule the recurring run.
 
 ## Why to integrate Kedro project with Pipelines?
 
