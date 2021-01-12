@@ -185,17 +185,22 @@ def init(ctx, kfp_url: str):
 
 @kubeflow_group.command()
 @click.argument("kubeflow_run_id", type=str)
+@click.option(
+    "--output",
+    type=str,
+    default="/tmp/mlflow_run_id",
+)
 @click.pass_context
-def mlflow_start(ctx, kubeflow_run_id: str):
+def mlflow_start(ctx, kubeflow_run_id: str, output: str):
     from kedro_mlflow.framework.context import get_mlflow_config
     import mlflow
 
-    mlflow_conf = get_mlflow_config(ctx.obj["kedro_ctx"])
-    mlflow_conf.setup(ctx.obj["kedro_ctx"])
+    mlflow_conf = get_mlflow_config(ctx.obj["context_helper"].context)
+    mlflow_conf.setup(ctx.obj["context_helper"].context)
     run = mlflow.start_run(
         experiment_id=mlflow_conf.experiment.experiment_id, nested=False
     )
     mlflow.set_tag("kubeflow_run_id", kubeflow_run_id)
-    with open("/tmp/mlflow_run_id", "w") as f:
+    with open(output, "w") as f:
         f.write(run.info.run_id)
     click.echo(f"Started run: {run.info.run_id}")
