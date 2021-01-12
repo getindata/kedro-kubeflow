@@ -14,8 +14,6 @@ Welcome to Kedro Kubeflow Plugin's documentation!
    Installation <source/02_installation/index.rst>
    Getting Started <source/03_getting_started/index.rst>
 
-Page Under Construction
-
 Indices and tables
 ==================
 
