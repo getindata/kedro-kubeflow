@@ -1,3 +1,4 @@
+import webbrowser
 from pathlib import Path
 
 import click
@@ -70,9 +71,7 @@ def run_once(ctx, image: str, pipeline: str):
 @click.pass_context
 def ui(ctx) -> None:
     """Open Kubeflow Pipelines UI in new browser tab"""
-    import webbrowser
-
-    host = ctx.obj["context_helper"].config["host"]
+    host = ctx.obj["context_helper"].config.host
     webbrowser.open_new_tab(host)
 
 

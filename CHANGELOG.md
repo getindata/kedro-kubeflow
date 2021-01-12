@@ -10,6 +10,10 @@
 
 - Fixed broken `kubeflow init` command (#29)
 
+### Changed
+
+- Increased test coverage for the CLI handling
+
 
 ## [0.1.10] - 2021-01-11
 
