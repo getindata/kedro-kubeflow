@@ -59,6 +59,9 @@ Finally, go the demo project directory and ensure that kedro-kubeflow plugin is 
 
 ```console
 $ cd kubeflow-plugin-demo/
+$ kedro install
+(...)
+Requirements installed!
 $ kedro kubeflow --help
 Usage: kedro kubeflow [OPTIONS] COMMAND [ARGS]...
 
@@ -132,4 +135,49 @@ docker push remote.repo.url.com/kubeflow_plugin_demo:latest
 
 ## Run the pipeline on Kubeflow
 
-TODO
+First, run `init` script to create the sample configuration. A parameter value should reflect the kubeflow base path **as seen from the system** (so no internal Kubernetes IP unless you run the local cluster):
+
+```console
+kedro kubeflow init https://kubeflow.cluster.com
+(...)
+Configuration generated in /home/mario/kedro/kubeflow-plugin-demo/conf/base/kubeflow.yaml
+```
+
+Then, if needed, adjust the `conf/base/kubeflow.yaml`. For example, the `image:` key should point to the full image name (like `remote.repo.url.com/kubeflow_plugin_demo:latest` if you pushed the image at this name). Depending on the storage classes availability in Kubernetes cluster, you may want to modify `volume.storageclass` and `volume.access_modes` (please consult with Kubernetes admin what values should be there).
+
+Finally, everything is set to run the pipeline on Kubeflow. Run `upload-pipeline`:
+
+```console
+$ kedro kubeflow upload-pipeline
+2021-01-12 09:47:35,132 - kedro_kubeflow.kfpclient - INFO - No IAP_CLIENT_ID provided, skipping custom IAP authentication
+2021-01-12 09:47:35,209 - kedro_kubeflow.kfpclient - INFO - Pipeline created
+2021-01-12 09:47:35,209 - kedro_kubeflow.kfpclient - INFO - Pipeline link: https://kubeflow.cluster.com/#/pipelines/details/9a3e4e16-1897-48b5-9752-d350b1d1faac/version/9a3e4e16-1897-48b5-9752-d350b1d1faac
+```
+
+As you can see, the pipeline was compiled and uploaded into Kubeflow. Let's visit the link:
+
+![Uploaded pipeline](uploaded_pipeline.png)
+
+The Kubeflow pipeline reflects the Kedro pipeline with two extra steps:
+
+ * `data-volume-create` - creates an empty volume in Kubernetes cluster as a persistence layer for inter-steps data access
+ * `data-volume-init` - initialized the volume with `01_raw` data when the pipeline starts
+
+By using `Create run` button you can start a run of the pipeline on the cluster. A run behaves like `kedro run` command, but the steps are executed on the remote cluster. The outputs are stored on the persistent volume, and passed as the inputs accordingly to how Kedro nodes need them.
+
+![Pipeline run](pipeline_run.gif)
+
+From the UI you can access the logs of the execution. If everything seems fine, use `schedule to create a recurring run:
+
+```console
+$ kedro kubeflow schedule --cron-expression '0 0 4 * * *'
+(...)
+2021-01-12 12:37:23,086 - kedro_kubeflow.kfpclient - INFO - No IAP_CLIENT_ID provided, skipping custom IAP authentication
+2021-01-12 12:37:23,096 - root - INFO - Creating experiment Kubeflow Plugin Demo.
+2021-01-12 12:37:23,103 - kedro_kubeflow.kfpclient - INFO - New experiment created: 2123c082-b336-4093-bf3f-ce73f68b66b4
+2021-01-12 12:37:23,147 - kedro_kubeflow.kfpclient - INFO - Pipeline scheduled to 0 0 4 * * *
+```
+
+You can see that the new experiment was created (that will group the runs) and the pipeline was scheduled. Please note, that Kubeflow uses 6-places cron expression (as opposite to Linux's cron with 5-places), where first place is the second indicator.
+
+![Scheduled run](scheduled_run.png)

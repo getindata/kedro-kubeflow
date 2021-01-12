@@ -2,7 +2,7 @@
 
 ## Kedro setup
 
-First, you need to install base Kedro backage in ``<17.0`` version
+First, you need to install base Kedro package in ``<17.0`` version
 
 > Kedro 17.0 is supported by kedro-kubeflow, but [not by kedro-mlflow](https://github.com/Galileo-Galilei/kedro-mlflow/issues/144) yet, so the latest version from 0.16.5 is recommended.
 
@@ -83,4 +83,4 @@ Commands:
 
 ### `mlflow-start`
 
-`mlflow-start` is internal command to be used as a pipeline starting point with enabled Mlflow support. It should not be called by the users.
+`mlflow-start` is internal command to be used as a pipeline starting point with [enabled Mlflow support](../03_getting_started/03_mlflow.md). It should not be called by the users.
