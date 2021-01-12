@@ -3,3 +3,4 @@ click
 kfp
 tabulate
 kedro-mlflow
+semver

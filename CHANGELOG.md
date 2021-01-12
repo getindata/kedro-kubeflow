@@ -4,6 +4,10 @@
 
 ## [0.1.10] - 2021-01-11
 
+### Changed
+
+- Increased test coverage for the CLI handling
+
 ### Added
 
 -   Added sample support for [TemplatedConfigLoader](https://kedro.readthedocs.io/en/latest/kedro.config.TemplatedConfigLoader.html)
