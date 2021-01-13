@@ -6,13 +6,28 @@ with open("README.md") as f:
     README = f.read()
 
 # Runtime Requirements.
-INSTALL_REQUIRES = ["kedro>=0.16,<=0.18", "click", "kfp", "tabulate", "semver"]
+INSTALL_REQUIRES = [
+    "kedro>=0.16,<=0.18",
+    "click<8.0",
+    "kfp<1.3.0",
+    "tabulate>=0.8.7",
+    "semver~=2.10",
+]
 
 # Dev Requirements
 EXTRA_REQUIRE = {
-    "mlflow": ["kedro-mlflow"],
-    "test": ["pytest", "pytest-cov"],
-    "dev": ["pytest", "pytest-cov", "pre-commit"],
+    "mlflow": ["kedro-mlflow>=0.4.1,<0.5"],
+    "tests": [
+        "pytest>=5.4.0, <7.0.0",
+        "pytest-cov>=2.8.0, <3.0.0",
+        "tox==3.21.1",
+        "pre-commit==2.9.3",
+    ],
+    "docs": [
+        "sphinx==3.4.2",
+        "recommonmark==0.7.1",
+        "sphinx_rtd_theme==0.5.1",
+    ],
 }
 
 setup(
