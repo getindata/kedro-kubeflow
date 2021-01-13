@@ -9,9 +9,9 @@ class AuthHandler(object):
     log = logging.getLogger(__name__)
 
     def obtain_id_token(self):
+        from google.auth.exceptions import DefaultCredentialsError
         from google.auth.transport.requests import Request
         from google.oauth2 import id_token
-        from google.auth.exceptions import DefaultCredentialsError
 
         client_id = os.environ.get(IAP_CLIENT_ID, None)
 

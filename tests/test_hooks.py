@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 from kedro_kubeflow.auth import AuthHandler
-from kedro_kubeflow.hooks import (
+from kedro_kubeflow.hooks import (  # NOQA
     MlflowIapAuthHook,
     RegisterTemplatedConfigLoaderHook,
 )

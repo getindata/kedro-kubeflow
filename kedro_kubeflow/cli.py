@@ -192,8 +192,8 @@ def init(ctx, kfp_url: str):
 )
 @click.pass_context
 def mlflow_start(ctx, kubeflow_run_id: str, output: str):
-    from kedro_mlflow.framework.context import get_mlflow_config
     import mlflow
+    from kedro_mlflow.framework.context import get_mlflow_config
 
     mlflow_conf = get_mlflow_config(ctx.obj["context_helper"].context)
     mlflow_conf.setup(ctx.obj["context_helper"].context)
