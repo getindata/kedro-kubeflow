@@ -1,3 +1,4 @@
+import logging
 import os
 import webbrowser
 from pathlib import Path
@@ -7,6 +8,8 @@ import click
 from .auth import AuthHandler
 from .config import PluginConfig
 from .context_helper import ContextHelper
+
+LOG = logging.getLogger(__name__)
 
 
 @click.group("Kubeflow")
@@ -200,9 +203,11 @@ def mlflow_start(ctx, kubeflow_run_id: str, output: str):
     token = AuthHandler().obtain_id_token()
     if token:
         os.environ["MLFLOW_TRACKING_TOKEN"] = token
+        LOG.info("Configuring MLFLOW_TRACKING_TOKEN")
 
-    mlflow_conf = get_mlflow_config(ctx.obj["context_helper"].context)
-    mlflow_conf.setup(ctx.obj["context_helper"].context)
+    kedro_context = ctx.obj["context_helper"].context
+    mlflow_conf = get_mlflow_config(kedro_context)
+    mlflow_conf.setup(kedro_context)
     run = mlflow.start_run(
         experiment_id=mlflow_conf.experiment.experiment_id, nested=False
     )
