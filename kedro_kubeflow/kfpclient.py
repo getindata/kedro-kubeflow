@@ -121,11 +121,9 @@ class KubeflowClient(object):
             """Build kfp container graph from Kedro node dependencies. """
             kfp_ops = {}
 
-            env = [
-                V1EnvVar(
-                    name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
-                )
-            ]
+            iap_env = V1EnvVar(
+                name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
+            )
 
             if is_mlflow_enabled():
                 kfp_ops["mlflow-start-run"] = _customize_op(
@@ -138,13 +136,8 @@ class KubeflowClient(object):
                             "mlflow-start",
                             dsl.RUN_ID_PLACEHOLDER,
                         ],
+                        container_kwargs={"env": [iap_env]},
                         file_outputs={"mlflow_run_id": "/tmp/mlflow_run_id"},
-                    )
-                )
-                env.append(
-                    V1EnvVar(
-                        name="MLFLOW_RUN_ID",
-                        value=kfp_ops["mlflow-start-run"].output,
                     )
                 )
 
@@ -157,7 +150,15 @@ class KubeflowClient(object):
                         command=["kedro"],
                         arguments=["run", "--node", node.name],
                         pvolumes=node_volumes,
-                        container_kwargs={"env": env},
+                        container_kwargs={
+                            "env": [
+                                iap_env,
+                                V1EnvVar(
+                                    name="MLFLOW_RUN_ID",
+                                    value=kfp_ops["mlflow-start-run"].output,
+                                ),
+                            ]
+                        },
                     )
                 )
 

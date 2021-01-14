@@ -1,8 +1,10 @@
+import os
 import webbrowser
 from pathlib import Path
 
 import click
 
+from .auth import AuthHandler
 from .config import PluginConfig
 from .context_helper import ContextHelper
 
@@ -194,6 +196,10 @@ def init(ctx, kfp_url: str):
 def mlflow_start(ctx, kubeflow_run_id: str, output: str):
     import mlflow
     from kedro_mlflow.framework.context import get_mlflow_config
+
+    token = AuthHandler().obtain_id_token()
+    if token:
+        os.environ["MLFLOW_TRACKING_TOKEN"] = token
 
     mlflow_conf = get_mlflow_config(ctx.obj["context_helper"].context)
     mlflow_conf.setup(ctx.obj["context_helper"].context)
