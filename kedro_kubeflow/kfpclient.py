@@ -251,14 +251,17 @@ class KubeflowClient(object):
         with NamedTemporaryFile(suffix=".yaml") as f:
             Compiler().compile(pipeline_func, f.name)
             return self.client.pipeline_uploads.upload_pipeline_version(
-                f.name, name=version_name, pipelineid=pipeline_id
+                f.name,
+                name=version_name,
+                pipelineid=pipeline_id,
+                _request_timeout=10000,
             ).id
 
     def _upload_pipeline(self, pipeline_func, pipeline_name):
         with NamedTemporaryFile(suffix=".yaml") as f:
             Compiler().compile(pipeline_func, f.name)
             pipeline = self.client.pipeline_uploads.upload_pipeline(
-                f.name, name=pipeline_name
+                f.name, name=pipeline_name, _request_timeout=10000
             )
             return (pipeline.id, pipeline.default_version.id)
 
