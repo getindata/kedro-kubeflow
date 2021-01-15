@@ -6,7 +6,6 @@ from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
 import kfp
-from google.auth.exceptions import DefaultCredentialsError
 from kedro.pipeline import Pipeline, node
 
 from kedro_kubeflow.config import PluginConfig
@@ -175,59 +174,6 @@ class TestKubeflowClient(unittest.TestCase):
         # then
         kfp_client_mock.assert_called_with(
             "http://unittest", existing_token="unittest-token"
-        )
-
-    @patch("google.oauth2.id_token.fetch_id_token")
-    @patch("kedro_kubeflow.kfpclient.Client")
-    def test_should_warn_if_trying_to_use_default_creds(
-        self, kfp_client_mock, fetch_id_token_mock
-    ):
-        # given
-        os.environ["IAP_CLIENT_ID"] = "unittest-client-id"
-        fetch_id_token_mock.side_effect = DefaultCredentialsError()
-
-        with self.assertLogs(
-            "kedro_kubeflow.kfpclient", level="WARNING"
-        ) as cm:
-            # when
-            self.client_under_test = KubeflowClient(
-                PluginConfig({"host": "http://unittest", "run_config": {}}),
-                None,
-                None,
-            )
-            # then
-            assert (
-                "this authentication method does not work with default credentials"
-                in cm.output[0]
-            )
-
-        # then
-        kfp_client_mock.assert_called_with(
-            "http://unittest", existing_token=None
-        )
-
-    @patch("google.oauth2.id_token.fetch_id_token")
-    @patch("kedro_kubeflow.kfpclient.Client")
-    def test_should_error_on_invalid_creds(
-        self, kfp_client_mock, fetch_id_token_mock
-    ):
-        # given
-        os.environ["IAP_CLIENT_ID"] = "unittest-client-id"
-        fetch_id_token_mock.side_effect = Exception()
-
-        with self.assertLogs("kedro_kubeflow.kfpclient", level="ERROR") as cm:
-            # when
-            self.client_under_test = KubeflowClient(
-                PluginConfig({"host": "http://unittest", "run_config": {}}),
-                None,
-                None,
-            )
-            # then
-            assert "Failed to obtain IAP access token" in cm.output[0]
-
-        # then
-        kfp_client_mock.assert_called_with(
-            "http://unittest", existing_token=None
         )
 
     def test_should_modify_pull_policy_in_run(self):

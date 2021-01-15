@@ -7,8 +7,8 @@ def strip_margin(text: str) -> str:
 
 def is_mlflow_enabled() -> bool:
     try:
-        from kedro_mlflow.framework.context import get_mlflow_config  # NOQA
         import mlflow  # NOQA
+        from kedro_mlflow.framework.context import get_mlflow_config  # NOQA
 
         return True
     except ImportError:

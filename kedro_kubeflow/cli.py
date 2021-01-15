@@ -1,10 +1,15 @@
+import logging
+import os
 import webbrowser
 from pathlib import Path
 
 import click
 
+from .auth import AuthHandler
 from .config import PluginConfig
 from .context_helper import ContextHelper
+
+LOG = logging.getLogger(__name__)
 
 
 @click.group("Kubeflow")
@@ -183,7 +188,7 @@ def init(ctx, kfp_url: str):
     click.echo(f"Configuration generated in {config_path}")
 
 
-@kubeflow_group.command()
+@kubeflow_group.command(hidden=True)
 @click.argument("kubeflow_run_id", type=str)
 @click.option(
     "--output",
@@ -192,11 +197,17 @@ def init(ctx, kfp_url: str):
 )
 @click.pass_context
 def mlflow_start(ctx, kubeflow_run_id: str, output: str):
-    from kedro_mlflow.framework.context import get_mlflow_config
     import mlflow
+    from kedro_mlflow.framework.context import get_mlflow_config
 
-    mlflow_conf = get_mlflow_config(ctx.obj["context_helper"].context)
-    mlflow_conf.setup(ctx.obj["context_helper"].context)
+    token = AuthHandler().obtain_id_token()
+    if token:
+        os.environ["MLFLOW_TRACKING_TOKEN"] = token
+        LOG.info("Configuring MLFLOW_TRACKING_TOKEN")
+
+    kedro_context = ctx.obj["context_helper"].context
+    mlflow_conf = get_mlflow_config(kedro_context)
+    mlflow_conf.setup(kedro_context)
     run = mlflow.start_run(
         experiment_id=mlflow_conf.experiment.experiment_id, nested=False
     )
