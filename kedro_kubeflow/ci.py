@@ -5,8 +5,8 @@ name: On push - build image and run on Kubeflow
 
 on:
   push:
-    branches:
-      - '!master'
+    branches-ignore:
+      - master
 
 env:
   PROJECT_ID: ${{{{ secrets.GKE_PROJECT }}}}
