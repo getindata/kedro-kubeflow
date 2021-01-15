@@ -95,7 +95,10 @@ class KubeflowClient(object):
     def generate_pipeline(self, pipeline, image, image_pull_policy):
         def _customize_op(op):
             op.container.set_image_pull_policy(image_pull_policy)
-            op.container.set_security_context(V1SecurityContext(run_as_user=0))
+            if self.volume_meta and self.volume_meta.owner is not None:
+                op.container.set_security_context(
+                    V1SecurityContext(run_as_user=self.volume_meta.owner)
+                )
             return op
 
         @dsl.pipeline(

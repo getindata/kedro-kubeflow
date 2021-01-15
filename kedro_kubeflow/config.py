@@ -15,6 +15,7 @@ run_config:
     #size: 1Gi
     #access_modes: [ReadWriteOnce]
     #skip_init: False
+    #owner: 0
 """
 
 
@@ -56,6 +57,10 @@ class VolumeConfig(Config):
     @property
     def skip_init(self):
         return self._get_or_default("skip_init", False)
+
+    @property
+    def owner(self):
+        return self._get_or_default("owner", None)
 
     def _get_prefix(self):
         return "run_config.volume."
