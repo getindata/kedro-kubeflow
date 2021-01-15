@@ -46,7 +46,6 @@ Commands:
   compile          Translates Kedro pipeline into YAML file with Kubeflow...
   init             Initializes configuration for the plugin
   list-pipelines   List deployed pipeline definitions
-  mlflow-start
   run-once         Deploy pipeline as a single run within given experiment.
   schedule         Schedules recurring execution of latest version of the...
   ui               Open Kubeflow Pipelines UI in new browser tab
@@ -80,7 +79,3 @@ Commands:
 ### `run-once`
 
 `run-once` is all-in-one command to compile the pipeline and run it in the Kubeflow environment.
-
-### `mlflow-start`
-
-`mlflow-start` is internal command to be used as a pipeline starting point with [enabled Mlflow support](../03_getting_started/03_mlflow.md). It should not be called by the users.

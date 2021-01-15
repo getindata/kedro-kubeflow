@@ -45,3 +45,12 @@ run_config:
     # fresh volume) should be skipped
     skip_init: False
 ```
+
+## Dynamic configuration support
+
+`kedro-kubeflow` contains hook that enables [TemplatedConfigLoader](https://kedro.readthedocs.io/en/stable/kedro.config.TemplatedConfigLoader.html).
+It allows passing environment variables to configuration files. It reads all environment variables following `KEDRO_CONFIG_<NAME>` pattern, which you 
+can later inject in configuration file using `${name}` syntax. 
+
+There are two special variables `KEDRO_CONFIG_COMMIT_ID`, `KEDRO_CONFIG_BRANCH_NAME` with support specifying default when variable is not set, 
+e.g. `${commit_id|dirty}`   
