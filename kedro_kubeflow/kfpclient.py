@@ -9,7 +9,7 @@ from typing import Dict, Set
 from kedro.pipeline.node import Node
 from kfp import Client, dsl
 from kfp.compiler import Compiler
-from kubernetes.client import V1EnvVar
+from kubernetes.client import V1EnvVar, V1SecurityContext
 from tabulate import tabulate
 
 from .utils import is_mlflow_enabled
@@ -93,6 +93,11 @@ class KubeflowClient(object):
             return jwt_token
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
+        def _customize_op(op):
+            op.container.set_image_pull_policy(image_pull_policy)
+            op.container.set_security_context(V1SecurityContext(run_as_user=0))
+            return op
+
         @dsl.pipeline(
             name=self.project_name,
             description="Kubeflow pipeline for Kedro project",
@@ -122,24 +127,25 @@ class KubeflowClient(object):
             if self.volume_meta.skip_init:
                 return {"/home/kedro/data": vop.volume}
             else:
-                volume_init = dsl.ContainerOp(
-                    name="data-volume-init",
-                    image=image,
-                    command=["sh", "-c"],
-                    arguments=[
-                        " ".join(
-                            [
-                                "cp",
-                                "--verbose",
-                                "-r",
-                                "/home/kedro/data/*",
-                                "/home/kedro/datavolume",
-                            ]
-                        )
-                    ],
-                    pvolumes={"/home/kedro/datavolume": vop.volume},
+                volume_init = _customize_op(
+                    dsl.ContainerOp(
+                        name="data-volume-init",
+                        image=image,
+                        command=["sh", "-c"],
+                        arguments=[
+                            " ".join(
+                                [
+                                    "cp",
+                                    "--verbose",
+                                    "-r",
+                                    "/home/kedro/data/*",
+                                    "/home/kedro/datavolume",
+                                ]
+                            )
+                        ],
+                        pvolumes={"/home/kedro/datavolume": vop.volume},
+                    )
                 )
-                volume_init.container.set_image_pull_policy(image_pull_policy)
                 return {"/home/kedro/data": volume_init.pvolume}
 
         def _build_kfp_ops(
@@ -155,19 +161,18 @@ class KubeflowClient(object):
             ]
 
             if is_mlflow_enabled():
-                kfp_ops["mlflow-start-run"] = dsl.ContainerOp(
-                    name="mlflow-start-run",
-                    image=image,
-                    command=["kedro"],
-                    arguments=[
-                        "kubeflow",
-                        "mlflow-start",
-                        dsl.RUN_ID_PLACEHOLDER,
-                    ],
-                    file_outputs={"mlflow_run_id": "/tmp/mlflow_run_id"},
-                )
-                kfp_ops["mlflow-start-run"].container.set_image_pull_policy(
-                    image_pull_policy
+                kfp_ops["mlflow-start-run"] = _customize_op(
+                    dsl.ContainerOp(
+                        name="mlflow-start-run",
+                        image=image,
+                        command=["kedro"],
+                        arguments=[
+                            "kubeflow",
+                            "mlflow-start",
+                            dsl.RUN_ID_PLACEHOLDER,
+                        ],
+                        file_outputs={"mlflow_run_id": "/tmp/mlflow_run_id"},
+                    )
                 )
                 env.append(
                     V1EnvVar(
@@ -178,16 +183,15 @@ class KubeflowClient(object):
 
             for node in node_dependencies:
                 name = _clean_name(node.name)
-                kfp_ops[node.name] = dsl.ContainerOp(
-                    name=name,
-                    image=image,
-                    command=["kedro"],
-                    arguments=["run", "--node", node.name],
-                    pvolumes=node_volumes,
-                    container_kwargs={"env": env},
-                )
-                kfp_ops[node.name].container.set_image_pull_policy(
-                    image_pull_policy
+                kfp_ops[node.name] = _customize_op(
+                    dsl.ContainerOp(
+                        name=name,
+                        image=image,
+                        command=["kedro"],
+                        arguments=["run", "--node", node.name],
+                        pvolumes=node_volumes,
+                        container_kwargs={"env": env},
+                    )
                 )
 
             return kfp_ops
