@@ -437,11 +437,15 @@ class TestKubeflowClient(unittest.TestCase):
         volume_init_spec = dsl_pipeline.ops["data-volume-init"].container
         assert volume_init_spec.image == "unittest-image"
         assert volume_init_spec.image_pull_policy == "IfNotPresent"
+        assert volume_init_spec.security_context is None
         assert volume_init_spec.args[0].startswith("cp --verbose -r")
         for node_name in ["data-volume-init", "node1", "node2"]:
             volumes = dsl_pipeline.ops[node_name].container.volume_mounts
             assert len(volumes) == 1
             assert volumes[0].name == "data-volume-create"
+            assert (
+                dsl_pipeline.ops[node_name].container.security_context is None
+            )
 
     def test_should_support_inter_steps_volume_with_given_spec(self):
         # given
@@ -489,6 +493,58 @@ class TestKubeflowClient(unittest.TestCase):
         assert volume_spec.resources.requests["storage"] == "1Mi"
         assert volume_spec.access_modes == ["ReadWriteOnce"]
         assert volume_spec.storage_class_name == "nfs"
+
+    def test_should_change_effective_user_if_to_volume_owner(self):
+        # given
+        run_mock = unittest.mock.MagicMock()
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
+        self.create_client(
+            {
+                "volume": {
+                    "storageclass": "nfs",
+                    "size": "1Mi",
+                    "access_modes": ["ReadWriteOnce"],
+                    "owner": 47,
+                }
+            }
+        )
+
+        # when
+        self.client_under_test.run_once(
+            run_name="unittest",
+            pipeline="pipeline",
+            image="unittest-image",
+            experiment_name="experiment",
+            wait=False,
+        )
+
+        # then
+        self.kfp_client_mock.create_run_from_pipeline_func.assert_called()
+        run_mock.wait_for_run_completion.assert_not_called()
+        (
+            args,
+            kwargs,
+        ) = self.kfp_client_mock.create_run_from_pipeline_func.call_args
+        assert kwargs == {
+            "arguments": {},
+            "experiment_name": "experiment",
+            "run_name": "unittest",
+        }
+
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            args[0]()
+
+        volume_init_spec = dsl_pipeline.ops["data-volume-init"].container
+        assert volume_init_spec.security_context.run_as_user == 47
+        for node_name in ["data-volume-init", "node1", "node2"]:
+            assert (
+                dsl_pipeline.ops[
+                    node_name
+                ].container.security_context.run_as_user
+                == 47
+            )
 
     def test_should_add_mlflow_init_step_if_enabled(self):
         # given
