@@ -1,7 +1,7 @@
 # flake8: noqa
 GITHUB = {
     "on-push": """
-name: On push: build image and run on Kubeflow
+name: On push - build image and run on Kubeflow
 
 on:
   push:
@@ -50,7 +50,7 @@ jobs:
         /home/runner/.local/bin/kedro kubeflow run-once
 """,
     "on-merge-to-master": """
-name: On merge to master: build, register and schedule
+name: On merge to master - build, register and schedule
 
 on:
   push:
