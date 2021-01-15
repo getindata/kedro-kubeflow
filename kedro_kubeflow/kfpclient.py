@@ -12,9 +12,8 @@ from kfp.compiler import Compiler
 from kubernetes.client import V1EnvVar, V1SecurityContext
 from tabulate import tabulate
 
+from .auth import IAP_CLIENT_ID, AuthHandler
 from .utils import is_mlflow_enabled
-
-IAP_CLIENT_ID = "IAP_CLIENT_ID"
 
 WAIT_TIMEOUT = 24 * 60 * 60
 
@@ -24,7 +23,7 @@ class KubeflowClient(object):
     log = logging.getLogger(__name__)
 
     def __init__(self, config, project_name, context):
-        token = self.obtain_id_token()
+        token = AuthHandler().obtain_id_token()
         self.host = config.host
         self.client = Client(self.host, existing_token=token)
         self.project_name = project_name
@@ -56,41 +55,6 @@ class KubeflowClient(object):
 
         if wait:
             run.wait_for_run_completion(timeout=WAIT_TIMEOUT)
-
-    def obtain_id_token(self):
-        from google.auth.transport.requests import Request
-        from google.oauth2 import id_token
-        from google.auth.exceptions import DefaultCredentialsError
-
-        client_id = os.environ.get(IAP_CLIENT_ID, None)
-
-        jwt_token = None
-
-        if not client_id:
-            self.log.info(
-                "No IAP_CLIENT_ID provided, skipping custom IAP authentication"
-            )
-            return jwt_token
-
-        try:
-            self.log.debug("Obtaining JWT token for %s." + client_id)
-            jwt_token = id_token.fetch_id_token(Request(), client_id)
-            self.log.info("Obtained JWT token for MLFLOW connectivity.")
-        except DefaultCredentialsError as ex:
-            self.log.warning(
-                str(ex)
-                + (
-                    " Note that this authentication method does not work with default"
-                    " credentials obtained via 'gcloud auth application-default login'"
-                    " command. Refer to documentation on how to configure service account"
-                    " locally"
-                    " (https://cloud.google.com/docs/authentication/production#manually)"
-                )
-            )
-        except Exception as e:
-            self.log.error("Failed to obtain IAP access token. " + str(e))
-        finally:
-            return jwt_token
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
         def _customize_op(op):
@@ -157,11 +121,10 @@ class KubeflowClient(object):
             """Build kfp container graph from Kedro node dependencies. """
             kfp_ops = {}
 
-            env = [
-                V1EnvVar(
-                    name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
-                )
-            ]
+            iap_env_var = V1EnvVar(
+                name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
+            )
+            nodes_env = [iap_env_var]
 
             if is_mlflow_enabled():
                 kfp_ops["mlflow-start-run"] = _customize_op(
@@ -174,10 +137,12 @@ class KubeflowClient(object):
                             "mlflow-start",
                             dsl.RUN_ID_PLACEHOLDER,
                         ],
+                        container_kwargs={"env": [iap_env_var]},
                         file_outputs={"mlflow_run_id": "/tmp/mlflow_run_id"},
                     )
                 )
-                env.append(
+
+                nodes_env.append(
                     V1EnvVar(
                         name="MLFLOW_RUN_ID",
                         value=kfp_ops["mlflow-start-run"].output,
@@ -193,7 +158,7 @@ class KubeflowClient(object):
                         command=["kedro"],
                         arguments=["run", "--node", node.name],
                         pvolumes=node_volumes,
-                        container_kwargs={"env": env},
+                        container_kwargs={"env": nodes_env},
                     )
                 )
 

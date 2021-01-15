@@ -5,21 +5,51 @@ from kedro.config import MissingConfigException
 from .ci import GITHUB
 
 DEFAULT_CONFIG_TEMPLATE = """
-
+# Base url of the Kubeflow Pipelines, should include the schema (http/https)
 host: {url}
 
+# Configuration used to run the pipeline
 run_config:
+
+  # Name of the image to run as the pipeline steps
   image: {image}
+
+  # Pull pilicy to be used for the steps. Use Always if you push the images
+  # on the same tag, or Never if you use only local images
   image_pull_policy: IfNotPresent
+
+  # Name of the kubeflow experiment to be created
   experiment_name: {project}
+
+  # Name of the run for run-once
   run_name: {run_name}
+
+  # Flag indicating if the run-once should wait for the pipeline to finish
   wait_for_completion: False
+
+  # Optional volume specification
   volume:
+
+    # Storage class - use null (or no value) to use the default storage
+    # class deployed on the Kubernetes cluster
     storageclass: # default
-    access_modes: [ReadWriteOnce]
+
+    # The size of the volume that is created. Applicable for some storage
+    # classes
+    size: 1Gi
+
+    # Access mode of the volume used to exchange data. ReadWriteMany is
+    # preferred, but it is not supported on some environements (like GKE)
+    # Default value: ReadWriteOnce
+    #access_modes: [ReadWriteMany]
+
+    # Flag indicating if the data-volume-init step (copying raw data to the
+    # fresh volume) should be skipped
+    skip_init: False
+
+    # Allows to specify user executing pipelines within containers
+    # Default: root user (to avoid issues with volumes in GKE)
     owner: 0
-    #size: 1Gi
-    #skip_init: False
 """
 
 

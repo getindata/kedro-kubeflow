@@ -1,8 +1,13 @@
 import os
 import unittest
 from contextlib import contextmanager
+from unittest.mock import patch
 
-from kedro_kubeflow.hooks import RegisterTemplatedConfigLoaderHook
+from kedro_kubeflow.auth import AuthHandler
+from kedro_kubeflow.hooks import (  # NOQA
+    MlflowIapAuthHook,
+    RegisterTemplatedConfigLoaderHook,
+)
 
 
 @contextmanager
@@ -31,8 +36,9 @@ class TestRegisterTemplatedConfigLoaderHook(unittest.TestCase):
     def test_loader_with_env(self):
         with environment(
             {
-                "KEDRO_KUBEFLOW_COMMIT": "123abc",
-                "KEDRO_KUBEFLOW_BRANCH": "feature-1",
+                "KEDRO_CONFIG_COMMIT_ID": "123abc",
+                "KEDRO_CONFIG_BRANCH_NAME": "feature-1",
+                "KEDRO_CONFIG_XYZ123": "123abc",
             }
         ):
             config = self.get_config()
@@ -40,3 +46,12 @@ class TestRegisterTemplatedConfigLoaderHook(unittest.TestCase):
         assert config["run_config"]["image"] == "gcr.io/project-image/123abc"
         assert config["run_config"]["experiment_name"] == "[Test] feature-1"
         assert config["run_config"]["run_name"] == "123abc"
+
+
+class TestMlflowIapAuthHook(unittest.TestCase):
+    @patch.object(AuthHandler, "obtain_id_token", return_value="TEST_TOKEN")
+    def test_should_inject_token_when_env_is_set(self, obtain_id_token):
+        MlflowIapAuthHook().after_catalog_created(catalog=None)
+
+        assert os.environ["MLFLOW_TRACKING_TOKEN"] == "TEST_TOKEN"
+        obtain_id_token.assert_called_with()

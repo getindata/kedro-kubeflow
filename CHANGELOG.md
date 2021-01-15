@@ -2,10 +2,17 @@
 
 ## [Unreleased]
 
-### Changed
+### Added
 
-- Increased test coverage for the CLI handling
 - Ability to change the effective user id for steps if the ownership of the volume needs it
+- Hook that enables TemplatedConfigLoader that supports dynamic config files. Any env variable 
+named `KEDRO_CONFIG_<NAME>` can be referenced in configuration files as `${name}`
+- Added IAP authentication support for MLflow
+- Increased test coverage for the CLI
+
+### Fixed
+
+- Fixed broken `kubeflow init` command (#29)
 
 ## [0.1.10] - 2021-01-11
 
