@@ -50,7 +50,7 @@ class TestRegisterTemplatedConfigLoaderHook(unittest.TestCase):
 
 class TestMlflowIapAuthHook(unittest.TestCase):
     @patch.object(AuthHandler, "obtain_id_token", return_value="TEST_TOKEN")
-    def should_inject_token_when_env_is_set(self, obtain_id_token):
+    def test_should_inject_token_when_env_is_set(self, obtain_id_token):
         MlflowIapAuthHook().after_catalog_created(catalog=None)
 
         assert os.environ["MLFLOW_TRACKING_TOKEN"] == "TEST_TOKEN"
