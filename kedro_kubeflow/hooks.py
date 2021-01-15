@@ -5,7 +5,7 @@ from kedro.config import ConfigLoader, TemplatedConfigLoader
 from kedro.framework.hooks import hook_impl
 from kedro.io import DataCatalog
 
-VAR_PREFIX = "KEDRO_KUBEFLOW_"
+VAR_PREFIX = "KEDRO_CONFIG_"
 
 # defaults provided so default variables ${commit_id|dirty} work for some entries
 ENV_DEFAULTS = {"commit_id": None, "branch_name": None}

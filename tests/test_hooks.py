@@ -36,9 +36,9 @@ class TestRegisterTemplatedConfigLoaderHook(unittest.TestCase):
     def test_loader_with_env(self):
         with environment(
             {
-                "KEDRO_KUBEFLOW_COMMIT_ID": "123abc",
-                "KEDRO_KUBEFLOW_BRANCH_NAME": "feature-1",
-                "KEDRO_KUBEFLOW_XYZ123": "123abc",
+                "KEDRO_CONFIG_COMMIT_ID": "123abc",
+                "KEDRO_CONFIG_BRANCH_NAME": "feature-1",
+                "KEDRO_CONFIG_XYZ123": "123abc",
             }
         ):
             config = self.get_config()
