@@ -104,6 +104,7 @@ target/
 # celery beat schedule file
 celerybeat-schedule
 
+
 # SageMath parsed files
 *.sage.py
 
@@ -121,3 +122,5 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+docs/_build
