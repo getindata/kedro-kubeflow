@@ -46,6 +46,7 @@ jobs:
         pip3 install kedro-kubeflow
         /home/runner/.local/bin/kedro install
         sed -i -e"s/__GITHUB_SHA__/$GITHUB_SHA/" conf/base/kubeflow.yaml
+        sed -i -e"s/__PROJECT_ID__/$PROJECT_ID/" conf/base/kubeflow.yaml
         /home/runner/.local/bin/kedro kubeflow run-once
 """,
     "on-merge-to-master": """
@@ -94,6 +95,7 @@ jobs:
         pip3 install kedro-kubeflow
         /home/runner/.local/bin/kedro install
         sed -i -e"s/__GITHUB_SHA__/$GITHUB_SHA/" conf/base/kubeflow.yaml
+        sed -i -e"s/__PROJECT_ID__/$PROJECT_ID/" conf/base/kubeflow.yaml
         /home/runner/.local/bin/kedro kubeflow upload-pipeline
         /home/runner/.local/bin/kedro kubeflow list-pipelines
         /home/runner/.local/bin/kedro kubeflow schedule -c '0 0 4 * * *' # 04:00:00 each day
