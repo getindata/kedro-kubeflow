@@ -12,7 +12,7 @@ run_config:
   image: {image}
   image_pull_policy: IfNotPresent
   experiment_name: {project}
-  run_name: {project}
+  run_name: {run_name}
   wait_for_completion: False
   volume:
     storageclass: # default

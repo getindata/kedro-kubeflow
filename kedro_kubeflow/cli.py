@@ -174,11 +174,13 @@ def init(ctx, kfp_url: str, with_github_actions: bool):
     project_name = context_helper.context.project_path.name
     if with_github_actions:
         image = f"gcr.io/__PROJECT_ID__/{project_name}:__GITHUB_SHA__"
+        run_name = f"{project_name}:__GITHUB_SHA__"
     else:
         image = project_name
+        run_name = project_name
 
     sample_config = PluginConfig.sample_config(
-        url=kfp_url, image=image, project=context_helper.project_name
+        url=kfp_url, image=image, project=project_name, run_name=run_name
     )
     config_path = Path.cwd().joinpath("conf/base/kubeflow.yaml")
     with open(config_path, "w") as f:
