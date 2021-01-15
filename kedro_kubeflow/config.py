@@ -42,6 +42,9 @@ run_config:
     # Flag indicating if the data-volume-init step (copying raw data to the
     # fresh volume) should be skipped
     skip_init: False
+
+    ## Allows to specify user executing pipelines within containers
+    owner: 0
 """
 
 
@@ -83,6 +86,10 @@ class VolumeConfig(Config):
     @property
     def skip_init(self):
         return self._get_or_default("skip_init", False)
+
+    @property
+    def owner(self):
+        return self._get_or_default("owner", None)
 
     def _get_prefix(self):
         return "run_config.volume."

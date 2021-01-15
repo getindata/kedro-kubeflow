@@ -1,5 +1,6 @@
 import os
 import unittest
+from collections import namedtuple
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock, patch
@@ -10,6 +11,7 @@ from kedro_kubeflow.cli import (
     compile,
     init,
     list_pipelines,
+    mlflow_start,
     run_once,
     schedule,
     ui,
@@ -146,5 +148,32 @@ class TestPluginCLI(unittest.TestCase):
             assert result.exit_code == 0
             assert result.output.startswith("Configuration generated in ")
             with open(path.joinpath("conf/base/kubeflow.yaml"), "r") as f:
-                content = "\n".join(f.readlines())
-                assert "host: http:/kubeflow" in content
+                assert "host: http:/kubeflow" in f.read()
+
+    @patch("kedro_mlflow.framework.context.get_mlflow_config")
+    @patch("mlflow.start_run")
+    @patch("mlflow.set_tag")
+    def test_mlflow_start(
+        self, set_tag_mock, start_run_mock, get_mlflow_config_mock
+    ):
+        context_helper = MagicMock(ContextHelper)
+        config = dict(context_helper=context_helper)
+        runner = CliRunner()
+        start_run_mock.return_value = namedtuple("InfoObject", "info")(
+            namedtuple("RunIdObject", "run_id")("MLFLOW_RUN_ID")
+        )
+
+        with TemporaryDirectory() as temp_dir:
+            run_id_file_path = f"{temp_dir}/run_id"
+            result = runner.invoke(
+                mlflow_start,
+                ["KUBEFLOW_RUN_ID", "--output", run_id_file_path],
+                obj=config,
+            )
+
+            assert result.output == "Started run: MLFLOW_RUN_ID\n"
+            assert result.exit_code == 0
+            with open(run_id_file_path) as f:
+                assert f.read() == "MLFLOW_RUN_ID"
+
+        set_tag_mock.assert_called_with("kubeflow_run_id", "KUBEFLOW_RUN_ID")

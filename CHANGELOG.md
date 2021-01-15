@@ -13,6 +13,7 @@
 ### Changed
 
 - Increased test coverage for the CLI handling
+- Ability to change the effective user id for steps if the ownership of the volume needs it
 
 
 ## [0.1.10] - 2021-01-11
