@@ -188,7 +188,7 @@ def init(ctx, kfp_url: str):
     click.echo(f"Configuration generated in {config_path}")
 
 
-@kubeflow_group.command()
+@kubeflow_group.command(hidden=True)
 @click.argument("kubeflow_run_id", type=str)
 @click.option(
     "--output",
