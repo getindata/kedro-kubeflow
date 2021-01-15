@@ -1,4 +1,8 @@
+import os
+
 from kedro.config import MissingConfigException
+
+from .ci import GITHUB
 
 DEFAULT_CONFIG_TEMPLATE = """
 
@@ -12,10 +16,10 @@ run_config:
   wait_for_completion: False
   volume:
     storageclass: # default
+    access_modes: [ReadWriteOnce]
+    owner: 0
     #size: 1Gi
-    #access_modes: [ReadWriteOnce]
     #skip_init: False
-    #owner: 0
 """
 
 
@@ -52,7 +56,7 @@ class VolumeConfig(Config):
 
     @property
     def access_modes(self):
-        return self._get_or_default("access_modes", ["ReadWriteMany"])
+        return self._get_or_default("access_modes", ["ReadWriteOnce"])
 
     @property
     def skip_init(self):
@@ -60,7 +64,7 @@ class VolumeConfig(Config):
 
     @property
     def owner(self):
-        return self._get_or_default("owner", None)
+        return self._get_or_default("owner", 0)
 
     def _get_prefix(self):
         return "run_config.volume."
@@ -112,3 +116,11 @@ class PluginConfig(Config):
     @staticmethod
     def sample_config(**kwargs):
         return DEFAULT_CONFIG_TEMPLATE.format(**kwargs)
+
+    @staticmethod
+    def initialize_github_actions(base_dir, project_name):
+        os.makedirs(base_dir / ".github/workflows", exist_ok=True)
+        for template in GITHUB.keys():
+            file_path = base_dir / ".github/workflows" / (template + ".yml")
+            with open(file_path, "w") as f:
+                f.write(GITHUB[template].format(project_name=project_name))
