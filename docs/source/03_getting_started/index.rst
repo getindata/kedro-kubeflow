@@ -7,3 +7,4 @@ Getting started
    Quickstart <01_quickstart.md>
    Google Cloud Platform support <02_gcp.md>
    Kedro-Mlflow integration <03_mlflow.md>
+   Continuous Deployment <04_continuous_deployment.md>

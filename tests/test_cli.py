@@ -143,12 +143,43 @@ class TestPluginCLI(unittest.TestCase):
             path = Path(temp_dir)
             cwd.return_value = path
             os.makedirs(path.joinpath("conf/base"))
-            result = runner.invoke(init, ["http:/kubeflow"], obj=config)
+            result = runner.invoke(init, ["http://kubeflow"], obj=config)
 
             assert result.exit_code == 0
             assert result.output.startswith("Configuration generated in ")
             with open(path.joinpath("conf/base/kubeflow.yaml"), "r") as f:
-                assert "host: http:/kubeflow" in f.read()
+                assert "host: http://kubeflow" in f.read()
+
+    @patch.object(Path, "cwd")
+    def test_init_with_github_actions(self, cwd):
+        context_helper = MagicMock(ContextHelper)
+        context_helper.config = test_config
+        context_helper.context.project_name = "Test Project"
+        context_helper.context.project_path.name = "test_project_path"
+        config = dict(context_helper=context_helper)
+        runner = CliRunner()
+
+        with TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir)
+            cwd.return_value = path
+            os.makedirs(path.joinpath("conf/base"))
+            result = runner.invoke(
+                init, ["--with-github-actions", "http://kubeflow"], obj=config
+            )
+
+            assert result.exit_code == 0
+            on_push_actions = path / ".github" / "workflows" / "on-push.yml"
+            assert on_push_actions.exists()
+            with open(on_push_actions, "r") as f:
+                assert "kedro kubeflow run-once" in f.read()
+            on_merge_actions = (
+                path / ".github" / "workflows" / "on-merge-to-master.yml"
+            )
+            assert on_merge_actions.exists()
+            with open(on_merge_actions, "r") as f:
+                content = f.read()
+                assert "kedro kubeflow upload-pipeline" in content
+                assert "kedro kubeflow schedule" in content
 
     @patch("kedro_mlflow.framework.context.get_mlflow_config")
     @patch("mlflow.start_run")
@@ -171,7 +202,7 @@ class TestPluginCLI(unittest.TestCase):
                 obj=config,
             )
 
-            assert result.output == "Started run: MLFLOW_RUN_ID\n"
+            assert "Started run: MLFLOW_RUN_ID" in result.output
             assert result.exit_code == 0
             with open(run_id_file_path) as f:
                 assert f.read() == "MLFLOW_RUN_ID"

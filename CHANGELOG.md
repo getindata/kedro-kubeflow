@@ -9,6 +9,7 @@
 named `KEDRO_CONFIG_<NAME>` can be referenced in configuration files as `${name}`
 - Added IAP authentication support for MLflow
 - Increased test coverage for the CLI
+- Creating github actions template with `kedro kubeflow init --with-github-actions`
 
 ### Fixed
 
