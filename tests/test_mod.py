@@ -378,19 +378,22 @@ class TestKubeflowClient(unittest.TestCase):
         assert len(dsl_pipeline.ops) == 4
         volume_spec = dsl_pipeline.ops["data-volume-create"].k8s_resource.spec
         assert volume_spec.resources.requests["storage"] == "1Gi"
-        assert volume_spec.access_modes == ["ReadWriteMany"]
+        assert volume_spec.access_modes == ["ReadWriteOnce"]
         assert volume_spec.storage_class_name is None
         volume_init_spec = dsl_pipeline.ops["data-volume-init"].container
         assert volume_init_spec.image == "unittest-image"
         assert volume_init_spec.image_pull_policy == "IfNotPresent"
-        assert volume_init_spec.security_context is None
+        assert volume_init_spec.security_context.run_as_user == 0
         assert volume_init_spec.args[0].startswith("cp --verbose -r")
         for node_name in ["data-volume-init", "node1", "node2"]:
             volumes = dsl_pipeline.ops[node_name].container.volume_mounts
             assert len(volumes) == 1
             assert volumes[0].name == "data-volume-create"
             assert (
-                dsl_pipeline.ops[node_name].container.security_context is None
+                dsl_pipeline.ops[
+                    node_name
+                ].container.security_context.run_as_user
+                == 0
             )
 
     def test_should_support_inter_steps_volume_with_given_spec(self):

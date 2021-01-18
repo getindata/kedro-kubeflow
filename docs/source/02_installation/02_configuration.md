@@ -20,7 +20,7 @@ run_config:
   experiment_name: Kubeflow Plugin Demo
 
   # Name of the run for run-once
-  run_name: Kubeflow Plugin Demo
+  run_name: Kubeflow Plugin Demo Run
 
   # Flag indicating if the run-once should wait for the pipeline to finish
   wait_for_completion: False
@@ -36,14 +36,18 @@ run_config:
     # classes
     size: 1Gi
 
-    # Access mode of the volume used to exchange data. ReadWriteOnce doesn't
-    # allos multiple nodes to bind the volume at the same time, but may be
-    # the only option on some environments. Default value: ReadWriteMany
-    #access_modes: [ReadWriteOnce]
+    # Access mode of the volume used to exchange data. ReadWriteMany is
+    # preferred, but it is not supported on some environements (like GKE)
+    # Default value: ReadWriteOnce
+    #access_modes: [ReadWriteMany]
 
     # Flag indicating if the data-volume-init step (copying raw data to the
     # fresh volume) should be skipped
     skip_init: False
+
+    # Allows to specify user executing pipelines within containers
+    # Default: root user (to avoid issues with volumes in GKE)
+    owner: 0
 ```
 
 ## Dynamic configuration support
