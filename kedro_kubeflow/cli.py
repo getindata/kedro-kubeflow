@@ -1,9 +1,15 @@
+import logging
+import os
+import webbrowser
 from pathlib import Path
 
 import click
 
+from .auth import AuthHandler
 from .config import PluginConfig
 from .context_helper import ContextHelper
+
+LOG = logging.getLogger(__name__)
 
 
 @click.group("Kubeflow")
@@ -70,9 +76,7 @@ def run_once(ctx, image: str, pipeline: str):
 @click.pass_context
 def ui(ctx) -> None:
     """Open Kubeflow Pipelines UI in new browser tab"""
-    import webbrowser
-
-    host = ctx.obj["context_helper"].config["host"]
+    host = ctx.obj["context_helper"].config.host
     webbrowser.open_new_tab(host)
 
 
@@ -167,13 +171,21 @@ def schedule(ctx, experiment_name: str, cron_expression: str):
 
 @kubeflow_group.command()
 @click.argument("kfp_url", type=str)
+@click.option("--with-github-actions", is_flag=True, default=False)
 @click.pass_context
-def init(ctx, kfp_url: str):
+def init(ctx, kfp_url: str, with_github_actions: bool):
     """Initializes configuration for the plugin"""
     context_helper = ctx.obj["context_helper"]
-    image = context_helper.project_path.name  # default from kedro-docker
+    project_name = context_helper.context.project_path.name
+    if with_github_actions:
+        image = f"gcr.io/${{google_project_id}}/{project_name}:${{commit_id}}"
+        run_name = f"{project_name}:${{commit_id}}"
+    else:
+        image = project_name
+        run_name = project_name
+
     sample_config = PluginConfig.sample_config(
-        url=kfp_url, image=image, project_name=context_helper.project_name
+        url=kfp_url, image=image, project=project_name, run_name=run_name
     )
     config_path = Path.cwd().joinpath("conf/base/kubeflow.yaml")
     with open(config_path, "w") as f:
@@ -181,20 +193,38 @@ def init(ctx, kfp_url: str):
 
     click.echo(f"Configuration generated in {config_path}")
 
+    if with_github_actions:
+        PluginConfig.initialize_github_actions(
+            project_name,
+            where=Path.cwd(),
+            templates_dir=Path(__file__).parent / "templates",
+        )
 
-@kubeflow_group.command()
+
+@kubeflow_group.command(hidden=True)
 @click.argument("kubeflow_run_id", type=str)
+@click.option(
+    "--output",
+    type=str,
+    default="/tmp/mlflow_run_id",
+)
 @click.pass_context
-def mlflow_start(ctx, kubeflow_run_id: str):
-    from kedro_mlflow.framework.context import get_mlflow_config
+def mlflow_start(ctx, kubeflow_run_id: str, output: str):
     import mlflow
+    from kedro_mlflow.framework.context import get_mlflow_config
 
-    mlflow_conf = get_mlflow_config(ctx.obj["kedro_ctx"])
-    mlflow_conf.setup(ctx.obj["kedro_ctx"])
+    token = AuthHandler().obtain_id_token()
+    if token:
+        os.environ["MLFLOW_TRACKING_TOKEN"] = token
+        LOG.info("Configuring MLFLOW_TRACKING_TOKEN")
+
+    kedro_context = ctx.obj["context_helper"].context
+    mlflow_conf = get_mlflow_config(kedro_context)
+    mlflow_conf.setup(kedro_context)
     run = mlflow.start_run(
         experiment_id=mlflow_conf.experiment.experiment_id, nested=False
     )
     mlflow.set_tag("kubeflow_run_id", kubeflow_run_id)
-    with open("/tmp/mlflow_run_id", "w") as f:
+    with open(output, "w") as f:
         f.write(run.info.run_id)
     click.echo(f"Started run: {run.info.run_id}")

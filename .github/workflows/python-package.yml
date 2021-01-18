@@ -27,7 +27,7 @@ jobs:
    
     - name: Check pre-commit status
       run: |
-        pip install -r requirements-dev.txt
+        pip install .[tests]
         pre-commit run --all-files
 
     - name: Test with tox

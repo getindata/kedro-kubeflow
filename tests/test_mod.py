@@ -6,7 +6,6 @@ from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
 import kfp
-from google.auth.exceptions import DefaultCredentialsError
 from kedro.pipeline import Pipeline, node
 
 from kedro_kubeflow.config import PluginConfig
@@ -175,59 +174,6 @@ class TestKubeflowClient(unittest.TestCase):
         # then
         kfp_client_mock.assert_called_with(
             "http://unittest", existing_token="unittest-token"
-        )
-
-    @patch("google.oauth2.id_token.fetch_id_token")
-    @patch("kedro_kubeflow.kfpclient.Client")
-    def test_should_warn_if_trying_to_use_default_creds(
-        self, kfp_client_mock, fetch_id_token_mock
-    ):
-        # given
-        os.environ["IAP_CLIENT_ID"] = "unittest-client-id"
-        fetch_id_token_mock.side_effect = DefaultCredentialsError()
-
-        with self.assertLogs(
-            "kedro_kubeflow.kfpclient", level="WARNING"
-        ) as cm:
-            # when
-            self.client_under_test = KubeflowClient(
-                PluginConfig({"host": "http://unittest", "run_config": {}}),
-                None,
-                None,
-            )
-            # then
-            assert (
-                "this authentication method does not work with default credentials"
-                in cm.output[0]
-            )
-
-        # then
-        kfp_client_mock.assert_called_with(
-            "http://unittest", existing_token=None
-        )
-
-    @patch("google.oauth2.id_token.fetch_id_token")
-    @patch("kedro_kubeflow.kfpclient.Client")
-    def test_should_error_on_invalid_creds(
-        self, kfp_client_mock, fetch_id_token_mock
-    ):
-        # given
-        os.environ["IAP_CLIENT_ID"] = "unittest-client-id"
-        fetch_id_token_mock.side_effect = Exception()
-
-        with self.assertLogs("kedro_kubeflow.kfpclient", level="ERROR") as cm:
-            # when
-            self.client_under_test = KubeflowClient(
-                PluginConfig({"host": "http://unittest", "run_config": {}}),
-                None,
-                None,
-            )
-            # then
-            assert "Failed to obtain IAP access token" in cm.output[0]
-
-        # then
-        kfp_client_mock.assert_called_with(
-            "http://unittest", existing_token=None
         )
 
     def test_should_modify_pull_policy_in_run(self):
@@ -432,16 +378,23 @@ class TestKubeflowClient(unittest.TestCase):
         assert len(dsl_pipeline.ops) == 4
         volume_spec = dsl_pipeline.ops["data-volume-create"].k8s_resource.spec
         assert volume_spec.resources.requests["storage"] == "1Gi"
-        assert volume_spec.access_modes == ["ReadWriteMany"]
+        assert volume_spec.access_modes == ["ReadWriteOnce"]
         assert volume_spec.storage_class_name is None
         volume_init_spec = dsl_pipeline.ops["data-volume-init"].container
         assert volume_init_spec.image == "unittest-image"
         assert volume_init_spec.image_pull_policy == "IfNotPresent"
+        assert volume_init_spec.security_context.run_as_user == 0
         assert volume_init_spec.args[0].startswith("cp --verbose -r")
         for node_name in ["data-volume-init", "node1", "node2"]:
             volumes = dsl_pipeline.ops[node_name].container.volume_mounts
             assert len(volumes) == 1
             assert volumes[0].name == "data-volume-create"
+            assert (
+                dsl_pipeline.ops[
+                    node_name
+                ].container.security_context.run_as_user
+                == 0
+            )
 
     def test_should_support_inter_steps_volume_with_given_spec(self):
         # given
@@ -489,6 +442,58 @@ class TestKubeflowClient(unittest.TestCase):
         assert volume_spec.resources.requests["storage"] == "1Mi"
         assert volume_spec.access_modes == ["ReadWriteOnce"]
         assert volume_spec.storage_class_name == "nfs"
+
+    def test_should_change_effective_user_if_to_volume_owner(self):
+        # given
+        run_mock = unittest.mock.MagicMock()
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
+        self.create_client(
+            {
+                "volume": {
+                    "storageclass": "nfs",
+                    "size": "1Mi",
+                    "access_modes": ["ReadWriteOnce"],
+                    "owner": 47,
+                }
+            }
+        )
+
+        # when
+        self.client_under_test.run_once(
+            run_name="unittest",
+            pipeline="pipeline",
+            image="unittest-image",
+            experiment_name="experiment",
+            wait=False,
+        )
+
+        # then
+        self.kfp_client_mock.create_run_from_pipeline_func.assert_called()
+        run_mock.wait_for_run_completion.assert_not_called()
+        (
+            args,
+            kwargs,
+        ) = self.kfp_client_mock.create_run_from_pipeline_func.call_args
+        assert kwargs == {
+            "arguments": {},
+            "experiment_name": "experiment",
+            "run_name": "unittest",
+        }
+
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            args[0]()
+
+        volume_init_spec = dsl_pipeline.ops["data-volume-init"].container
+        assert volume_init_spec.security_context.run_as_user == 47
+        for node_name in ["data-volume-init", "node1", "node2"]:
+            assert (
+                dsl_pipeline.ops[
+                    node_name
+                ].container.security_context.run_as_user
+                == 47
+            )
 
     def test_should_add_mlflow_init_step_if_enabled(self):
         # given
