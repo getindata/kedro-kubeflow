@@ -2,18 +2,20 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2021-01-18
+
 ### Added
 
-- Ability to change the effective user id for steps if the ownership of the volume needs it
-- Hook that enables TemplatedConfigLoader that supports dynamic config files. Any env variable 
-named `KEDRO_CONFIG_<NAME>` can be referenced in configuration files as `${name}`
-- Added IAP authentication support for MLflow
-- Increased test coverage for the CLI
-- Creating github actions template with `kedro kubeflow init --with-github-actions`
+-   Ability to change the effective user id for steps if the ownership of the volume needs it
+-   Hook that enables TemplatedConfigLoader that supports dynamic config files. Any env variable 
+    named `KEDRO_CONFIG_<NAME>` can be referenced in configuration files as `${name}`
+-   Added IAP authentication support for MLflow
+-   Increased test coverage for the CLI
+-   Creating github actions template with `kedro kubeflow init --with-github-actions`
 
 ### Fixed
 
-- Fixed broken `kubeflow init` command (#29)
+-   Fixed broken `kubeflow init` command (#29)
 
 ## [0.1.10] - 2021-01-11
 
@@ -42,7 +44,9 @@ named `KEDRO_CONFIG_<NAME>` can be referenced in configuration files as `${name}
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.1.10...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.2.0...HEAD
+
+[0.2.0]: https://github.com/getindata/kedro-kubeflow/compare/0.1.10...0.2.0
 
 [0.1.10]: https://github.com/getindata/kedro-kubeflow/compare/0.1.9...0.1.10
 
