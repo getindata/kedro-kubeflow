@@ -2,8 +2,6 @@ import os
 
 from kedro.config import MissingConfigException
 
-from .ci import GITHUB
-
 DEFAULT_CONFIG_TEMPLATE = """
 # Base url of the Kubeflow Pipelines, should include the schema (http/https)
 host: {url}
@@ -148,9 +146,10 @@ class PluginConfig(Config):
         return DEFAULT_CONFIG_TEMPLATE.format(**kwargs)
 
     @staticmethod
-    def initialize_github_actions(base_dir, project_name):
-        os.makedirs(base_dir / ".github/workflows", exist_ok=True)
-        for template in GITHUB.keys():
-            file_path = base_dir / ".github/workflows" / (template + ".yml")
-            with open(file_path, "w") as f:
-                f.write(GITHUB[template].format(project_name=project_name))
+    def initialize_github_actions(project_name, where, templates_dir):
+        os.makedirs(where / ".github/workflows", exist_ok=True)
+        for template in ["on-merge-to-master.yml", "on-push.yml"]:
+            file_path = where / ".github/workflows" / template
+            template_file = templates_dir / f"github-{template}"
+            with open(template_file, "r") as tfile, open(file_path, "w") as f:
+                f.write(tfile.read().format(project_name=project_name))

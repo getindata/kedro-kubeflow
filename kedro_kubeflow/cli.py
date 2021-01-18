@@ -194,7 +194,11 @@ def init(ctx, kfp_url: str, with_github_actions: bool):
     click.echo(f"Configuration generated in {config_path}")
 
     if with_github_actions:
-        PluginConfig.initialize_github_actions(Path.cwd(), project_name)
+        PluginConfig.initialize_github_actions(
+            project_name,
+            where=Path.cwd(),
+            templates_dir=Path(__file__).parent / "templates",
+        )
 
 
 @kubeflow_group.command(hidden=True)
