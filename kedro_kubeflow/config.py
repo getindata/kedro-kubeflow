@@ -1,3 +1,5 @@
+import os
+
 from kedro.config import MissingConfigException
 
 DEFAULT_CONFIG_TEMPLATE = """
@@ -18,7 +20,7 @@ run_config:
   experiment_name: {project}
 
   # Name of the run for run-once
-  run_name: {project}
+  run_name: {run_name}
 
   # Flag indicating if the run-once should wait for the pipeline to finish
   wait_for_completion: False
@@ -34,16 +36,17 @@ run_config:
     # classes
     size: 1Gi
 
-    # Access mode of the volume used to exchange data. ReadWriteOnce doesn't
-    # allos multiple nodes to bind the volume at the same time, but may be
-    # the only option on some environments. Default value: ReadWriteMany
-    #access_modes: [ReadWriteOnce]
+    # Access mode of the volume used to exchange data. ReadWriteMany is
+    # preferred, but it is not supported on some environements (like GKE)
+    # Default value: ReadWriteOnce
+    #access_modes: [ReadWriteMany]
 
     # Flag indicating if the data-volume-init step (copying raw data to the
     # fresh volume) should be skipped
     skip_init: False
 
-    ## Allows to specify user executing pipelines within containers
+    # Allows to specify user executing pipelines within containers
+    # Default: root user (to avoid issues with volumes in GKE)
     owner: 0
 """
 
@@ -81,7 +84,7 @@ class VolumeConfig(Config):
 
     @property
     def access_modes(self):
-        return self._get_or_default("access_modes", ["ReadWriteMany"])
+        return self._get_or_default("access_modes", ["ReadWriteOnce"])
 
     @property
     def skip_init(self):
@@ -89,7 +92,7 @@ class VolumeConfig(Config):
 
     @property
     def owner(self):
-        return self._get_or_default("owner", None)
+        return self._get_or_default("owner", 0)
 
     def _get_prefix(self):
         return "run_config.volume."
@@ -141,3 +144,12 @@ class PluginConfig(Config):
     @staticmethod
     def sample_config(**kwargs):
         return DEFAULT_CONFIG_TEMPLATE.format(**kwargs)
+
+    @staticmethod
+    def initialize_github_actions(project_name, where, templates_dir):
+        os.makedirs(where / ".github/workflows", exist_ok=True)
+        for template in ["on-merge-to-master.yml", "on-push.yml"]:
+            file_path = where / ".github/workflows" / template
+            template_file = templates_dir / f"github-{template}"
+            with open(template_file, "r") as tfile, open(file_path, "w") as f:
+                f.write(tfile.read().format(project_name=project_name))

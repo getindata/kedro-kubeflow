@@ -171,21 +171,34 @@ def schedule(ctx, experiment_name: str, cron_expression: str):
 
 @kubeflow_group.command()
 @click.argument("kfp_url", type=str)
+@click.option("--with-github-actions", is_flag=True, default=False)
 @click.pass_context
-def init(ctx, kfp_url: str):
+def init(ctx, kfp_url: str, with_github_actions: bool):
     """Initializes configuration for the plugin"""
     context_helper = ctx.obj["context_helper"]
-    image = (
-        context_helper.context.project_path.name
-    )  # default from kedro-docker
+    project_name = context_helper.context.project_path.name
+    if with_github_actions:
+        image = f"gcr.io/${{google_project_id}}/{project_name}:${{commit_id}}"
+        run_name = f"{project_name}:${{commit_id}}"
+    else:
+        image = project_name
+        run_name = project_name
+
     sample_config = PluginConfig.sample_config(
-        url=kfp_url, image=image, project=context_helper.project_name
+        url=kfp_url, image=image, project=project_name, run_name=run_name
     )
     config_path = Path.cwd().joinpath("conf/base/kubeflow.yaml")
     with open(config_path, "w") as f:
         f.write(sample_config)
 
     click.echo(f"Configuration generated in {config_path}")
+
+    if with_github_actions:
+        PluginConfig.initialize_github_actions(
+            project_name,
+            where=Path.cwd(),
+            templates_dir=Path(__file__).parent / "templates",
+        )
 
 
 @kubeflow_group.command(hidden=True)
