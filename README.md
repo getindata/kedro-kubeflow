@@ -48,19 +48,4 @@ Usage: kedro kubeflow [OPTIONS] COMMAND [ARGS]...
 ## Configuration file
 
 `kedro init` generates configuration file for the plugin, but users may want
-to adjust it to the requirements of the environment:
-
-```
-host: http://10.43.77.224
-
-run_config:
-  image: new-kedro-project
-  experiment_name: New Kedro Project
-  run_name: New Kedro Project
-  wait_for_completion: False
-  volume:
-    storageclass: # default
-    size: 1Gi
-    access_modes: [ReadWriteOnce]
-    skip_init: False
-```
+to adjust it to match the run environment requirements: https://kedro-kubeflow.readthedocs.io/en/latest/source/02_installation/02_configuration.html

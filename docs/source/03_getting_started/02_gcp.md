@@ -8,11 +8,9 @@ tasks with use of Kubeflow based components.
 [AI Platform Notebooks](https://cloud.google.com/ai-platform-notebooks) provides 
 an easy way to manage and host JupyterLab based data science workbench environment.
 What we've found out is that the default images provided by a service cause some
-dependency conflicts (mostly related to `jupyter*`). As a workaround we advise 
-to use custom image or comment out conflicting dependencies from the project 
-`requirements.txt` file.  
-
-Related issue -> [#30](https://github.com/getindata/kedro-kubeflow/issues/30)
+dependency conflicts. To avoid this issues make sure you use isolated virtual
+environment, e.g. [virtualenv](https://pypi.org/project/virtualenv/). New virual 
+environment can be created by simply invoking `python -m virtualenv venv` command.
 
 ### Using `kedro-kubeflow` with AI Platform Pipelines
 
