@@ -178,8 +178,8 @@ def init(ctx, kfp_url: str, with_github_actions: bool):
     context_helper = ctx.obj["context_helper"]
     project_name = context_helper.context.project_path.name
     if with_github_actions:
-        image = f"gcr.io/__PROJECT_ID__/{project_name}:__GITHUB_SHA__"
-        run_name = f"{project_name}:__GITHUB_SHA__"
+        image = f"gcr.io/${{google_project_id}}/{project_name}:${{commit_id}}"
+        run_name = f"{project_name}:${{commit_id}}"
     else:
         image = project_name
         run_name = project_name

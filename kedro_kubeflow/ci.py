@@ -43,10 +43,11 @@ jobs:
 
     - name: Deploy pipeline
       run: |-
-        pip3 install kedro-kubeflow
+        #pip3 install kedro-kubeflow # TODO
+        pip3 install git+https://github.com/getindata/kedro-kubeflow.git@github_actions
         /home/runner/.local/bin/kedro install
-        sed -i -e"s/__GITHUB_SHA__/$GITHUB_SHA/" conf/base/kubeflow.yaml
-        sed -i -e"s/__PROJECT_ID__/$PROJECT_ID/" conf/base/kubeflow.yaml
+        export KEDRO_CONFIG_GOOGLE_PROJECT_ID=$PROJECT_ID
+        export KEDRO_CONFIG_COMMIT_ID=$GITHUB_SHA
         /home/runner/.local/bin/kedro kubeflow run-once
 """,
     "on-merge-to-master": """
@@ -92,10 +93,11 @@ jobs:
 
     - name: Deploy pipeline
       run: |-
-        pip3 install kedro-kubeflow
+        #pip3 install kedro-kubeflow # TODO
+        pip3 install git+https://github.com/getindata/kedro-kubeflow.git@github_actions
         /home/runner/.local/bin/kedro install
-        sed -i -e"s/__GITHUB_SHA__/$GITHUB_SHA/" conf/base/kubeflow.yaml
-        sed -i -e"s/__PROJECT_ID__/$PROJECT_ID/" conf/base/kubeflow.yaml
+        export KEDRO_CONFIG_GOOGLE_PROJECT_ID=$PROJECT_ID
+        export KEDRO_CONFIG_COMMIT_ID=$GITHUB_SHA
         /home/runner/.local/bin/kedro kubeflow upload-pipeline
         /home/runner/.local/bin/kedro kubeflow list-pipelines
         /home/runner/.local/bin/kedro kubeflow schedule -c '0 0 4 * * *' # 04:00:00 each day
