@@ -3,6 +3,8 @@ import logging
 import os
 import re
 import uuid
+from functools import wraps
+from inspect import Parameter, signature
 from tempfile import NamedTemporaryFile
 from typing import Dict, Set
 
@@ -65,10 +67,27 @@ class KubeflowClient(object):
                 )
             return op
 
+        def maybe_add_params(kedro_parameters):
+            def decorator(f):
+                @wraps(f)
+                def wrapper(*args, **kwargs):
+                    return f()
+
+                sig = signature(f)
+                new_params = (
+                    Parameter(name, Parameter.KEYWORD_ONLY, default=default)
+                    for name, default in kedro_parameters.items()
+                )
+                wrapper.__signature__ = sig.replace(parameters=new_params)
+                return wrapper
+
+            return decorator
+
         @dsl.pipeline(
             name=self.project_name,
             description="Kubeflow pipeline for Kedro project",
         )
+        @maybe_add_params(self.context.params)
         def convert_kedro_pipeline_to_kfp() -> None:
             """Convert from a Kedro pipeline into a kfp container graph."""
 
@@ -151,12 +170,24 @@ class KubeflowClient(object):
 
             for node in node_dependencies:
                 name = _clean_name(node.name)
+                params = ",".join(
+                    [
+                        f"{param}={dsl.PipelineParam(param)}"
+                        for param in self.context.params.keys()
+                    ]
+                )
                 kfp_ops[node.name] = _customize_op(
                     dsl.ContainerOp(
                         name=name,
                         image=image,
                         command=["kedro"],
-                        arguments=["run", "--node", node.name],
+                        arguments=[
+                            "run",
+                            "--params",
+                            params,
+                            "--node",
+                            node.name,
+                        ],
                         pvolumes=node_volumes,
                         container_kwargs={"env": nodes_env},
                     )
