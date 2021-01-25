@@ -172,7 +172,7 @@ class KubeflowClient(object):
                 name = _clean_name(node.name)
                 params = ",".join(
                     [
-                        f"{param}={dsl.PipelineParam(param)}"
+                        f"{param}:{dsl.PipelineParam(param)}"
                         for param in self.context.params.keys()
                     ]
                 )
