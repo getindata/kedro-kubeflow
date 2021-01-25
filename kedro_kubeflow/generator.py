@@ -11,8 +11,6 @@ from kubernetes.client import V1EnvVar, V1SecurityContext
 from .auth import IAP_CLIENT_ID
 from .utils import clean_name, is_mlflow_enabled
 
-WAIT_TIMEOUT = 24 * 60 * 60
-
 
 class PipelineGenerator(object):
 
