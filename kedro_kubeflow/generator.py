@@ -48,7 +48,9 @@ class PipelineGenerator(object):
             """Convert from a Kedro pipeline into a kfp container graph."""
 
             node_volumes = (
-                _setup_volumes() if self.volume_meta is not None else {}
+                self._setup_volumes(image, image_pull_policy)
+                if self.volume_meta is not None
+                else {}
             )
             node_dependencies = self.context.pipelines.get(
                 pipeline
@@ -59,39 +61,6 @@ class PipelineGenerator(object):
             for node, dependencies in node_dependencies.items():
                 for dependency in dependencies:
                     kfp_ops[node.name].after(kfp_ops[dependency.name])
-
-        def _setup_volumes():
-            vop = dsl.VolumeOp(
-                name="data-volume-create",
-                resource_name="data-volume",
-                size=self.volume_meta.size,
-                modes=self.volume_meta.access_modes,
-                storage_class=self.volume_meta.storageclass,
-            )
-            if self.volume_meta.skip_init:
-                return {"/home/kedro/data": vop.volume}
-            else:
-                volume_init = self._customize_op(
-                    dsl.ContainerOp(
-                        name="data-volume-init",
-                        image=image,
-                        command=["sh", "-c"],
-                        arguments=[
-                            " ".join(
-                                [
-                                    "cp",
-                                    "--verbose",
-                                    "-r",
-                                    "/home/kedro/data/*",
-                                    "/home/kedro/datavolume",
-                                ]
-                            )
-                        ],
-                        pvolumes={"/home/kedro/datavolume": vop.volume},
-                    ),
-                    image_pull_policy,
-                )
-                return {"/home/kedro/data": volume_init.pvolume}
 
         return convert_kedro_pipeline_to_kfp
 
@@ -169,3 +138,36 @@ class PipelineGenerator(object):
                 V1SecurityContext(run_as_user=self.volume_meta.owner)
             )
         return op
+
+    def _setup_volumes(self, image, image_pull_policy):
+        vop = dsl.VolumeOp(
+            name="data-volume-create",
+            resource_name="data-volume",
+            size=self.volume_meta.size,
+            modes=self.volume_meta.access_modes,
+            storage_class=self.volume_meta.storageclass,
+        )
+        if self.volume_meta.skip_init:
+            return {"/home/kedro/data": vop.volume}
+        else:
+            volume_init = self._customize_op(
+                dsl.ContainerOp(
+                    name="data-volume-init",
+                    image=image,
+                    command=["sh", "-c"],
+                    arguments=[
+                        " ".join(
+                            [
+                                "cp",
+                                "--verbose",
+                                "-r",
+                                "/home/kedro/data/*",
+                                "/home/kedro/datavolume",
+                            ]
+                        )
+                    ],
+                    pvolumes={"/home/kedro/datavolume": vop.volume},
+                ),
+                image_pull_policy,
+            )
+            return {"/home/kedro/data": volume_init.pvolume}
