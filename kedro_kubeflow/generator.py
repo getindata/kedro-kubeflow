@@ -12,6 +12,23 @@ from .auth import IAP_CLIENT_ID
 from .utils import clean_name, is_mlflow_enabled
 
 
+def maybe_add_params(kedro_parameters):
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            return f()
+
+        sig = signature(f)
+        new_params = (
+            Parameter(name, Parameter.KEYWORD_ONLY, default=default)
+            for name, default in kedro_parameters.items()
+        )
+        wrapper.__signature__ = sig.replace(parameters=new_params)
+        return wrapper
+
+    return decorator
+
+
 class PipelineGenerator(object):
 
     log = logging.getLogger(__name__)
@@ -23,22 +40,6 @@ class PipelineGenerator(object):
         self.volume_meta = config.run_config.volume
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
-        def maybe_add_params(kedro_parameters):
-            def decorator(f):
-                @wraps(f)
-                def wrapper(*args, **kwargs):
-                    return f()
-
-                sig = signature(f)
-                new_params = (
-                    Parameter(name, Parameter.KEYWORD_ONLY, default=default)
-                    for name, default in kedro_parameters.items()
-                )
-                wrapper.__signature__ = sig.replace(parameters=new_params)
-                return wrapper
-
-            return decorator
-
         @dsl.pipeline(
             name=self.project_name,
             description="Kubeflow pipeline for Kedro project",
