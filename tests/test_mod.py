@@ -2,6 +2,7 @@
 
 import os
 import unittest
+from inspect import signature
 from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
@@ -348,7 +349,7 @@ class TestKubeflowClient(unittest.TestCase):
         self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
             run_mock
         )
-        self.create_client({"volume": {}})
+        self.create_client({"volume": {}}, {})
 
         # when
         self.client_under_test.run_once(
@@ -409,7 +410,8 @@ class TestKubeflowClient(unittest.TestCase):
                     "size": "1Mi",
                     "access_modes": ["ReadWriteOnce"],
                 }
-            }
+            },
+            {},
         )
 
         # when
@@ -457,7 +459,8 @@ class TestKubeflowClient(unittest.TestCase):
                     "access_modes": ["ReadWriteOnce"],
                     "owner": 47,
                 }
-            }
+            },
+            {},
         )
 
         # when
@@ -545,7 +548,7 @@ class TestKubeflowClient(unittest.TestCase):
         self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
             run_mock
         )
-        self.create_client({"volume": {"skip_init": True}})
+        self.create_client({"volume": {"skip_init": True}}, {})
 
         # when
         self.client_under_test.run_once(
@@ -579,13 +582,59 @@ class TestKubeflowClient(unittest.TestCase):
             assert len(volumes) == 1
             assert volumes[0].name == "data-volume-create"
 
+    def test_should_support_params_and_inject_them_to_the_nodes(self):
+        # given
+        run_mock = unittest.mock.MagicMock()
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
+        self.create_client({}, {"param1": 0.3, "param2": 42})
+
+        # when
+        self.client_under_test.run_once(
+            run_name="unittest",
+            pipeline="pipeline",
+            image="unittest-image",
+            experiment_name="experiment",
+            wait=False,
+        )
+
+        # then
+        self.kfp_client_mock.create_run_from_pipeline_func.assert_called()
+        run_mock.wait_for_run_completion.assert_not_called()
+        (
+            args,
+            kwargs,
+        ) = self.kfp_client_mock.create_run_from_pipeline_func.call_args
+
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            default_params = signature(args[0]).parameters
+            args[0]()
+
+        assert len(default_params) == 2
+        assert default_params["param1"].default == 0.3
+        assert default_params["param2"].default == 42
+        for node_name in ["node1", "node2"]:
+            args = dsl_pipeline.ops[node_name].container.args
+            assert args == [
+                "run",
+                "--params",
+                "param1:{{pipelineparam:op=;name=param1}},"
+                "param2:{{pipelineparam:op=;name=param2}}",
+                "--node",
+                node_name,
+            ]
+
     @patch("kedro_kubeflow.kfpclient.Client")
-    def create_client(self, config, kfp_client_mock):
+    def create_client(self, config, params, kfp_client_mock):
         project_name = "my-awesome-project"
         context = type(
             "obj",
             (object,),
-            {"pipelines": {"pipeline": self.create_pipeline()}},
+            {
+                "params": params,
+                "pipelines": {"pipeline": self.create_pipeline()},
+            },
         )
         self.client_under_test = KubeflowClient(
             PluginConfig({"host": "http://unittest", "run_config": config}),
@@ -606,7 +655,7 @@ class TestKubeflowClient(unittest.TestCase):
     def setUp(self):
         self.realimport = __builtins__["__import__"]
         self.mock_mlflow(False)
-        self.create_client({})
+        self.create_client({}, {})
 
     def tearDown(self):
         os.environ["IAP_CLIENT_ID"] = ""
