@@ -47,17 +47,11 @@ class PipelineGenerator(object):
         @maybe_add_params(self.context.params)
         def convert_kedro_pipeline_to_kfp() -> None:
             """Convert from a Kedro pipeline into a kfp container graph."""
-
-            node_volumes = (
-                self._setup_volumes(image, image_pull_policy)
-                if self.volume_meta is not None
-                else {}
-            )
             node_dependencies = self.context.pipelines.get(
                 pipeline
             ).node_dependencies
             kfp_ops = self._build_kfp_ops(
-                node_dependencies, node_volumes, image, image_pull_policy
+                node_dependencies, image, image_pull_policy
             )
             for node, dependencies in node_dependencies.items():
                 for dependency in dependencies:
@@ -68,12 +62,17 @@ class PipelineGenerator(object):
     def _build_kfp_ops(
         self,
         node_dependencies: Dict[Node, Set[Node]],
-        node_volumes: Dict,
         image,
         image_pull_policy,
     ) -> Dict[str, dsl.ContainerOp]:
         """Build kfp container graph from Kedro node dependencies. """
         kfp_ops = {}
+
+        node_volumes = (
+            self._setup_volumes(image, image_pull_policy)
+            if self.volume_meta is not None
+            else {}
+        )
 
         iap_env_var = V1EnvVar(
             name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
