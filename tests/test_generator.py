@@ -1,6 +1,5 @@
 """Test generator"""
 
-import os
 import unittest
 from inspect import signature
 
@@ -26,7 +25,7 @@ class TestGenerator(unittest.TestCase):
 
     def test_support_modification_of_pull_policy(self):
         # given
-        self.create_generator({}, {})
+        self.create_generator()
 
         # when
         pipeline = self.generator_under_test.generate_pipeline(
@@ -41,7 +40,7 @@ class TestGenerator(unittest.TestCase):
 
     def test_should_support_inter_steps_volume_with_defaults(self):
         # given
-        self.create_generator({"volume": {}}, {})
+        self.create_generator(config={"volume": {}})
 
         # when
         pipeline = self.generator_under_test.generate_pipeline(
@@ -75,14 +74,13 @@ class TestGenerator(unittest.TestCase):
     def test_should_support_inter_steps_volume_with_given_spec(self):
         # given
         self.create_generator(
-            {
+            config={
                 "volume": {
                     "storageclass": "nfs",
                     "size": "1Mi",
                     "access_modes": ["ReadWriteOnce"],
                 }
-            },
-            {},
+            }
         )
 
         # when
@@ -102,15 +100,14 @@ class TestGenerator(unittest.TestCase):
     def test_should_change_effective_user_if_to_volume_owner(self):
         # given
         self.create_generator(
-            {
+            config={
                 "volume": {
                     "storageclass": "nfs",
                     "size": "1Mi",
                     "access_modes": ["ReadWriteOnce"],
                     "owner": 47,
                 }
-            },
-            {},
+            }
         )
 
         # when
@@ -133,7 +130,7 @@ class TestGenerator(unittest.TestCase):
 
     def test_should_add_mlflow_init_step_if_enabled(self):
         # given
-        self.create_generator({}, {})
+        self.create_generator()
         self.mock_mlflow(True)
 
         # when
@@ -162,7 +159,7 @@ class TestGenerator(unittest.TestCase):
 
     def test_should_skip_volume_init_if_requested(self):
         # given
-        self.create_generator({"volume": {"skip_init": True}}, {})
+        self.create_generator(config={"volume": {"skip_init": True}})
 
         # when
         pipeline = self.generator_under_test.generate_pipeline(
@@ -181,7 +178,7 @@ class TestGenerator(unittest.TestCase):
 
     def test_should_support_params_and_inject_them_to_the_nodes(self):
         # given
-        self.create_generator({}, {"param1": 0.3, "param2": 42})
+        self.create_generator(params={"param1": 0.3, "param2": 42})
 
         # when
         pipeline = self.generator_under_test.generate_pipeline(
@@ -206,7 +203,49 @@ class TestGenerator(unittest.TestCase):
                 node_name,
             ]
 
-    def create_generator(self, config, params):
+    def test_should_not_add_resources_spec_if_not_requested(self):
+        # given
+        self.create_generator(config={})
+
+        # when
+        pipeline = self.generator_under_test.generate_pipeline(
+            "pipeline", "unittest-image", "Always"
+        )
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            pipeline()
+
+        # then
+        for node_name in ["node1", "node2"]:
+            spec = dsl_pipeline.ops[node_name].container
+            assert spec.resources is None
+
+    def test_should_add_resources_spec(self):
+        # given
+        self.create_generator(
+            config={
+                "resources": {
+                    "__default__": {"cpu": "100m"},
+                    "node1": {"cpu": "400m", "memory": "64Gi"},
+                }
+            }
+        )
+
+        # when
+        pipeline = self.generator_under_test.generate_pipeline(
+            "pipeline", "unittest-image", "Always"
+        )
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            pipeline()
+
+        # then
+        node1_spec = dsl_pipeline.ops["node1"].container.resources
+        node2_spec = dsl_pipeline.ops["node2"].container.resources
+        assert node1_spec.limits == {"cpu": "400m", "memory": "64Gi"}
+        assert node1_spec.requests == {"cpu": "400m", "memory": "64Gi"}
+        assert node2_spec.limits == {"cpu": "100m"}
+        assert node2_spec.requests == {"cpu": "100m"}
+
+    def create_generator(self, config={}, params={}):
         project_name = "my-awesome-project"
         context = type(
             "obj",
@@ -242,4 +281,4 @@ class TestGenerator(unittest.TestCase):
         self.mock_mlflow(False)
 
     def tearDown(self):
-        os.environ["IAP_CLIENT_ID"] = ""
+        __builtins__["__import__"] = self.realimport
