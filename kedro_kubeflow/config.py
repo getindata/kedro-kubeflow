@@ -48,6 +48,29 @@ run_config:
     # Allows to specify user executing pipelines within containers
     # Default: root user (to avoid issues with volumes in GKE)
     owner: 0
+
+  # Optional section allowing adjustment of the resources
+  # reservations and limits for the nodes
+  resources:
+
+    # For nodes that require more RAM you can increase the "memory"
+    data_import_step:
+      memory: 2Gi
+
+    # Training nodes can utilize more than one CPU if the algoritm
+    # supports it
+    model_training:
+      cpu: 8
+      memory: 1Gi
+
+    # GPU-capable nodes can request 1 GPU slot
+    tensorflow_step:
+      nvidia.com/gpu: 1
+
+    # Default settings for the nodes
+    __default__:
+      cpu: 200m
+      memory: 64Mi
 """
 
 
@@ -98,6 +121,16 @@ class VolumeConfig(Config):
         return "run_config.volume."
 
 
+class NodeResources(Config):
+    def is_set_for(self, node_name):
+        return self.get_for(node_name) != {}
+
+    def get_for(self, node_name):
+        defaults = self._get_or_default("__default__", {})
+        node_specific = self._get_or_default(node_name, {})
+        return {**defaults, **node_specific}
+
+
 class RunConfig(Config):
     @property
     def image(self):
@@ -114,6 +147,10 @@ class RunConfig(Config):
     @property
     def run_name(self):
         return self._get_or_fail("run_name")
+
+    @property
+    def resources(self):
+        return NodeResources(self._get_or_default("resources", {}))
 
     @property
     def volume(self):

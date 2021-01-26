@@ -4,9 +4,9 @@ from functools import wraps
 from inspect import Parameter, signature
 from typing import Dict, Set
 
+import kubernetes.client as k8s
 from kedro.pipeline.node import Node
 from kfp import dsl
-from kubernetes.client import V1EnvVar, V1SecurityContext
 
 from .auth import IAP_CLIENT_ID
 from .utils import clean_name, is_mlflow_enabled
@@ -38,6 +38,7 @@ class PipelineGenerator(object):
         self.context = context
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
         self.volume_meta = config.run_config.volume
+        self.resources = config.run_config.resources
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
         @dsl.pipeline(
@@ -74,7 +75,7 @@ class PipelineGenerator(object):
             else {}
         )
 
-        iap_env_var = V1EnvVar(
+        iap_env_var = k8s.V1EnvVar(
             name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
         )
         nodes_env = [iap_env_var]
@@ -97,7 +98,7 @@ class PipelineGenerator(object):
             )
 
             nodes_env.append(
-                V1EnvVar(
+                k8s.V1EnvVar(
                     name="MLFLOW_RUN_ID",
                     value=kfp_ops["mlflow-start-run"].output,
                 )
@@ -111,6 +112,13 @@ class PipelineGenerator(object):
                     for param in self.context.params.keys()
                 ]
             )
+            kwargs = {"env": nodes_env}
+            if self.resources.is_set_for(node.name):
+                kwargs["resources"] = k8s.V1ResourceRequirements(
+                    limits=self.resources.get_for(node.name),
+                    requests=self.resources.get_for(node.name),
+                )
+
             kfp_ops[node.name] = self._customize_op(
                 dsl.ContainerOp(
                     name=name,
@@ -124,7 +132,7 @@ class PipelineGenerator(object):
                         node.name,
                     ],
                     pvolumes=node_volumes,
-                    container_kwargs={"env": nodes_env},
+                    container_kwargs=kwargs,
                 ),
                 image_pull_policy,
             )
@@ -135,7 +143,7 @@ class PipelineGenerator(object):
         op.container.set_image_pull_policy(image_pull_policy)
         if self.volume_meta and self.volume_meta.owner is not None:
             op.container.set_security_context(
-                V1SecurityContext(run_as_user=self.volume_meta.owner)
+                k8s.V1SecurityContext(run_as_user=self.volume_meta.owner)
             )
         return op
 

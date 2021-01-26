@@ -5,6 +5,7 @@
 ### Added
 
 - Support to inject Kedro pipeline parameters for the run
+- Ability to specify resources allocation for the nodes
 
 ## [0.2.0] - 2021-01-18
 
