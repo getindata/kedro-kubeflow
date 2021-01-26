@@ -22,6 +22,9 @@ run_config:
   # Name of the run for run-once
   run_name: Kubeflow Plugin Demo Run
 
+  # Optional pipeline description
+  description: Very Important Pipeline
+
   # Flag indicating if the run-once should wait for the pipeline to finish
   wait_for_completion: False
 

@@ -240,6 +240,7 @@ class TestKubeflowClient(unittest.TestCase):
 
     def test_should_upload_new_pipeline(self):
         # given
+        self.create_client({"description": "Very Important Pipeline"})
         self.kfp_client_mock.pipelines = unittest.mock.MagicMock()
         self.kfp_client_mock.pipelines.list_pipelines.return_value = (
             self.create_empty_pipelines_list()
@@ -255,6 +256,12 @@ class TestKubeflowClient(unittest.TestCase):
         # then
         self.kfp_client_mock.pipeline_uploads.upload_pipeline.assert_called()
         self.kfp_client_mock.pipeline_uploads.upload_pipeline_version.assert_not_called()
+        (
+            args,
+            kwargs,
+        ) = self.kfp_client_mock.pipeline_uploads.upload_pipeline.call_args
+        assert kwargs["name"] == "my-awesome-project"
+        assert kwargs["description"] == "Very Important Pipeline"
 
     def test_should_upload_new_version_of_existing_pipeline(self):
         # given
@@ -276,13 +283,13 @@ class TestKubeflowClient(unittest.TestCase):
         self.kfp_client_mock.pipeline_uploads.upload_pipeline_version.assert_called()
 
     @patch("kedro_kubeflow.kfpclient.Client")
-    def create_client(self, config, params, kfp_client_mock):
+    def create_client(self, config, kfp_client_mock):
         project_name = "my-awesome-project"
         context = type(
             "obj",
             (object,),
             {
-                "params": params,
+                "params": {},
                 "pipelines": {"pipeline": Pipeline([])},
             },
         )
@@ -305,7 +312,7 @@ class TestKubeflowClient(unittest.TestCase):
     def setUp(self):
         self.realimport = __builtins__["__import__"]
         self.mock_mlflow(False)
-        self.create_client({}, {})
+        self.create_client({})
 
     def tearDown(self):
         os.environ["IAP_CLIENT_ID"] = ""

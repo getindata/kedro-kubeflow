@@ -23,6 +23,7 @@ class KubeflowClient(object):
         self.host = config.host
         self.client = Client(self.host, existing_token=token)
         self.project_name = project_name
+        self.pipeline_description = config.run_config.description
         self.generator = PipelineGenerator(config, project_name, context)
 
     def list_pipelines(self):
@@ -70,14 +71,10 @@ class KubeflowClient(object):
 
         if self._pipeline_exists(self.project_name):
             pipeline_id = self._get_pipeline_id(self.project_name)
-            version_id = self._upload_pipeline_version(
-                pipeline, pipeline_id, self.project_name
-            )
+            version_id = self._upload_pipeline_version(pipeline, pipeline_id)
             self.log.info("New version of pipeline created: %s", version_id)
         else:
-            (pipeline_id, version_id) = self._upload_pipeline(
-                pipeline, self.project_name
-            )
+            (pipeline_id, version_id) = self._upload_pipeline(pipeline)
             self.log.info("Pipeline created")
 
         self.log.info(
@@ -107,10 +104,8 @@ class KubeflowClient(object):
         if pipelines:
             return pipelines[0].id
 
-    def _upload_pipeline_version(
-        self, pipeline_func, pipeline_id, pipeline_name
-    ):
-        version_name = f"{clean_name(pipeline_name)}-{uuid.uuid4()}"[:100]
+    def _upload_pipeline_version(self, pipeline_func, pipeline_id):
+        version_name = f"{clean_name(self.project_name)}-{uuid.uuid4()}"[:100]
         with NamedTemporaryFile(suffix=".yaml") as f:
             Compiler().compile(pipeline_func, f.name)
             return self.client.pipeline_uploads.upload_pipeline_version(
@@ -120,11 +115,14 @@ class KubeflowClient(object):
                 _request_timeout=10000,
             ).id
 
-    def _upload_pipeline(self, pipeline_func, pipeline_name):
+    def _upload_pipeline(self, pipeline_func):
         with NamedTemporaryFile(suffix=".yaml") as f:
             Compiler().compile(pipeline_func, f.name)
             pipeline = self.client.pipeline_uploads.upload_pipeline(
-                f.name, name=pipeline_name, _request_timeout=10000
+                f.name,
+                name=self.project_name,
+                description=self.pipeline_description,
+                _request_timeout=10000,
             )
             return (pipeline.id, pipeline.default_version.id)
 

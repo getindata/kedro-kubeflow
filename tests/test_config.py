@@ -13,6 +13,7 @@ run_config:
   image_pull_policy: "Always"
   experiment_name: "Test Experiment"
   run_name: "test run"
+  description: "My awesome pipeline"
   wait_for_completion: True
   volume:
     storageclass: default
@@ -36,10 +37,12 @@ class TestPluginConfig(unittest.TestCase):
         assert cfg.run_config.volume.size == "3Gi"
         assert cfg.run_config.volume.access_modes == ["ReadWriteOnce"]
         assert cfg.run_config.resources.is_set_for("node1") is False
+        assert cfg.run_config.description == "My awesome pipeline"
 
     def test_defaults(self):
         cfg = PluginConfig({"run_config": {}})
         assert cfg.run_config.image_pull_policy == "IfNotPresent"
+        assert cfg.run_config.description is None
 
     def test_missing_required_config(self):
         cfg = PluginConfig({})
