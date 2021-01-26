@@ -48,6 +48,29 @@ run_config:
     # Allows to specify user executing pipelines within containers
     # Default: root user (to avoid issues with volumes in GKE)
     owner: 0
+
+  # Optional section allowing adjustment of the resources
+  # reservations and limits for the nodes
+  resources:
+
+    # For nodes that require more RAM you can increase the "memory"
+    data_import_step:
+      memory: 2Gi
+
+    # Training nodes can utilize more than one CPU if the algoritm
+    # supports it
+    model_training:
+      cpu: 8
+      memory: 1Gi
+
+    # GPU-capable nodes can request 1 GPU slot
+    tensorflow_step:
+      nvidia.com/gpu: 1
+
+    # Default settings for the nodes
+    __default__:
+      cpu: 200m
+      memory: 64Mi
 ```
 
 ## Dynamic configuration support
