@@ -22,6 +22,9 @@ run_config:
   # Name of the run for run-once
   run_name: {run_name}
 
+  # Optional pipeline description
+  #description: "Very Important Pipeline"
+
   # Flag indicating if the run-once should wait for the pipeline to finish
   wait_for_completion: False
 
@@ -147,6 +150,10 @@ class RunConfig(Config):
     @property
     def run_name(self):
         return self._get_or_fail("run_name")
+
+    @property
+    def description(self):
+        return self._get_or_default("description", None)
 
     @property
     def resources(self):

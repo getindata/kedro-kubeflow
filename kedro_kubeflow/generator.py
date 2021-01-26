@@ -39,11 +39,12 @@ class PipelineGenerator(object):
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
         self.volume_meta = config.run_config.volume
         self.resources = config.run_config.resources
+        self.description = config.run_config.description
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
         @dsl.pipeline(
             name=self.project_name,
-            description="Kubeflow pipeline for Kedro project",
+            description=self.description,
         )
         @maybe_add_params(self.context.params)
         def convert_kedro_pipeline_to_kfp() -> None:

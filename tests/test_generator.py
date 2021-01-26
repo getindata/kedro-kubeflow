@@ -245,6 +245,18 @@ class TestGenerator(unittest.TestCase):
         assert node2_spec.limits == {"cpu": "100m"}
         assert node2_spec.requests == {"cpu": "100m"}
 
+    def test_should_set_description(self):
+        # given
+        self.create_generator(config={"description": "DESC"})
+
+        # when
+        pipeline = self.generator_under_test.generate_pipeline(
+            "pipeline", "unittest-image", "Never"
+        )
+
+        # then
+        assert pipeline._component_description == "DESC"
+
     def create_generator(self, config={}, params={}):
         project_name = "my-awesome-project"
         context = type(
