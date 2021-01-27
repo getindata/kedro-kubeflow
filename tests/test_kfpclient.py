@@ -5,7 +5,7 @@ import unittest
 from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
-from kedro.pipeline import Pipeline
+from kfp import dsl
 
 from kedro_kubeflow.config import PluginConfig
 from kedro_kubeflow.kfpclient import KubeflowClient
@@ -132,14 +132,17 @@ class TestKubeflowClient(unittest.TestCase):
             with open(f.name) as yamlfile:
                 assert "generateName: my-awesome-project-" in yamlfile.read()
 
-    @patch("google.oauth2.id_token.fetch_id_token")
+    @patch("kedro_kubeflow.kfpclient.AuthHandler")
+    @patch("kedro_kubeflow.kfpclient.PipelineGenerator")
     @patch("kedro_kubeflow.kfpclient.Client")
     def test_should_use_jwt_token_in_kfp_client(
-        self, kfp_client_mock, fetch_id_token_mock
+        self, kfp_client_mock, pipeline_generator_mock, auth_handler_mock
     ):
         # given
         os.environ["IAP_CLIENT_ID"] = "unittest-client-id"
-        fetch_id_token_mock.return_value = "unittest-token"
+        auth_handler_mock.return_value.obtain_id_token.return_value = (
+            "unittest-token"
+        )
 
         # when
         self.client_under_test = KubeflowClient(
@@ -282,24 +285,25 @@ class TestKubeflowClient(unittest.TestCase):
         self.kfp_client_mock.pipeline_uploads.upload_pipeline.assert_not_called()
         self.kfp_client_mock.pipeline_uploads.upload_pipeline_version.assert_called()
 
+    @patch("kedro_kubeflow.kfpclient.PipelineGenerator")
     @patch("kedro_kubeflow.kfpclient.Client")
-    def create_client(self, config, kfp_client_mock):
+    def create_client(self, config, kfp_client_mock, pipeline_generator_mock):
         project_name = "my-awesome-project"
-        context = type(
-            "obj",
-            (object,),
-            {
-                "params": {},
-                "pipelines": {"pipeline": Pipeline([])},
-            },
-        )
         self.client_under_test = KubeflowClient(
             PluginConfig({"host": "http://unittest", "run_config": config}),
             project_name,
-            context,
+            None,  # context,
         )
         self.client_under_test.client = kfp_client_mock
         self.kfp_client_mock = self.client_under_test.client
+
+        @dsl.pipeline(name=project_name)
+        def empty_pipeline():
+            pass
+
+        self.client_under_test.generator.generate_pipeline.return_value = (
+            empty_pipeline
+        )
 
     def mock_mlflow(self, enabled=False):
         def fakeimport(name, *args, **kw):

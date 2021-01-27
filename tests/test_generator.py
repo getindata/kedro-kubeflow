@@ -2,6 +2,7 @@
 
 import unittest
 from inspect import signature
+from unittest.mock import MagicMock
 
 import kfp
 from kedro.pipeline import Pipeline, node
@@ -257,13 +258,42 @@ class TestGenerator(unittest.TestCase):
         # then
         assert pipeline._component_description == "DESC"
 
-    def create_generator(self, config={}, params={}):
+    def test_artifact_registration(self):
+        # given
+        self.create_generator(
+            catalog={
+                "B": {
+                    "type": "pandas.CSVDataSet",
+                    "filepath": "data/02_intermediate/b.csv",
+                }
+            }
+        )
+
+        # when
+        pipeline = self.generator_under_test.generate_pipeline(
+            "pipeline", "unittest-image", "Always"
+        )
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            pipeline()
+
+        # then
+        outputs1 = dsl_pipeline.ops["node1"].file_outputs
+        assert len(outputs1) == 1
+        assert "B" in outputs1
+        assert outputs1["B"] == "/home/kedro/data/02_intermediate/b.csv"
+        outputs2 = dsl_pipeline.ops["node2"].file_outputs
+        assert len(outputs2) == 0  # output "C" is missing in the catalog
+
+    def create_generator(self, config={}, params={}, catalog={}):
         project_name = "my-awesome-project"
+        config_loader = MagicMock()
+        config_loader.get.return_value = catalog
         context = type(
             "obj",
             (object,),
             {
                 "params": params,
+                "config_loader": config_loader,
                 "pipelines": {
                     "pipeline": Pipeline(
                         [
