@@ -7,6 +7,7 @@
 - Support to inject Kedro pipeline parameters for the run
 - Ability to specify resources allocation for the nodes
 - Possibility to configure the pipeline description in the config file
+- The registered output artifacts are not exposed in the Pipelines UI
 
 ## [0.2.0] - 2021-01-18
 
