@@ -43,3 +43,15 @@ class TestAuthHandler(unittest.TestCase):
                 in cm.output[0]
             )
             assert token is None
+
+    @patch("google.oauth2.id_token.fetch_id_token")
+    def test_should_provide_valid_token(self, fetch_id_token_mock):
+        # given
+        os.environ["IAP_CLIENT_ID"] = "unittest-client-id"
+        fetch_id_token_mock.return_value = "TOKEN"
+
+        # when
+        token = AuthHandler().obtain_id_token()
+
+        # then
+        assert token == "TOKEN"
