@@ -138,7 +138,11 @@ class PipelineGenerator(object):
                         output: str(
                             getattr(
                                 self.context.catalog.datasets, output
-                            )._filepath
+                            )._filepath.replace(
+                                "/home/runner/work"
+                                + "/kedro-kubeflow-demo/kedro-kubeflow-demo",
+                                "/home/kedro",
+                            )  # TODO fix later
                         )
                         for output in node.outputs
                         if hasattr(self.context.catalog.datasets, output)
