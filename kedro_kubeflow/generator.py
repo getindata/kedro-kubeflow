@@ -134,6 +134,15 @@ class PipelineGenerator(object):
                     ],
                     pvolumes=node_volumes,
                     container_kwargs=kwargs,
+                    file_outputs={
+                        output: str(
+                            getattr(
+                                self.context.catalog.datasets, output
+                            )._filepath
+                        )
+                        for output in node.outputs
+                        if hasattr(self.context.catalog.datasets, output)
+                    },
                 ),
                 image_pull_policy,
             )

@@ -264,6 +264,7 @@ class TestGenerator(unittest.TestCase):
             (object,),
             {
                 "params": params,
+                "catalog": type("obj", (object,), {"datasets": []}),
                 "pipelines": {
                     "pipeline": Pipeline(
                         [
