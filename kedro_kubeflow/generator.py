@@ -40,6 +40,7 @@ class PipelineGenerator(object):
         self.volume_meta = config.run_config.volume
         self.resources = config.run_config.resources
         self.description = config.run_config.description
+        self.catalog = context.config_loader.get("catalog*")
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
         @dsl.pipeline(
@@ -135,17 +136,10 @@ class PipelineGenerator(object):
                     pvolumes=node_volumes,
                     container_kwargs=kwargs,
                     file_outputs={
-                        output: str(
-                            getattr(
-                                self.context.catalog.datasets, output
-                            )._filepath.replace(
-                                "/home/runner/work"
-                                + "/kedro-kubeflow-demo/kedro-kubeflow-demo",
-                                "/home/kedro",
-                            )  # TODO fix later
-                        )
+                        output: "/home/kedro/"
+                        + self.catalog[output]["filepath"]
                         for output in node.outputs
-                        if hasattr(self.context.catalog.datasets, output)
+                        if output in self.catalog
                     },
                 ),
                 image_pull_policy,
