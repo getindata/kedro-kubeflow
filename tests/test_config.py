@@ -15,10 +15,12 @@ run_config:
   run_name: "test run"
   description: "My awesome pipeline"
   wait_for_completion: True
+  ttl: 300
   volume:
     storageclass: default
     size: 3Gi
     access_modes: [ReadWriteOnce]
+    keep: True
 """
 
 
@@ -35,14 +37,19 @@ class TestPluginConfig(unittest.TestCase):
         assert cfg.run_config.wait_for_completion
         assert cfg.run_config.volume.storageclass == "default"
         assert cfg.run_config.volume.size == "3Gi"
+        assert cfg.run_config.volume.keep is True
         assert cfg.run_config.volume.access_modes == ["ReadWriteOnce"]
         assert cfg.run_config.resources.is_set_for("node1") is False
         assert cfg.run_config.description == "My awesome pipeline"
+        assert cfg.run_config.ttl == 300
 
     def test_defaults(self):
         cfg = PluginConfig({"run_config": {}})
         assert cfg.run_config.image_pull_policy == "IfNotPresent"
         assert cfg.run_config.description is None
+        SECONDS_IN_ONE_WEEK = 3600 * 24 * 7
+        assert cfg.run_config.ttl == SECONDS_IN_ONE_WEEK
+        assert cfg.run_config.volume is None
 
     def test_missing_required_config(self):
         cfg = PluginConfig({})
@@ -87,3 +94,7 @@ class TestPluginConfig(unittest.TestCase):
             "cpu": "200m",
             "memory": "64Mi",
         }
+
+    def test_do_not_keep_volume_by_default(self):
+        cfg = PluginConfig({"run_config": {"volume": {}}})
+        assert cfg.run_config.volume.keep is False

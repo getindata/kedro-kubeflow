@@ -28,6 +28,10 @@ run_config:
   # Flag indicating if the run-once should wait for the pipeline to finish
   wait_for_completion: False
 
+  # How long to keep underlying Argo workflow (together with pods and data
+  # volume after pipeline finishes) [in seconds]. Default: 1 week
+  ttl: 604800
+
   # Optional volume specification
   volume:
 
@@ -51,6 +55,10 @@ run_config:
     # Allows to specify user executing pipelines within containers
     # Default: root user (to avoid issues with volumes in GKE)
     owner: 0
+
+    # Flak indicating if volume for inter-node data exchange should be
+    # kept after the pipeline is deleted
+    keep: False
 
   # Optional section allowing adjustment of the resources
   # reservations and limits for the nodes

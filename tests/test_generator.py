@@ -51,7 +51,8 @@ class TestGenerator(unittest.TestCase):
             pipeline()
 
         # then
-        assert len(dsl_pipeline.ops) == 4
+        assert len(dsl_pipeline.ops) == 5
+        assert "schedule-volume-termination" in dsl_pipeline.ops
         volume_spec = dsl_pipeline.ops["data-volume-create"].k8s_resource.spec
         assert volume_spec.resources.requests["storage"] == "1Gi"
         assert volume_spec.access_modes == ["ReadWriteOnce"]
@@ -92,7 +93,8 @@ class TestGenerator(unittest.TestCase):
             pipeline()
 
         # then
-        assert len(dsl_pipeline.ops) == 4
+        assert len(dsl_pipeline.ops) == 5
+        assert "schedule-volume-termination" in dsl_pipeline.ops
         volume_spec = dsl_pipeline.ops["data-volume-create"].k8s_resource.spec
         assert volume_spec.resources.requests["storage"] == "1Mi"
         assert volume_spec.access_modes == ["ReadWriteOnce"]
@@ -170,7 +172,9 @@ class TestGenerator(unittest.TestCase):
             pipeline()
 
         # then
-        assert len(dsl_pipeline.ops) == 3
+        assert len(dsl_pipeline.ops) == 4
+        assert "data-volume-create" in dsl_pipeline.ops
+        assert "schedule-volume-termination" in dsl_pipeline.ops
         assert "data-volume-init" not in dsl_pipeline.ops
         for node_name in ["node1", "node2"]:
             volumes = dsl_pipeline.ops[node_name].container.volume_mounts
@@ -283,6 +287,20 @@ class TestGenerator(unittest.TestCase):
         assert outputs1["B"] == "/home/kedro/data/02_intermediate/b.csv"
         outputs2 = dsl_pipeline.ops["node2"].file_outputs
         assert len(outputs2) == 0  # output "C" is missing in the catalog
+
+    def test_should_skip_volume_removal_if_requested(self):
+        # given
+        self.create_generator(config={"volume": {"keep": True}})
+
+        # when
+        pipeline = self.generator_under_test.generate_pipeline(
+            "pipeline", "unittest-image", "Always"
+        )
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            pipeline()
+
+        # then
+        assert "schedule-volume-termination" not in dsl_pipeline.ops
 
     def create_generator(self, config={}, params={}, catalog={}):
         project_name = "my-awesome-project"

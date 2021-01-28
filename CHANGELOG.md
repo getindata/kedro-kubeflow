@@ -8,6 +8,8 @@
 - Ability to specify resources allocation for the nodes
 - Possibility to configure the pipeline description in the config file
 - The registered output artifacts are not exposed in the Pipelines UI
+- Ability to set ttl of the workflow (how long the pods and volumes stay in the system after finish)
+- Removing the inter-steps data volume during workflow removal (with option to disable the removal in the config using flag `keep`)
 
 ## [0.2.0] - 2021-01-18
 
