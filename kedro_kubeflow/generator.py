@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import os
 from functools import wraps
@@ -37,30 +38,58 @@ class PipelineGenerator(object):
         self.project_name = project_name
         self.context = context
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
-        self.volume_meta = config.run_config.volume
-        self.resources = config.run_config.resources
-        self.description = config.run_config.description
+        self.run_config = config.run_config
         self.catalog = context.config_loader.get("catalog*")
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
         @dsl.pipeline(
             name=self.project_name,
-            description=self.description,
+            description=self.run_config.description,
         )
         @maybe_add_params(self.context.params)
         def convert_kedro_pipeline_to_kfp() -> None:
             """Convert from a Kedro pipeline into a kfp container graph."""
+            dsl.get_pipeline_conf().set_ttl_seconds_after_finished(
+                self.run_config.ttl
+            )
             node_dependencies = self.context.pipelines.get(
                 pipeline
             ).node_dependencies
-            kfp_ops = self._build_kfp_ops(
-                node_dependencies, image, image_pull_policy
-            )
-            for node, dependencies in node_dependencies.items():
-                for dependency in dependencies:
-                    kfp_ops[node.name].after(kfp_ops[dependency.name])
+            with self._create_pipeline_exit_handler():
+                kfp_ops = self._build_kfp_ops(
+                    node_dependencies, image, image_pull_policy
+                )
+                for node, dependencies in node_dependencies.items():
+                    for dependency in dependencies:
+                        kfp_ops[node.name].after(kfp_ops[dependency.name])
 
         return convert_kedro_pipeline_to_kfp
+
+    def _create_pipeline_exit_handler(self):
+        enable_volume_cleaning = (
+            self.run_config.volume is not None
+            and not self.run_config.volume.keep
+        )
+
+        if not enable_volume_cleaning:
+            return contextlib.nullcontext()
+
+        return dsl.ExitHandler(
+            dsl.ContainerOp(
+                name="schedule-volume-termination",
+                image="gcr.io/cloud-builders/kubectl",
+                command=[
+                    "kubectl",
+                    "delete",
+                    "pvc",
+                    "{{workflow.name}}-data-volume",
+                    "--wait=false",
+                    "--ignore-not-found",
+                    "--output",
+                    "name",
+                ],
+            )
+        )
 
     def _build_kfp_ops(
         self,
@@ -73,7 +102,7 @@ class PipelineGenerator(object):
 
         node_volumes = (
             self._setup_volumes(image, image_pull_policy)
-            if self.volume_meta is not None
+            if self.run_config.volume is not None
             else {}
         )
 
@@ -115,10 +144,10 @@ class PipelineGenerator(object):
                 ]
             )
             kwargs = {"env": nodes_env}
-            if self.resources.is_set_for(node.name):
+            if self.run_config.resources.is_set_for(node.name):
                 kwargs["resources"] = k8s.V1ResourceRequirements(
-                    limits=self.resources.get_for(node.name),
-                    requests=self.resources.get_for(node.name),
+                    limits=self.run_config.resources.get_for(node.name),
+                    requests=self.run_config.resources.get_for(node.name),
                 )
 
             kfp_ops[node.name] = self._customize_op(
@@ -149,9 +178,9 @@ class PipelineGenerator(object):
 
     def _customize_op(self, op, image_pull_policy):
         op.container.set_image_pull_policy(image_pull_policy)
-        if self.volume_meta and self.volume_meta.owner is not None:
+        if self.run_config.volume and self.run_config.volume.owner is not None:
             op.container.set_security_context(
-                k8s.V1SecurityContext(run_as_user=self.volume_meta.owner)
+                k8s.V1SecurityContext(run_as_user=self.run_config.volume.owner)
             )
         return op
 
@@ -159,11 +188,11 @@ class PipelineGenerator(object):
         vop = dsl.VolumeOp(
             name="data-volume-create",
             resource_name="data-volume",
-            size=self.volume_meta.size,
-            modes=self.volume_meta.access_modes,
-            storage_class=self.volume_meta.storageclass,
+            size=self.run_config.volume.size,
+            modes=self.run_config.volume.access_modes,
+            storage_class=self.run_config.volume.storageclass,
         )
-        if self.volume_meta.skip_init:
+        if self.run_config.volume.skip_init:
             return {"/home/kedro/data": vop.volume}
         else:
             volume_init = self._customize_op(
