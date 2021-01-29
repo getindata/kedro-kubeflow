@@ -22,8 +22,15 @@ run_config:
   # Name of the run for run-once
   run_name: Kubeflow Plugin Demo Run
 
+  # Optional pipeline description
+  description: Very Important Pipeline
+
   # Flag indicating if the run-once should wait for the pipeline to finish
   wait_for_completion: False
+
+  # How long to keep underlying Argo workflow (together with pods and data
+  # volume after pipeline finishes) [in seconds]. Default: 1 week
+  ttl: 604800
 
   # Optional volume specification
   volume:
@@ -48,6 +55,33 @@ run_config:
     # Allows to specify user executing pipelines within containers
     # Default: root user (to avoid issues with volumes in GKE)
     owner: 0
+
+    # Flak indicating if volume for inter-node data exchange should be
+    # kept after the pipeline is deleted
+    keep: False
+
+  # Optional section allowing adjustment of the resources
+  # reservations and limits for the nodes
+  resources:
+
+    # For nodes that require more RAM you can increase the "memory"
+    data_import_step:
+      memory: 2Gi
+
+    # Training nodes can utilize more than one CPU if the algoritm
+    # supports it
+    model_training:
+      cpu: 8
+      memory: 1Gi
+
+    # GPU-capable nodes can request 1 GPU slot
+    tensorflow_step:
+      nvidia.com/gpu: 1
+
+    # Default settings for the nodes
+    __default__:
+      cpu: 200m
+      memory: 64Mi
 ```
 
 ## Dynamic configuration support
