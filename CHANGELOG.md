@@ -2,14 +2,16 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2021-01-29
+
 ### Added
 
-- Support to inject Kedro pipeline parameters for the run
-- Ability to specify resources allocation for the nodes
-- Possibility to configure the pipeline description in the config file
-- The registered output artifacts are not exposed in the Pipelines UI
-- Ability to set ttl of the workflow (how long the pods and volumes stay in the system after finish)
-- Removing the inter-steps data volume during workflow removal (with option to disable the removal in the config using flag `keep`)
+-   Support to inject Kedro pipeline parameters for the run
+-   Ability to specify resources allocation for the nodes
+-   Possibility to configure the pipeline description in the config file
+-   The registered output artifacts are not exposed in the Pipelines UI
+-   Ability to set ttl of the workflow (how long the pods and volumes stay in the system after finish)
+-   Removing the inter-steps data volume during workflow removal (with option to disable the removal in the config using flag `keep`)
 
 ## [0.2.0] - 2021-01-18
 
@@ -53,7 +55,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.2.0...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.3.0...HEAD
+
+[0.3.0]: https://github.com/getindata/kedro-kubeflow/compare/0.2.0...0.3.0
 
 [0.2.0]: https://github.com/getindata/kedro-kubeflow/compare/0.1.10...0.2.0
 
