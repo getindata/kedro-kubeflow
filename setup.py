@@ -12,6 +12,7 @@ INSTALL_REQUIRES = [
     "kfp~=1.2.0",
     "tabulate>=0.8.7",
     "semver~=2.10",
+    "google-auth<2.0dev",
 ]
 
 # Dev Requirements
