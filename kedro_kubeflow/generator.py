@@ -42,22 +42,6 @@ class PipelineGenerator(object):
         self.catalog = context.config_loader.get("catalog*")
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
-        def volume_cleanup():
-            return dsl.ContainerOp(
-                name="schedule-volume-termination",
-                image="gcr.io/cloud-builders/kubectl",
-                command=[
-                    "kubectl",
-                    "delete",
-                    "pvc",
-                    "{{workflow.name}}-data-volume",
-                    "--wait=false",
-                    "--ignore-not-found",
-                    "--output",
-                    "name",
-                ],
-            )
-
         @dsl.pipeline(
             name=self.project_name,
             description=self.run_config.description,
@@ -71,13 +55,7 @@ class PipelineGenerator(object):
             node_dependencies = self.context.pipelines.get(
                 pipeline
             ).node_dependencies
-            enable_volume_cleaning = (
-                self.run_config.volume is not None
-                and not self.run_config.volume.keep
-            )
-            with dsl.ExitHandler(
-                volume_cleanup()
-            ) if enable_volume_cleaning else contextlib.nullcontext():
+            with self._create_pipeline_exit_handler():
                 kfp_ops = self._build_kfp_ops(
                     node_dependencies, image, image_pull_policy
                 )
@@ -86,6 +64,32 @@ class PipelineGenerator(object):
                         kfp_ops[node.name].after(kfp_ops[dependency.name])
 
         return convert_kedro_pipeline_to_kfp
+
+    def _create_pipeline_exit_handler(self):
+        enable_volume_cleaning = (
+            self.run_config.volume is not None
+            and not self.run_config.volume.keep
+        )
+
+        if not enable_volume_cleaning:
+            return contextlib.nullcontext()
+
+        return dsl.ExitHandler(
+            dsl.ContainerOp(
+                name="schedule-volume-termination",
+                image="gcr.io/cloud-builders/kubectl",
+                command=[
+                    "kubectl",
+                    "delete",
+                    "pvc",
+                    "{{workflow.name}}-data-volume",
+                    "--wait=false",
+                    "--ignore-not-found",
+                    "--output",
+                    "name",
+                ],
+            )
+        )
 
     def _build_kfp_ops(
         self,
