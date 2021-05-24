@@ -7,6 +7,7 @@
 
 ## [0.3.0] - 2021-01-29
 
+
 ### Added
 
 -   Support to inject Kedro pipeline parameters for the run

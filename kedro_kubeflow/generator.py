@@ -188,7 +188,7 @@ class PipelineGenerator(object):
     def _setup_volumes(self, image, image_pull_policy):
         vop = dsl.VolumeOp(
             name="data-volume-create",
-            resource_name="data-exchange-volume",
+            resource_name="data-volume",
             size=self.run_config.volume.size,
             modes=self.run_config.volume.access_modes,
             storage_class=self.run_config.volume.storageclass,
