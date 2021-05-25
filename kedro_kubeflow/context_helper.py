@@ -12,9 +12,21 @@ class ContextHelper(object):
 
     CONFIG_FILE_PATTERN = "kubeflow*"
 
-    def __init__(self, metadata, env):
+    def __init__(
+        self,
+        metadata,
+        env,
+        username,
+        password,
+        experiment_namespace,
+        namespace,
+    ):
         self._metadata = metadata
         self._env = env
+        self._username = username
+        self._password = password
+        self._experiment_namespace = experiment_namespace
+        self._namespace = namespace
 
     @property
     def project_name(self):
@@ -25,7 +37,9 @@ class ContextHelper(object):
         from kedro.framework.session import KedroSession
 
         return KedroSession.create(
-            self._metadata.package_name, env=self._env
+            self._metadata.package_name,
+            env=self._env,
+            extra_params={},
         ).load_context()
 
     @property
@@ -36,16 +50,50 @@ class ContextHelper(object):
 
     @property
     @lru_cache()
+    def connection(self) -> PluginConfig:
+        raw = self.context.config_loader.get(self.CONFIG_FILE_PATTERN)
+        return PluginConfig(raw)
+
+    @property
+    @lru_cache()
     def kfp_client(self):
-        return KubeflowClient(self.config, self.project_name, self.context)
+        return KubeflowClient(
+            self.config,
+            self.project_name,
+            self.context,
+            self._username,
+            self._password,
+            self._namespace,
+        )
 
     @staticmethod
-    def init(metadata, env):
+    def init(
+        metadata,
+        env,
+        username,
+        password,
+        experiment_namespace,
+        namespace,
+    ):
         version = VersionInfo.parse(kedro_version)
         if version.match(">=0.17.0"):
-            return ContextHelper(metadata, env)
+            return ContextHelper(
+                metadata,
+                env,
+                username,
+                password,
+                experiment_namespace,
+                namespace,
+            )
         else:
-            return ContextHelper16(metadata, env)
+            return ContextHelper16(
+                metadata,
+                env,
+                username,
+                password,
+                experiment_namespace,
+                namespace,
+            )
 
 
 class ContextHelper16(ContextHelper):

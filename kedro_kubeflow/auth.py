@@ -42,3 +42,30 @@ class AuthHandler(object):
             self.log.error("Failed to obtain IAP access token. " + str(e))
         finally:
             return jwt_token
+
+    @classmethod
+    def obtain_dex_authservice_session(
+        cls,
+        host,
+        username,
+        password,
+    ):
+        import requests
+        import getpass
+
+        if username is None:
+            return ""
+
+        if password is None:
+            password = getpass.getpass()
+
+        s = requests.Session()
+        r = s.get(host)
+
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+        }
+        data = {"login": username, "password": password}
+
+        s.post(r.url, headers=headers, data=data)
+        return s.cookies.get_dict()["authservice_session"]
