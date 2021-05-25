@@ -21,7 +21,6 @@ jobs:
     - name: Setup virtualenv
       run: |
         python -V
-        python -m pip install pip==20.3.4
         python -m pip install virtualenv
         virtualenv venv
         source venv/bin/activate
@@ -32,7 +31,10 @@ jobs:
         pre-commit run --all-files
 
     - name: Test with tox
+      env:
+        TOX_PIP_VERSION: 20.2.1
       run: |
+        pip install tox-pip-version
         tox -v -e py37
 
     - name: Report coverage
