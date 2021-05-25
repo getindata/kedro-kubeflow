@@ -97,7 +97,7 @@ class PipelineGenerator(object):
         image,
         image_pull_policy,
     ) -> Dict[str, dsl.ContainerOp]:
-        """Build kfp container graph from Kedro node dependencies. """
+        """Build kfp container graph from Kedro node dependencies."""
         kfp_ops = {}
 
         node_volumes = (
