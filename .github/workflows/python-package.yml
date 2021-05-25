@@ -21,6 +21,7 @@ jobs:
     - name: Setup virtualenv
       run: |
         python -V
+        python -m pip install pip==20.3.4
         python -m pip install virtualenv
         virtualenv venv
         source venv/bin/activate

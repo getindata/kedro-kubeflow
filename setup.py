@@ -1,5 +1,5 @@
 """kedro_kubeflow module."""
-__requires__ = ['pip == 20.3.4']
+__requires__ = ["pip == 20.3.4"]
 
 from setuptools import find_packages, setup
 
