@@ -2,7 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+-  Prevent KeyError when catalog had entries without filepath. 
+
 ## [0.3.0] - 2021-01-29
+
 
 ### Added
 

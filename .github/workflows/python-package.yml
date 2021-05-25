@@ -32,7 +32,8 @@ jobs:
 
     - name: Test with tox
       run: |
-        tox -e py37
+        pip install tox-pip-version
+        tox -v -e py37
 
     - name: Report coverage
       uses: paambaati/codeclimate-action@v2.7.5
