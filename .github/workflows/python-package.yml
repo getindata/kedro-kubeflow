@@ -31,8 +31,6 @@ jobs:
         pre-commit run --all-files
 
     - name: Test with tox
-      env:
-        TOX_PIP_VERSION: 20.2.1
       run: |
         pip install tox-pip-version
         tox -v -e py37
