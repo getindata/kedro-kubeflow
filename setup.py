@@ -1,5 +1,4 @@
 """kedro_kubeflow module."""
-
 from setuptools import find_packages, setup
 
 with open("README.md") as f:
@@ -21,7 +20,7 @@ EXTRA_REQUIRE = {
     "tests": [
         "pytest>=5.4.0, <7.0.0",
         "pytest-cov>=2.8.0, <3.0.0",
-        "tox==3.21.1",
+        "tox==3.23.1",
         "pre-commit==2.9.3",
     ],
     "docs": [
@@ -33,7 +32,7 @@ EXTRA_REQUIRE = {
 
 setup(
     name="kedro-kubeflow",
-    version="0.3.0",
+    version="0.3.1",
     description="Kedro plugin with Kubeflow support",
     long_description=README,
     long_description_content_type="text/markdown",

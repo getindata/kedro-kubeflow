@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.3.1] - 2021-05-25
+
+### Fixed
+
+-   Prevent KeyError when catalog had entries without filepath. 
+
 ## [0.3.0] - 2021-01-29
 
 ### Added
@@ -55,7 +61,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.3.0...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.3.1...HEAD
+
+[0.3.1]: https://github.com/getindata/kedro-kubeflow/compare/0.3.0...0.3.1
 
 [0.3.0]: https://github.com/getindata/kedro-kubeflow/compare/0.2.0...0.3.0
 

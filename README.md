@@ -48,3 +48,4 @@ Usage: kedro kubeflow [OPTIONS] COMMAND [ARGS]...
 
 `kedro init` generates configuration file for the plugin, but users may want
 to adjust it to match the run environment requirements: https://kedro-kubeflow.readthedocs.io/en/latest/source/02_installation/02_configuration.html
+

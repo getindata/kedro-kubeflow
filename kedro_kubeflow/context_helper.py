@@ -49,7 +49,7 @@ class ContextHelper(object):
 
 
 class ContextHelper16(ContextHelper):
-    """ KedroKubeflowConfig vairant for compatibility with Kedro 1.6 """
+    """KedroKubeflowConfig vairant for compatibility with Kedro 1.6"""
 
     @property
     def project_name(self):
