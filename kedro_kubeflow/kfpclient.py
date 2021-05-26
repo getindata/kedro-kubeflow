@@ -152,7 +152,9 @@ class KubeflowClient(object):
             if not str(e).startswith("No experiment is found"):
                 raise
 
-            experiment = self.client.create_experiment(experiment_name)
+            experiment = self.client.create_experiment(
+                experiment_name, namespace=experiment_namespace
+            )
             self.log.info(f"New experiment created: {experiment.id}")
 
         return experiment.id
