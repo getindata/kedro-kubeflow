@@ -50,12 +50,6 @@ class ContextHelper(object):
 
     @property
     @lru_cache()
-    def connection(self) -> PluginConfig:
-        raw = self.context.config_loader.get(self.CONFIG_FILE_PATTERN)
-        return PluginConfig(raw)
-
-    @property
-    @lru_cache()
     def kfp_client(self):
         return KubeflowClient(
             self.config,
