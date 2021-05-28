@@ -179,6 +179,7 @@ class PipelineGenerator(object):
 
     def _customize_op(self, op, image_pull_policy):
         op.container.set_image_pull_policy(image_pull_policy)
+        op.execution_options.caching_strategy.max_cache_staleness = "P0D"
         if self.run_config.volume and self.run_config.volume.owner is not None:
             op.container.set_security_context(
                 k8s.V1SecurityContext(run_as_user=self.run_config.volume.owner)
