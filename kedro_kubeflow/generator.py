@@ -210,7 +210,7 @@ class PipelineGenerator(object):
     def _setup_volumes(self, volume_name, image, image_pull_policy):
         assert volume_name is not None, "Later can use default, not now"
         vop = dsl.VolumeOp(
-            name="data-volume-create",
+            name="data-volume-create-maybe-use-pipeline-name",
             resource_name=volume_name,
             size=self.run_config.volume.size,
             modes=self.run_config.volume.access_modes,
