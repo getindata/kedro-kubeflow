@@ -219,6 +219,9 @@ class PipelineGenerator(object):
 
         vop.add_pod_label("pipelines.kubeflow.org/cache_enabled", "false")
         vop.add_pod_label("check-another-label", "some-value")
+        vop.add_pod_annotation(
+            "pipelines.kubeflow.org/max_cache_staleness", "P0D"
+        )
 
         # vop.execution_options.caching_strategy.max_cache_staleness = "P0D"
 
