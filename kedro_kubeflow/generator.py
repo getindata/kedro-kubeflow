@@ -217,6 +217,8 @@ class PipelineGenerator(object):
             storage_class=self.run_config.volume.storageclass,
         )
 
+        vop.add_pod_label("pipelines.kubeflow.org/cache_enabled", "false")
+
         # vop.execution_options.caching_strategy.max_cache_staleness = "P0D"
 
         if self.run_config.volume.skip_init:
