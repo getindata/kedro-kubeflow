@@ -68,7 +68,6 @@ class PipelineGenerator(object):
                         )
 
                 for node, dependencies in node_dependencies.items():
-
                     for dependency in dependencies:
                         kfp_ops[node.name].after(kfp_ops[dependency.name])
 
@@ -199,7 +198,6 @@ class PipelineGenerator(object):
 
     def _customize_op(self, op, image_pull_policy):
         op.container.set_image_pull_policy(image_pull_policy)
-
         if self.run_config.volume and self.run_config.volume.owner is not None:
             op.container.set_security_context(
                 k8s.V1SecurityContext(run_as_user=self.run_config.volume.owner)
@@ -207,9 +205,8 @@ class PipelineGenerator(object):
         return op
 
     def _setup_volumes(self, volume_name, image, image_pull_policy):
-        assert volume_name is not None, "Later can use default, not now"
         vop = dsl.VolumeOp(
-            name="data-volume-create-maybe-use-pipeline-name",
+            name="data-volume-create",
             resource_name=volume_name,
             size=self.run_config.volume.size,
             modes=self.run_config.volume.access_modes,

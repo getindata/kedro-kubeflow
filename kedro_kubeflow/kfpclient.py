@@ -27,14 +27,18 @@ class KubeflowClient(object):
             username=username,
             password=password,
         )
+        self.host = (
+            config.host
+            if dex_authservice_session == ""
+            else f"{config.host}/pipeline"
+        )
         self.client = Client(
-            host=f"{config.host}/pipeline",
+            host=self.host,
             existing_token=token,
             cookies=f"authservice_session={dex_authservice_session}",
             namespace=namespace,
         )
 
-        self.host = config.host
         self.project_name = project_name
         self.pipeline_description = config.run_config.description
         self.generator = PipelineGenerator(config, project_name, context)
