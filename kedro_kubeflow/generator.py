@@ -85,9 +85,8 @@ class PipelineGenerator(object):
                     "kubectl",
                     "delete",
                     "pvc",
-                    sanitize_k8s_name(
-                        f"{{workflow.name}}-{pipeline}-data-volume"
-                    ),
+                    "{{workflow.name}}-"
+                    + sanitize_k8s_name(f"{pipeline}-data-volume"),
                     "--wait=false",
                     "--ignore-not-found",
                     "--output",
