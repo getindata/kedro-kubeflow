@@ -60,7 +60,15 @@ class PipelineGenerator(object):
                 kfp_ops = self._build_kfp_ops(
                     pipeline, node_dependencies, image, image_pull_policy
                 )
+
+                if self.run_config.max_cache_staleness not in [None, ""]:
+                    for _, op in kfp_ops.items():
+                        op.execution_options.caching_strategy.max_cache_staleness = (
+                            self.run_config.max_cache_staleness
+                        )
+
                 for node, dependencies in node_dependencies.items():
+
                     for dependency in dependencies:
                         kfp_ops[node.name].after(kfp_ops[dependency.name])
 
@@ -75,25 +83,28 @@ class PipelineGenerator(object):
         if not enable_volume_cleaning:
             return contextlib.nullcontext()
 
-        # TODO: get pvc name from output?
-
-        return dsl.ExitHandler(
-            dsl.ContainerOp(
-                name="schedule-volume-termination",
-                image="gcr.io/cloud-builders/kubectl",
-                command=[
-                    "kubectl",
-                    "delete",
-                    "pvc",
-                    "{{workflow.name}}-"
-                    + sanitize_k8s_name(f"{pipeline}-data-volume"),
-                    "--wait=false",
-                    "--ignore-not-found",
-                    "--output",
-                    "name",
-                ],
-            )
+        exit_container_op = dsl.ContainerOp(
+            name="schedule-volume-termination",
+            image="gcr.io/cloud-builders/kubectl",
+            command=[
+                "kubectl",
+                "delete",
+                "pvc",
+                "{{workflow.name}}-"
+                + sanitize_k8s_name(f"{pipeline}-data-volume"),
+                "--wait=false",
+                "--ignore-not-found",
+                "--output",
+                "name",
+            ],
         )
+
+        if self.run_config.max_cache_staleness not in [None, ""]:
+            exit_container_op.execution_options.caching_strategy.max_cache_staleness = (
+                self.run_config.max_cache_staleness
+            )
+
+        return dsl.ExitHandler(exit_container_op)
 
     def _build_kfp_ops(
         self,
@@ -104,8 +115,6 @@ class PipelineGenerator(object):
     ) -> Dict[str, dsl.ContainerOp]:
         """Build kfp container graph from Kedro node dependencies."""
         kfp_ops = {}
-
-        # volume_name
 
         node_volumes = (
             self._setup_volumes(
@@ -191,9 +200,6 @@ class PipelineGenerator(object):
     def _customize_op(self, op, image_pull_policy):
         op.container.set_image_pull_policy(image_pull_policy)
 
-        # TODO: enable configuration of this
-        op.execution_options.caching_strategy.max_cache_staleness = "P0D"
-
         if self.run_config.volume and self.run_config.volume.owner is not None:
             op.container.set_security_context(
                 k8s.V1SecurityContext(run_as_user=self.run_config.volume.owner)
@@ -210,12 +216,11 @@ class PipelineGenerator(object):
             storage_class=self.run_config.volume.storageclass,
         )
 
-        # TODO: enable configuration of this
-        vop.add_pod_annotation(
-            "pipelines.kubeflow.org/max_cache_staleness", "P0D"
-        )
-
-        # vop.execution_options.caching_strategy.max_cache_staleness = "P0D"
+        if self.run_config.max_cache_staleness not in [None, ""]:
+            vop.add_pod_annotation(
+                "pipelines.kubeflow.org/max_cache_staleness",
+                self.run_config.max_cache_staleness,
+            )
 
         if self.run_config.volume.skip_init:
             return {"/home/kedro/data": vop.volume}
