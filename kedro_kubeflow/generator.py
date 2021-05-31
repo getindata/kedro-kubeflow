@@ -64,7 +64,7 @@ class PipelineGenerator(object):
             node_dependencies = self.context.pipelines.get(
                 pipeline
             ).node_dependencies
-            with self._create_pipeline_exit_handler():
+            with self._create_pipeline_exit_handler(pipeline):
                 kfp_ops = self._build_kfp_ops(
                     pipeline, node_dependencies, image, image_pull_policy
                 )
@@ -74,7 +74,7 @@ class PipelineGenerator(object):
 
         return convert_kedro_pipeline_to_kfp
 
-    def _create_pipeline_exit_handler(self):
+    def _create_pipeline_exit_handler(self, pipeline):
         enable_volume_cleaning = (
             self.run_config.volume is not None
             and not self.run_config.volume.keep
@@ -82,6 +82,8 @@ class PipelineGenerator(object):
 
         if not enable_volume_cleaning:
             return contextlib.nullcontext()
+
+        # TODO: get pvc name from output?
 
         return dsl.ExitHandler(
             dsl.ContainerOp(
@@ -91,7 +93,7 @@ class PipelineGenerator(object):
                     "kubectl",
                     "delete",
                     "pvc",
-                    "{{workflow.name}}-data-volume",
+                    f"{{workflow.name}}-{pipeline}-data-volume",
                     "--wait=false",
                     "--ignore-not-found",
                     "--output",
@@ -195,7 +197,10 @@ class PipelineGenerator(object):
 
     def _customize_op(self, op, image_pull_policy):
         op.container.set_image_pull_policy(image_pull_policy)
+
+        # TODO: enable configuration of this
         op.execution_options.caching_strategy.max_cache_staleness = "P0D"
+
         if self.run_config.volume and self.run_config.volume.owner is not None:
             op.container.set_security_context(
                 k8s.V1SecurityContext(run_as_user=self.run_config.volume.owner)
@@ -211,6 +216,9 @@ class PipelineGenerator(object):
             modes=self.run_config.volume.access_modes,
             storage_class=self.run_config.volume.storageclass,
         )
+
+        # vop.execution_options.caching_strategy.max_cache_staleness = "P0D"
+
         if self.run_config.volume.skip_init:
             return {"/home/kedro/data": vop.volume}
         else:
