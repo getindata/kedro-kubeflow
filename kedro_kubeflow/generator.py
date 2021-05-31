@@ -19,6 +19,9 @@ def maybe_add_params(kedro_parameters):
         def wrapper(*args, **kwargs):
             return f()
 
+        for name, default in kedro_parameters.items():
+            print(f"maybe_add_params: name: {name} ; default: {default}")
+
         sig = signature(f)
         new_params = (
             Parameter(name, Parameter.KEYWORD_ONLY, default=default)
@@ -36,12 +39,18 @@ class PipelineGenerator(object):
 
     def __init__(self, config, project_name, context):
         self.project_name = project_name
+        print()
+        print(f"self.project_name: {self.project_name}")
         self.context = context
+        print(f"context: {self.context.__dict__}")
+        print()
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
         self.run_config = config.run_config
         self.catalog = context.config_loader.get("catalog*")
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
+        print(f"PIPELINE: {pipeline}")
+
         @dsl.pipeline(
             name=self.project_name,
             description=self.run_config.description,
@@ -57,7 +66,7 @@ class PipelineGenerator(object):
             ).node_dependencies
             with self._create_pipeline_exit_handler():
                 kfp_ops = self._build_kfp_ops(
-                    node_dependencies, image, image_pull_policy
+                    pipeline, node_dependencies, image, image_pull_policy
                 )
                 for node, dependencies in node_dependencies.items():
                     for dependency in dependencies:
@@ -93,6 +102,7 @@ class PipelineGenerator(object):
 
     def _build_kfp_ops(
         self,
+        pipeline,
         node_dependencies: Dict[Node, Set[Node]],
         image,
         image_pull_policy,
@@ -100,8 +110,12 @@ class PipelineGenerator(object):
         """Build kfp container graph from Kedro node dependencies."""
         kfp_ops = {}
 
+        # volume_name
+
         node_volumes = (
-            self._setup_volumes(image, image_pull_policy)
+            self._setup_volumes(
+                f"{pipeline}-data-volume", image, image_pull_policy
+            )
             if self.run_config.volume is not None
             else {}
         )
@@ -186,10 +200,11 @@ class PipelineGenerator(object):
             )
         return op
 
-    def _setup_volumes(self, image, image_pull_policy):
+    def _setup_volumes(self, volume_name, image, image_pull_policy):
+        assert volume_name is not None, "Later can use default, not now"
         vop = dsl.VolumeOp(
             name="data-volume-create",
-            resource_name="data-volume",
+            resource_name=volume_name,
             size=self.run_config.volume.size,
             modes=self.run_config.volume.access_modes,
             storage_class=self.run_config.volume.storageclass,
