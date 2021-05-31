@@ -173,6 +173,8 @@ class PipelineGenerator(object):
                         "run",
                         "--params",
                         params,
+                        "--pipeline",
+                        pipeline,
                         "--node",
                         node.name,
                     ],
