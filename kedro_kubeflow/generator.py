@@ -8,6 +8,7 @@ from typing import Dict, Set
 import kubernetes.client as k8s
 from kedro.pipeline.node import Node
 from kfp import dsl
+from kfp.compiler._k8s_helper import sanitize_k8s_name
 
 from .auth import IAP_CLIENT_ID
 from .utils import clean_name, is_mlflow_enabled
@@ -18,9 +19,6 @@ def maybe_add_params(kedro_parameters):
         @wraps(f)
         def wrapper(*args, **kwargs):
             return f()
-
-        for name, default in kedro_parameters.items():
-            print(f"maybe_add_params: name: {name} ; default: {default}")
 
         sig = signature(f)
         new_params = (
@@ -39,18 +37,12 @@ class PipelineGenerator(object):
 
     def __init__(self, config, project_name, context):
         self.project_name = project_name
-        print()
-        print(f"self.project_name: {self.project_name}")
         self.context = context
-        print(f"context: {self.context.__dict__}")
-        print()
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
         self.run_config = config.run_config
         self.catalog = context.config_loader.get("catalog*")
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
-        print(f"PIPELINE: {pipeline}")
-
         @dsl.pipeline(
             name=self.project_name,
             description=self.run_config.description,
@@ -93,7 +85,9 @@ class PipelineGenerator(object):
                     "kubectl",
                     "delete",
                     "pvc",
-                    f"{{workflow.name}}-{pipeline}-data-volume",
+                    sanitize_k8s_name(
+                        f"{{workflow.name}}-{pipeline}-data-volume"
+                    ),
                     "--wait=false",
                     "--ignore-not-found",
                     "--output",
@@ -217,8 +211,7 @@ class PipelineGenerator(object):
             storage_class=self.run_config.volume.storageclass,
         )
 
-        vop.add_pod_label("pipelines.kubeflow.org/cache_enabled", "false")
-        vop.add_pod_label("check-another-label", "some-value")
+        # TODO: enable configuration of this
         vop.add_pod_annotation(
             "pipelines.kubeflow.org/max_cache_staleness", "P0D"
         )
