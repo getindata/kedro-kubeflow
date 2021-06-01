@@ -206,7 +206,7 @@ class PipelineGenerator(object):
 
     def _setup_volumes(self, volume_name, image, image_pull_policy):
         vop = dsl.VolumeOp(
-            name="data-volume-create",
+            name=f"create-{sanitize_k8s_name(volume_name)}",
             resource_name=volume_name,
             size=self.run_config.volume.size,
             modes=self.run_config.volume.access_modes,
