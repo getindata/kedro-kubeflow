@@ -1,4 +1,5 @@
 import logging
+import os
 from tempfile import NamedTemporaryFile
 
 from kfp.v2 import compiler
@@ -36,6 +37,7 @@ class KubeflowClient(object):
                          image_pull_policy=image_pull_policy)
 
             run = self.api_client.create_run_from_job_spec(
+                service_account=os.getenv('SERVICE_ACCOUNT'),
                 job_spec_path=f.name,
                 job_id=run_name,
                 pipeline_root='gs://gid-ml-ops-sandbox-kubeflowpipelines-default/kedro-kubeflow',

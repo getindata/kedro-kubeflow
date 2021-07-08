@@ -12,6 +12,9 @@ from kfp.v2 import dsl
 
 from .auth import IAP_CLIENT_ID
 from .utils import clean_name, is_mlflow_enabled
+from kfp.components.structures import ComponentSpec, ContainerSpec, \
+    ContainerImplementation
+import kfp
 
 
 def maybe_add_params(kedro_parameters):
@@ -111,23 +114,40 @@ class PipelineGenerator(object):
         )
         nodes_env = [iap_env_var]
 
-        # if is_mlflow_enabled():
-        if False:
-            kfp_ops["mlflow-start-run"] = self._customize_op(
-                dsl.ContainerOp(
-                    name="mlflow-start-run",
-                    image=image,
-                    command=["kedro"],
-                    arguments=[
-                        "kubeflow",
-                        "mlflow-start",
-                        # dsl.RUN_ID_PLACEHOLDER,
-                    ],
-                    container_kwargs={"env": [iap_env_var]},
-                    file_outputs={"mlflow_run_id": "/tmp/mlflow_run_id"},
-                ),
-                image_pull_policy,
+        if is_mlflow_enabled():
+            spec = ComponentSpec(
+                name="mlflow-start-run",
+                implementation=ContainerImplementation(
+                    container=ContainerSpec(
+                        image=image,
+                        command=[
+                            "kedro", "kubeflow", "mlflow-start", kfp.dsl.RUN_ID_PLACEHOLDER
+                        ]
+                        #env={'MLFLOW_TRACKING_TOKEN': os.getenv('MLFLOW_TRACKING_TOKEN')}
+                    )
+                )
             )
+            with NamedTemporaryFile(mode='w',prefix='kedro-kubeflow-spec',suffix='.yaml') as f:
+                spec.save(f.name)
+                component = kfp.components.load_component_from_file(f.name)
+            kfp_ops["mlflow-start-run"] = component()
+            kfp_ops["mlflow-start-run"].container.add_env_variable(k8s.V1EnvVar(name='MLFLOW_TRACKING_TOKEN', value=os.getenv('MLFLOW_TRACKING_TOKEN')))
+
+            # kfp_ops["mlflow-start-run"] = self._customize_op(
+            #     dsl.ContainerOp(
+            #         name="mlflow-start-run",
+            #         image=image,
+            #         command=["kedro"],
+            #         arguments=[
+            #             "kubeflow",
+            #             "mlflow-start",
+            #             # dsl.RUN_ID_PLACEHOLDER,
+            #         ],
+            #         container_kwargs={"env": [iap_env_var]},
+            #         file_outputs={"mlflow_run_id": "/tmp/mlflow_run_id"},
+            #     ),
+            #     image_pull_policy,
+            # )
 
             nodes_env.append(
                 k8s.V1EnvVar(
@@ -152,8 +172,6 @@ class PipelineGenerator(object):
                     requests=self.run_config.resources.get_for(node.name),
                 )
 
-            from kfp.components.structures import ComponentSpec, ContainerSpec, OutputSpec, ContainerImplementation
-
             spec = ComponentSpec(
                 name=name,
                 # outputs=[
@@ -168,7 +186,6 @@ class PipelineGenerator(object):
                     )
                 )
             )
-            import kfp
             with NamedTemporaryFile(mode='w',prefix='kedro-kubeflow-spec',suffix='.yaml') as f:
                 spec.save(f.name)
                 component = kfp.components.load_component_from_file(f.name)
