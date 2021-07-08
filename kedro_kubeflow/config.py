@@ -1,4 +1,5 @@
 import os
+from functools import lru_cache, cached_property
 
 from kedro.config import MissingConfigException
 
@@ -32,7 +33,7 @@ run_config:
   # volume after pipeline finishes) [in seconds]. Default: 1 week
   ttl: 604800
 
-  # Optional volume specification
+  # Optional volume specification (only for non vertex-ai)
   volume:
 
     # Storage class - use null (or no value) to use the default storage
@@ -204,6 +205,18 @@ class PluginConfig(Config):
     @staticmethod
     def sample_config(**kwargs):
         return DEFAULT_CONFIG_TEMPLATE.format(**kwargs)
+
+    @property
+    def project_id(self):
+        return self._get_or_fail("project_id")
+
+    @property
+    def region(self):
+        return self._get_or_fail("region")
+
+    @cached_property
+    def is_vertex_ai_pipelines(self):
+        return self.host == 'vertex-ai-pipelines'
 
     @staticmethod
     def initialize_github_actions(project_name, where, templates_dir):

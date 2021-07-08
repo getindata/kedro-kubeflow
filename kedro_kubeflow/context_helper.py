@@ -5,7 +5,6 @@ from kedro import __version__ as kedro_version
 from semver import VersionInfo
 
 from .config import PluginConfig
-from .kfpclient import KubeflowClient
 
 
 class ContextHelper(object):
@@ -37,6 +36,10 @@ class ContextHelper(object):
     @property
     @lru_cache()
     def kfp_client(self):
+        if self.config.is_vertex_ai_pipelines:
+            from .vertexaiclient import KubeflowClient
+        else:
+            from .kfpclient import KubeflowClient
         return KubeflowClient(self.config, self.project_name, self.context)
 
     @staticmethod
