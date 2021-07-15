@@ -1,7 +1,10 @@
+import json
 import logging
 import os
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+import yaml
 from kfp.v2 import compiler
 from kfp.v2.google.client import AIPlatformClient
 
@@ -46,10 +49,11 @@ class KubeflowClient(object):
             # TODO check if something can be done with run
 
     def compile(
-            self, pipeline, image, output, image_pull_policy="IfNotPresent"
+            self, pipeline, image, output, image_pull_policy="IfNotPresent",
     ):
+        token = os.getenv('MLFLOW_TRACKING_TOKEN') # TODO pass a param maybe?
         pipeline_func = self.generator.generate_pipeline(
-            pipeline, image, image_pull_policy
+            pipeline, image, image_pull_policy, token
         )
         compiler.Compiler().compile(
             pipeline_func=pipeline_func,

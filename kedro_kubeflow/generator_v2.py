@@ -13,25 +13,8 @@ from kfp.v2 import dsl
 from .auth import IAP_CLIENT_ID
 from .utils import clean_name, is_mlflow_enabled
 from kfp.components.structures import ComponentSpec, ContainerSpec, \
-    ContainerImplementation
+    ContainerImplementation, OutputSpec, InputSpec, OutputPathPlaceholder
 import kfp
-
-
-def maybe_add_params(kedro_parameters):
-    def decorator(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            return f()
-
-        sig = signature(f)
-        new_params = (
-            Parameter(name, Parameter.KEYWORD_ONLY, default=default, annotation=float)
-            for name, default in kedro_parameters.items()
-        )
-        wrapper.__signature__ = sig.replace(parameters=new_params)
-        return wrapper
-
-    return decorator
 
 
 class PipelineGenerator(object):
@@ -40,220 +23,158 @@ class PipelineGenerator(object):
     def __init__(self, config, project_name, context):
         self.project_name = project_name
         self.context = context
-        dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
         self.run_config = config.run_config
         self.catalog = context.config_loader.get("catalog*")
 
-    def generate_pipeline(self, pipeline, image, image_pull_policy):
+    def generate_pipeline(self, pipeline, image, image_pull_policy, token):
         @dsl.pipeline(
             name=self.project_name.lower().replace(' ', '-'),
             description=self.run_config.description,
         )
-        @maybe_add_params(self.context.params)
         def convert_kedro_pipeline_to_kfp() -> None:
-            """Convert from a Kedro pipeline into a kfp container graph."""
-            # dsl.get_pipeline_conf().set_ttl_seconds_after_finished(
-            #     self.run_config.ttl
-            # )
-            node_dependencies = self.context.pipelines.get(
-                pipeline
-            ).node_dependencies
-            #with self._create_pipeline_exit_handler():
+            node_dependencies = self.context.pipelines.get(pipeline).node_dependencies
             kfp_ops = self._build_kfp_ops(
-                node_dependencies, image, image_pull_policy
+                node_dependencies, image, token
             )
             for node, dependencies in node_dependencies.items():
                 for dependency in dependencies:
                     kfp_ops[node.name].after(kfp_ops[dependency.name])
 
+            if self.run_config.volume and not self.run_config.volume.skip_init:
+                data_volume_init=self._setup_volumes(image)
+                for name, ops in kfp_ops.items():
+                    if name is not 'mlflow-start-run':
+                        ops.after(data_volume_init)
+                kfp_ops['data-volume-init']=data_volume_init
+
+            for op in kfp_ops.values():
+                op.container.set_image_pull_policy(image_pull_policy)
+
         return convert_kedro_pipeline_to_kfp
-
-    def _create_pipeline_exit_handler(self):
-        enable_volume_cleaning = (
-                self.run_config.volume is not None
-                and not self.run_config.volume.keep
-        )
-
-        if not enable_volume_cleaning:
-            return contextlib.nullcontext()
-
-        return dsl.ExitHandler(
-            dsl.ContainerOp(
-                name="schedule-volume-termination",
-                image="gcr.io/cloud-builders/kubectl",
-                command=[
-                    "kubectl",
-                    "delete",
-                    "pvc",
-                    "{{workflow.name}}-data-volume",
-                    "--wait=false",
-                    "--ignore-not-found",
-                    "--output",
-                    "name",
-                ],
-            )
-        )
 
     def _build_kfp_ops(
             self,
             node_dependencies: Dict[Node, Set[Node]],
             image,
-            image_pull_policy,
+            tracking_token=None
     ) -> Dict[str, dsl.ContainerOp]:
         """Build kfp container graph from Kedro node dependencies."""
         kfp_ops = {}
 
-        node_volumes = (
-            self._setup_volumes(image, image_pull_policy)
-            if self.run_config.volume is not None
-            else {}
-        )
-
-        iap_env_var = k8s.V1EnvVar(
-            name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
-        )
-        nodes_env = [iap_env_var]
-
         if is_mlflow_enabled():
             spec = ComponentSpec(
                 name="mlflow-start-run",
+                inputs=[InputSpec("mlflow_tracking_token", "String")],
+                outputs=[OutputSpec("output", "String")],
                 implementation=ContainerImplementation(
                     container=ContainerSpec(
                         image=image,
                         command=[
-                            "kedro", "kubeflow", "mlflow-start", kfp.dsl.RUN_ID_PLACEHOLDER
+                            "/bin/bash", "-c"
+                        ],
+                        args=[
+                            " ".join([
+                                "mkdir --parents `dirname {{$.outputs.parameters['output'].output_file}}`",
+                                "&&",
+                                "MLFLOW_TRACKING_TOKEN={{$.inputs.parameters['mlflow_tracking_token']}} kedro kubeflow mlflow-start --output {{$.outputs.parameters['output'].output_file}}",
+                            ]),
+                            OutputPathPlaceholder(output_name='output')
                         ]
-                        #env={'MLFLOW_TRACKING_TOKEN': os.getenv('MLFLOW_TRACKING_TOKEN')}
                     )
                 )
             )
-            with NamedTemporaryFile(mode='w',prefix='kedro-kubeflow-spec',suffix='.yaml') as f:
+            with NamedTemporaryFile(mode='w', prefix='kedro-kubeflow-spec',
+                                    suffix='.yaml') as f:
                 spec.save(f.name)
                 component = kfp.components.load_component_from_file(f.name)
-            kfp_ops["mlflow-start-run"] = component()
-            kfp_ops["mlflow-start-run"].container.add_env_variable(k8s.V1EnvVar(name='MLFLOW_TRACKING_TOKEN', value=os.getenv('MLFLOW_TRACKING_TOKEN')))
+            kfp_ops["mlflow-start-run"] = component(tracking_token)
 
-            # kfp_ops["mlflow-start-run"] = self._customize_op(
-            #     dsl.ContainerOp(
-            #         name="mlflow-start-run",
-            #         image=image,
-            #         command=["kedro"],
-            #         arguments=[
-            #             "kubeflow",
-            #             "mlflow-start",
-            #             # dsl.RUN_ID_PLACEHOLDER,
-            #         ],
-            #         container_kwargs={"env": [iap_env_var]},
-            #         file_outputs={"mlflow_run_id": "/tmp/mlflow_run_id"},
-            #     ),
-            #     image_pull_policy,
-            # )
-
-            nodes_env.append(
-                k8s.V1EnvVar(
-                    name="MLFLOW_RUN_ID",
-                    value=kfp_ops["mlflow-start-run"].output,
-                )
-            )
+        params_parameter = ",".join([
+            f"{key}:{value}" for key, value in self.context.params.items()
+        ])
+        if params_parameter:
+            params_parameter = f'--params {params_parameter}'
 
         for node in node_dependencies:
             name = clean_name(node.name)
-            from kfp.dsl import PipelineParam
-            params = ",".join(
-                [
-                    f"{param}:{PipelineParam(param)}"
-                    for param in self.context.params.keys()
-                ]
-            )
-            kwargs = {"env": nodes_env}
-            if self.run_config.resources.is_set_for(node.name):
-                kwargs["resources"] = k8s.V1ResourceRequirements(
-                    limits=self.run_config.resources.get_for(node.name),
-                    requests=self.run_config.resources.get_for(node.name),
-                )
 
+            kedro_command = f"kedro run {params_parameter} --node {node.name}"
             spec = ComponentSpec(
                 name=name,
-                # outputs=[
-                #     OutputSpec(output) for output in node.outputs if output in self.catalog and "filepath" in self.catalog[output]
-                # ],
+                inputs=[InputSpec("mlflow_tracking_token", "String"),
+                        InputSpec("mlflow_run_id", "String")],
                 implementation=ContainerImplementation(
                     container=ContainerSpec(
                         image=image,
                         command=[
-                            "kedro", "run", "--params", params, "--node", node.name
+                            "/bin/bash", "-c"
+                        ],
+                        args=[
+                            " ".join([
+                                "rm -r /home/kedro/data"
+                                "&&"
+                                "ln -s /gcs/gid-ml-ops-sandbox-kubeflowpipelines-default/kedro-kubeflow/data /home/kedro/data"
+                                "&&",
+                                "MLFLOW_TRACKING_TOKEN={{$.inputs.parameters['mlflow_tracking_token']}} MLFLOW_RUN_ID=\"{{$.inputs.parameters['mlflow_run_id']}}\" " + kedro_command,
+                            ])
                         ]
                     )
                 )
             )
-            with NamedTemporaryFile(mode='w',prefix='kedro-kubeflow-spec',suffix='.yaml') as f:
+            with NamedTemporaryFile(mode='w', prefix='kedro-kubeflow-node-spec',
+                                    suffix='.yaml') as f:
                 spec.save(f.name)
                 component = kfp.components.load_component_from_file(f.name)
-            kfp_ops[node.name] = component()
-            # kfp_ops[node.name] = self._customize_op(
-            #     dsl.ContainerOp(
-            #         name=name,
-            #         image=image,
-            #         command=["kedro"],
-            #         arguments=[
-            #             "run",
-            #             "--params",
-            #             params,
-            #             "--node",
-            #             node.name,
-            #         ],
-            #         pvolumes=node_volumes,
-            #         container_kwargs=kwargs,
-            #         file_outputs={
-            #             output: "/home/kedro/"
-            #                     + self.catalog[output]["filepath"]
-            #             for output in node.outputs
-            #             if output in self.catalog
-            #                and "filepath" in self.catalog[output]
-            #         },
-            #     ),
-            #     image_pull_policy,
-            # )
+            kfp_ops[node.name] = component(tracking_token,
+                                           kfp_ops["mlflow-start-run"].output)
+
+            resources = self.run_config.resources.get_for(node.name)
+            if "cpu" in resources:
+                kfp_ops[node.name].set_cpu_limit(resources['cpu'])
+                kfp_ops[node.name].set_cpu_request(resources['cpu'])
+            if "memory" in resources:
+                kfp_ops[node.name].set_memory_limit(resources['memory'])
+                kfp_ops[node.name].set_memory_request(resources['memory'])
+            if "cloud.google.com/gke-accelerator" in resources:
+                kfp_ops[node.name].add_node_selector_constraint(
+                    "cloud.google.com/gke-accelerator",
+                    resources['cloud.google.com/gke-accelerator'])
+            if "nvidia.com/gpu" in resources:
+                kfp_ops[node.name].set_gpu_limit(resources['nvidia.com/gpu'])
 
         return kfp_ops
 
-    def _customize_op(self, op, image_pull_policy):
-        op.container.set_image_pull_policy(image_pull_policy)
-        if self.run_config.volume and self.run_config.volume.owner is not None:
-            op.container.set_security_context(
-                k8s.V1SecurityContext(run_as_user=self.run_config.volume.owner)
-            )
-        return op
-
-    def _setup_volumes(self, image, image_pull_policy):
-        vop = dsl.VolumeOp(
-            name="data-volume-create",
-            resource_name="data-volume",
-            size=self.run_config.volume.size,
-            modes=self.run_config.volume.access_modes,
-            storage_class=self.run_config.volume.storageclass,
-        )
-        if self.run_config.volume.skip_init:
-            return {"/home/kedro/data": vop.volume}
-        else:
-            volume_init = self._customize_op(
-                dsl.ContainerOp(
-                    name="data-volume-init",
+    def _setup_volumes(self, image):
+        spec = ComponentSpec(
+            name="data-volume-init",
+            inputs=[],
+            implementation=ContainerImplementation(
+                container=ContainerSpec(
                     image=image,
-                    command=["sh", "-c"],
-                    arguments=[
+                    command=[
+                        "/bin/bash", "-c"
+                    ],
+                    args=[
                         " ".join(
                             [
+                                "mkdir --parents /gcs/gid-ml-ops-sandbox-kubeflowpipelines-default/kedro-kubeflow/data", # TODO parametrize me
+                                "&&"
                                 "cp",
                                 "--verbose",
                                 "-r",
                                 "/home/kedro/data/*",
-                                "/home/kedro/datavolume",
+                                "/gcs/gid-ml-ops-sandbox-kubeflowpipelines-default/kedro-kubeflow/data",
                             ]
                         )
-                    ],
-                    pvolumes={"/home/kedro/datavolume": vop.volume},
-                ),
-                image_pull_policy,
+                    ]
+                )
             )
-            return {"/home/kedro/data": volume_init.pvolume}
+        )
+
+        with NamedTemporaryFile(mode='w', prefix='kedro-kubeflow-data-volume-init',
+                                suffix='.yaml') as f:
+            spec.save(f.name)
+            component = kfp.components.load_component_from_file(f.name)
+            volume_init = component()
+
+        return volume_init
