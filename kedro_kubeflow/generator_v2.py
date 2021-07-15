@@ -38,14 +38,16 @@ class PipelineGenerator(object):
             )
             for node, dependencies in node_dependencies.items():
                 for dependency in dependencies:
-                    kfp_ops[node.name].after(kfp_ops[dependency.name])
+                    name = clean_name(node.name)
+                    dependency_name = clean_name(dependency.name)
+                    kfp_ops[name].after(kfp_ops[dependency_name])
 
             if self.run_config.volume and not self.run_config.volume.skip_init:
-                data_volume_init=self._setup_volumes(image)
+                data_volume_init = self._setup_volumes(image)
                 for name, ops in kfp_ops.items():
                     if name is not 'mlflow-start-run':
                         ops.after(data_volume_init)
-                kfp_ops['data-volume-init']=data_volume_init
+                kfp_ops['data-volume-init'] = data_volume_init
 
             for op in kfp_ops.values():
                 op.container.set_image_pull_policy(image_pull_policy)
@@ -76,7 +78,7 @@ class PipelineGenerator(object):
                             " ".join([
                                 "mkdir --parents `dirname {{$.outputs.parameters['output'].output_file}}`",
                                 "&&",
-                                "MLFLOW_TRACKING_TOKEN={{$.inputs.parameters['mlflow_tracking_token']}} kedro kubeflow mlflow-start --output {{$.outputs.parameters['output'].output_file}}",
+                                "MLFLOW_TRACKING_TOKEN={{$.inputs.parameters['mlflow_tracking_token']}} kedro kubeflow mlflow-start --output {{$.outputs.parameters['output'].output_file}} " + self.run_config.run_name,
                             ]),
                             OutputPathPlaceholder(output_name='output')
                         ]
@@ -98,7 +100,7 @@ class PipelineGenerator(object):
         for node in node_dependencies:
             name = clean_name(node.name)
 
-            kedro_command = f"kedro run {params_parameter} --node {node.name}"
+            kedro_command = f"kedro run {params_parameter} --node \"{node.name}\""
             spec = ComponentSpec(
                 name=name,
                 inputs=[InputSpec("mlflow_tracking_token", "String"),
@@ -125,22 +127,22 @@ class PipelineGenerator(object):
                                     suffix='.yaml') as f:
                 spec.save(f.name)
                 component = kfp.components.load_component_from_file(f.name)
-            kfp_ops[node.name] = component(tracking_token,
+            kfp_ops[name] = component(tracking_token,
                                            kfp_ops["mlflow-start-run"].output)
 
-            resources = self.run_config.resources.get_for(node.name)
+            resources = self.run_config.resources.get_for(name)
             if "cpu" in resources:
-                kfp_ops[node.name].set_cpu_limit(resources['cpu'])
-                kfp_ops[node.name].set_cpu_request(resources['cpu'])
+                kfp_ops[name].set_cpu_limit(resources['cpu'])
+                kfp_ops[name].set_cpu_request(resources['cpu'])
             if "memory" in resources:
-                kfp_ops[node.name].set_memory_limit(resources['memory'])
-                kfp_ops[node.name].set_memory_request(resources['memory'])
+                kfp_ops[name].set_memory_limit(resources['memory'])
+                kfp_ops[name].set_memory_request(resources['memory'])
             if "cloud.google.com/gke-accelerator" in resources:
-                kfp_ops[node.name].add_node_selector_constraint(
+                kfp_ops[name].add_node_selector_constraint(
                     "cloud.google.com/gke-accelerator",
                     resources['cloud.google.com/gke-accelerator'])
             if "nvidia.com/gpu" in resources:
-                kfp_ops[node.name].set_gpu_limit(resources['nvidia.com/gpu'])
+                kfp_ops[name].set_gpu_limit(resources['nvidia.com/gpu'])
 
         return kfp_ops
 
@@ -157,7 +159,8 @@ class PipelineGenerator(object):
                     args=[
                         " ".join(
                             [
-                                "mkdir --parents /gcs/gid-ml-ops-sandbox-kubeflowpipelines-default/kedro-kubeflow/data", # TODO parametrize me
+                                "mkdir --parents /gcs/gid-ml-ops-sandbox-kubeflowpipelines-default/kedro-kubeflow/data",
+                                # TODO parametrize me
                                 "&&"
                                 "cp",
                                 "--verbose",
