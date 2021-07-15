@@ -1,20 +1,14 @@
-import contextlib
 import logging
-import os
-from functools import wraps
-from inspect import Parameter, signature
 from tempfile import NamedTemporaryFile
 from typing import Dict, Set
 
-import kubernetes.client as k8s
+import kfp
 from kedro.pipeline.node import Node
-from kfp.v2 import dsl
-
-from .auth import IAP_CLIENT_ID
-from .utils import clean_name, is_mlflow_enabled
 from kfp.components.structures import ComponentSpec, ContainerSpec, \
     ContainerImplementation, OutputSpec, InputSpec, OutputPathPlaceholder
-import kfp
+from kfp.v2 import dsl
+
+from .utils import clean_name, is_mlflow_enabled
 
 
 class PipelineGenerator(object):
@@ -45,7 +39,7 @@ class PipelineGenerator(object):
             if self.run_config.volume and not self.run_config.volume.skip_init:
                 data_volume_init = self._setup_volumes(image)
                 for name, ops in kfp_ops.items():
-                    if name is not 'mlflow-start-run':
+                    if name != 'mlflow-start-run':
                         ops.after(data_volume_init)
                 kfp_ops['data-volume-init'] = data_volume_init
 
@@ -101,10 +95,39 @@ class PipelineGenerator(object):
             name = clean_name(node.name)
 
             kedro_command = f"kedro run {params_parameter} --node \"{node.name}\""
+
+            data_mapping = {o: self.catalog[o]['filepath']
+                            for o in node.outputs
+                            if o in self.catalog and 'filepath' in self.catalog[o]
+                            and ":/" not in self.catalog[o]['filepath']}
+            output_specs = [OutputSpec(o, "Dataset") for o in data_mapping.keys()]
+            output_copy_commands = [f"&& mkdir --parents `dirname {{{{$.outputs.artifacts['{o}'].path}}}}` " \
+                                    f"&& cp /home/kedro/{filepath} {{{{$.outputs.artifacts['{o}'].path}}}}"
+                                    for o, filepath in data_mapping.items()
+                                    ]
+            output_placeholders = [OutputPathPlaceholder(output_name=o)
+                                   for o in data_mapping.keys()]
+
+            input_mapping = {o: self.catalog[o]['filepath']
+                            for o in node.inputs
+                            if o in self.catalog and 'filepath' in self.catalog[o]
+                            and ":/" not in self.catalog[o]['filepath']}
+
+            input_params_mapping = {}
+            for i in input_mapping.keys():
+                for node in node_dependencies:
+                    if i in node.outputs:
+                        input_params_mapping[i] = node
+                        break
+            input_params = [kfp.dsl.PipelineParam(name=i, op_name=clean_name(input_params_mapping[i].name), param_type="Dataset")
+                            for i in input_params_mapping.keys() ]
+            input_specs = [InputSpec(param.name, "Dataset") for param in input_params]
+
             spec = ComponentSpec(
                 name=name,
                 inputs=[InputSpec("mlflow_tracking_token", "String"),
-                        InputSpec("mlflow_run_id", "String")],
+                        InputSpec("mlflow_run_id", "String")] + input_specs,
+                outputs=output_specs,
                 implementation=ContainerImplementation(
                     container=ContainerSpec(
                         image=image,
@@ -117,9 +140,11 @@ class PipelineGenerator(object):
                                 "&&"
                                 "ln -s /gcs/gid-ml-ops-sandbox-kubeflowpipelines-default/kedro-kubeflow/data /home/kedro/data"
                                 "&&",
-                                "MLFLOW_TRACKING_TOKEN={{$.inputs.parameters['mlflow_tracking_token']}} MLFLOW_RUN_ID=\"{{$.inputs.parameters['mlflow_run_id']}}\" " + kedro_command,
-                            ])
-                        ]
+                                "MLFLOW_TRACKING_TOKEN={{$.inputs.parameters['mlflow_tracking_token']}} MLFLOW_RUN_ID=\"{{$.inputs.parameters['mlflow_run_id']}}\" " + kedro_command
+                            ] +
+                            output_copy_commands)
+                        ] +
+                        output_placeholders
                     )
                 )
             )
@@ -128,7 +153,8 @@ class PipelineGenerator(object):
                 spec.save(f.name)
                 component = kfp.components.load_component_from_file(f.name)
             kfp_ops[name] = component(tracking_token,
-                                           kfp_ops["mlflow-start-run"].output)
+                                      kfp_ops["mlflow-start-run"].output,
+                                      *input_params)
 
             resources = self.run_config.resources.get_for(name)
             if "cpu" in resources:
