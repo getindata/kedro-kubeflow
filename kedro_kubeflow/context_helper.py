@@ -25,9 +25,7 @@ class ContextHelper(object):
     def session(self):
         from kedro.framework.session import KedroSession
 
-        return KedroSession.create(
-            self._metadata.package_name, env=self._env
-        )
+        return KedroSession.create(self._metadata.package_name, env=self._env)
 
     @property
     def context(self):
