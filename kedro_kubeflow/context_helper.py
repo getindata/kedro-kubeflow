@@ -21,12 +21,17 @@ class ContextHelper(object):
         return self._metadata.project_name
 
     @property
-    def context(self):
+    @lru_cache()
+    def session(self):
         from kedro.framework.session import KedroSession
 
         return KedroSession.create(
             self._metadata.package_name, env=self._env
-        ).load_context()
+        )
+
+    @property
+    def context(self):
+        return self.load_context()
 
     @property
     @lru_cache()

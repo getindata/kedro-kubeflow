@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Support for kedro-mlflow>=0.7
+
 ## [0.3.1] - 2021-05-25
 
 ### Fixed
