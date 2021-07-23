@@ -31,7 +31,7 @@ class ContextHelper(object):
 
     @property
     def context(self):
-        return self.load_context()
+        return self.session.load_context()
 
     @property
     @lru_cache()
