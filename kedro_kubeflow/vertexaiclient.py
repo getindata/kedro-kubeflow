@@ -1,15 +1,12 @@
-import json
 import logging
 import os
-from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-import yaml
 from kfp.v2 import compiler
 from kfp.v2.google.client import AIPlatformClient
+from tabulate import tabulate
 
 from .generator_v2 import PipelineGenerator
-from tabulate import tabulate
 
 
 class KubeflowClient(object):
@@ -46,7 +43,7 @@ class KubeflowClient(object):
                 pipeline_root='gs://gid-ml-ops-sandbox-kubeflowpipelines-default/kedro-kubeflow',
                 parameter_values={},
                 enable_caching=False)
-            # TODO check if something can be done with run
+            print(f'Run created {run}')
 
     def compile(
             self, pipeline, image, output, image_pull_policy="IfNotPresent",
