@@ -1,15 +1,15 @@
 """Test generator"""
 
 import unittest
-from inspect import signature
 from unittest.mock import MagicMock
 
 import kfp
 from kedro.pipeline import Pipeline, node
+from kfp.dsl import PipelineParam
 
 from kedro_kubeflow.config import PluginConfig
 from kedro_kubeflow.generator_v2 import PipelineGenerator
-from kfp.dsl import PipelineParam
+
 
 def identity(input1: str):
     return input1  # pragma: no cover
