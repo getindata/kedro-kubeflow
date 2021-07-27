@@ -12,7 +12,7 @@ from kedro_kubeflow.utils import clean_name, is_mlflow_enabled
 
 
 def _find_input_node(input_name, nodes):
-    return (node for node in nodes if input_name in node.outputs)
+    return [node for node in nodes if input_name in node.outputs]
 
 
 def generate_inputs(
@@ -35,9 +35,9 @@ def generate_inputs(
 
     input_params_mapping = {}
     for input_name in input_mapping:
-        input_params_mapping[input_name] = next(
-            _find_input_node(input_name, node_dependencies)
-        )
+        input_node = _find_input_node(input_name, node_dependencies)
+        if input_node:
+            input_params_mapping[input_name] = input_node[0]
 
     input_params = [
         kfp.dsl.PipelineParam(
