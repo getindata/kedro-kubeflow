@@ -1,5 +1,4 @@
 import os
-from functools import cached_property
 
 from kedro.config import MissingConfigException
 
@@ -221,7 +220,7 @@ class PluginConfig(Config):
     def region(self):
         return self._get_or_fail("region")
 
-    @cached_property
+    @property
     def is_vertex_ai_pipelines(self):
         return self.host == "vertex-ai-pipelines"
 
