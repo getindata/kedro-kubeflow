@@ -38,9 +38,13 @@ class ContextHelper(object):
     def kfp_client(self):
         if self.config.is_vertex_ai_pipelines:
             from .vertex_ai.client import VertexAIPipelinesClient
-            return VertexAIPipelinesClient(self.config, self.project_name, self.context)
+
+            return VertexAIPipelinesClient(
+                self.config, self.project_name, self.context
+            )
         else:
             from .kfpclient import KubeflowClient
+
             return KubeflowClient(self.config, self.project_name, self.context)
 
     @staticmethod

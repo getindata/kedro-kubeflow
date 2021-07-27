@@ -161,7 +161,9 @@ class TestGenerator(unittest.TestCase):
         outputs1 = dsl_pipeline.ops["node1"].outputs
         assert len(outputs1) == 2
         assert "B" in outputs1
-        assert outputs1["B"] == PipelineParam(name='B', op_name="node1", param_type='Dataset')
+        assert outputs1["B"] == PipelineParam(
+            name="B", op_name="node1", param_type="Dataset"
+        )
         outputs2 = dsl_pipeline.ops["node2"].outputs
         assert len(outputs2) == 0  # output "C" is missing in the catalog
 

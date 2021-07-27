@@ -1,5 +1,5 @@
 import os
-from functools import lru_cache, cached_property
+from functools import cached_property
 
 from kedro.config import MissingConfigException
 
@@ -216,7 +216,7 @@ class PluginConfig(Config):
 
     @cached_property
     def is_vertex_ai_pipelines(self):
-        return self.host == 'vertex-ai-pipelines'
+        return self.host == "vertex-ai-pipelines"
 
     @staticmethod
     def initialize_github_actions(project_name, where, templates_dir):
