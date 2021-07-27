@@ -20,9 +20,10 @@ class VertexAIPipelinesClient(object):
         self.run_config = config.run_config
 
     def list_pipelines(self):
-        pipelines = self.api_client.list_jobs()
+        pipelines = self.api_client.list_jobs()["pipelineJobs"]
         return tabulate(
-            map(lambda x: [x.name, x.id], pipelines), headers=["Name", "ID"]
+            map(lambda x: [x["displayName"], x["name"]], pipelines),
+            headers=["Name", "ID"],
         )
 
     def run_once(

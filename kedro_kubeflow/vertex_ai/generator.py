@@ -276,7 +276,6 @@ class PipelineGenerator(object):
         command = " ".join(
             [
                 f"mkdir --parents /gcs/{self._get_data_path()}",
-                # TODO parametrize me
                 "&&" "cp",
                 "--verbose",
                 "-r",

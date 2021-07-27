@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+-   Support of Google Vertex AI Pipelines (EXPERIMENTAL)
+
 ## [0.3.1] - 2021-05-25
 
 ### Fixed

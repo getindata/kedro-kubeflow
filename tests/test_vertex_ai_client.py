@@ -59,19 +59,29 @@ class TestKubeflowClient(unittest.TestCase):
             "kedro_kubeflow.vertex_ai.client.AIPlatformClient"
         ) as AIPlatformClient:
             ai_client = AIPlatformClient.return_value
-            ai_client.list_jobs.return_value = [
-                type("pipeline", (), {"name": "run1", "id": "abc123"}),
-                type("pipeline", (), {"name": "run2", "id": "def456"}),
-            ]
+            ai_client.list_jobs.return_value = {
+                "pipelineJobs": [
+                    {
+                        "displayName": "run1",
+                        "name": "projects/29350373243/locations/"
+                        "europe-west4/pipelineJobs/run1",
+                    },
+                    {
+                        "displayName": "run2",
+                        "name": "projects/29350373243/locations/"
+                        "europe-west4/pipelineJobs/run2",
+                    },
+                ]
+            }
 
             client_under_test = self.create_client()
             tabulation = client_under_test.list_pipelines()
 
             expected_output = """
             |Name    ID
-            |------  ------
-            |run1    abc123
-            |run2    def456"""
+            |------  -------------------------------------------------------------
+            |run1    projects/29350373243/locations/europe-west4/pipelineJobs/run1
+            |run2    projects/29350373243/locations/europe-west4/pipelineJobs/run2"""
             assert tabulation == strip_margin(expected_output)
 
     def test_should_schedule_pipeline(self):
