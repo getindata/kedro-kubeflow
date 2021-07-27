@@ -1,3 +1,7 @@
+"""
+Vertex AI Pipelines specific client, based on AIPlatformClient.
+"""
+
 import logging
 import os
 from tempfile import NamedTemporaryFile
@@ -9,7 +13,11 @@ from tabulate import tabulate
 from .generator import PipelineGenerator
 
 
-class VertexAIPipelinesClient(object):
+class VertexAIPipelinesClient:
+    """
+    Client for Vertex AI Pipelines.
+    """
+
     log = logging.getLogger(__name__)
 
     def __init__(self, config, project_name, context):
@@ -37,17 +45,17 @@ class VertexAIPipelinesClient(object):
     ):
         with NamedTemporaryFile(
             mode="rt", prefix="kedro-kubeflow", suffix=".json"
-        ) as f:
+        ) as spec_output:
             self.compile(
                 pipeline,
                 image,
-                output=f.name,
+                output=spec_output.name,
                 image_pull_policy=image_pull_policy,
             )
 
             run = self.api_client.create_run_from_job_spec(
                 service_account=os.getenv("SERVICE_ACCOUNT"),
-                job_spec_path=f.name,
+                job_spec_path=spec_output.name,
                 job_id=run_name,
                 pipeline_root=f"gs://{self.run_config.root}",
                 parameter_values={},
@@ -63,7 +71,7 @@ class VertexAIPipelinesClient(object):
         output,
         image_pull_policy="IfNotPresent",
     ):
-        token = os.getenv("MLFLOW_TRACKING_TOKEN")  # TODO pass a param maybe?
+        token = os.getenv("MLFLOW_TRACKING_TOKEN")
         pipeline_func = self.generator.generate_pipeline(
             pipeline, image, image_pull_policy, token
         )
@@ -85,15 +93,15 @@ class VertexAIPipelinesClient(object):
     ):
         with NamedTemporaryFile(
             mode="rt", prefix="kedro-kubeflow", suffix=".json"
-        ) as f:
+        ) as spec_output:
             self.compile(
                 pipeline,
                 image,
-                output=f.name,
+                output=spec_output.name,
                 image_pull_policy=image_pull_policy,
             )
             self.api_client.create_schedule_from_job_spec(
-                job_spec_path=f.name,
+                job_spec_path=spec_output.name,
                 schedule=cron_expression,
                 parameter_values={},
             )

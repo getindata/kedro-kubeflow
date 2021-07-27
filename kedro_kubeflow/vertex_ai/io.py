@@ -1,3 +1,7 @@
+"""
+Pipeline input and output helper methods for spec generation
+"""
+
 from typing import Dict, Set
 
 import kfp
@@ -10,6 +14,10 @@ from kedro_kubeflow.utils import clean_name, is_mlflow_enabled
 def generate_inputs(
     node: Node, node_dependencies: Dict[Node, Set[Node]], catalog
 ):
+    """
+    Generates inputs for a particular kedro node
+    """
+
     def is_file_path_input(input_data):
         return (
             input_data in catalog
@@ -22,10 +30,10 @@ def generate_inputs(
     }
 
     input_params_mapping = {}
-    for im in input_mapping.keys():
-        for node in node_dependencies:
-            if im in node.outputs:
-                input_params_mapping[im] = node
+    for input_name in input_mapping:
+        for node_dep in node_dependencies:
+            if input_name in node_dep.outputs:
+                input_params_mapping[input_name] = node_dep
                 break
     input_params = [
         kfp.dsl.PipelineParam(
@@ -43,6 +51,9 @@ def generate_inputs(
 
 
 def generate_outputs(node: Node, catalog):
+    """
+    Generates outputs for a particular kedro node
+    """
     data_mapping = {
         o: catalog[o]["filepath"]
         for o in node.outputs
@@ -68,6 +79,10 @@ def generate_outputs(node: Node, catalog):
 
 
 def generate_mlflow_inputs():
+    """
+    Generates inputs that are required to correctly generate mlflow specific data.
+    :return: mlflow_inputs, mlflow_tokens
+    """
     mlflow_inputs = (
         [
             structures.InputSpec("mlflow_tracking_token", "String"),

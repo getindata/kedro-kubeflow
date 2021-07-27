@@ -1,3 +1,7 @@
+"""
+Generator for Vertex AI pipelines
+"""
+
 import logging
 from tempfile import NamedTemporaryFile
 from typing import Dict, Set
@@ -22,7 +26,12 @@ from kedro_kubeflow.vertex_ai.io import (
 )
 
 
-class PipelineGenerator(object):
+class PipelineGenerator:
+    """
+    Generator creates Vertex AI pipeline function that operatoes with Vertex AI specific
+    opertator spec.
+    """
+
     log = logging.getLogger(__name__)
 
     def __init__(self, config, project_name, context):
@@ -32,6 +41,16 @@ class PipelineGenerator(object):
         self.catalog = context.config_loader.get("catalog*")
 
     def generate_pipeline(self, pipeline, image, image_pull_policy, token):
+        """
+        This method return @dsl.pipeline annotated function that contains
+        dynamically generated pipelines.
+        :param pipeline: kedro pipeline
+        :param image: full docker image name
+        :param image_pull_policy: docker pull policy
+        :param token: mlflow authentication token
+        :return: kfp pipeline function
+        """
+
         def set_dependencies(node, dependencies, kfp_ops):
             for dependency in dependencies:
                 name = clean_name(node.name)
@@ -53,8 +72,8 @@ class PipelineGenerator(object):
             if self.run_config.volume and not self.run_config.volume.skip_init:
                 self._create_data_volume_init_op(kfp_ops, image)
 
-            for op in kfp_ops.values():
-                op.container.set_image_pull_policy(image_pull_policy)
+            for operator in kfp_ops.values():
+                operator.container.set_image_pull_policy(image_pull_policy)
 
         return convert_kedro_pipeline_to_kfp
 
@@ -96,9 +115,9 @@ class PipelineGenerator(object):
         )
         with NamedTemporaryFile(
             mode="w", prefix="kedro-kubeflow-spec", suffix=".yaml"
-        ) as f:
-            spec.save(f.name)
-            component = kfp.components.load_component_from_file(f.name)
+        ) as spec_file:
+            spec.save(spec_file.name)
+            component = kfp.components.load_component_from_file(spec_file.name)
         return component(tracking_token)
 
     def _create_params_parameter(self) -> str:
@@ -179,30 +198,30 @@ class PipelineGenerator(object):
     ):
         with NamedTemporaryFile(
             mode="w", prefix="kedro-kubeflow-node-spec", suffix=".yaml"
-        ) as f:
-            spec.save(f.name)
-            component = kfp.components.load_component_from_file(f.name)
+        ) as spec_file:
+            spec.save(spec_file.name)
+            component = kfp.components.load_component_from_file(spec_file.name)
 
-        op = component(*op_function_parameters)
+        operator = component(*op_function_parameters)
 
-        self._configure_resources(name, op)
-        return op
+        self._configure_resources(name, operator)
+        return operator
 
-    def _configure_resources(self, name: str, op):
+    def _configure_resources(self, name: str, operator):
         resources = self.run_config.resources.get_for(name)
         if "cpu" in resources:
-            op.set_cpu_limit(resources["cpu"])
-            op.set_cpu_request(resources["cpu"])
+            operator.set_cpu_limit(resources["cpu"])
+            operator.set_cpu_request(resources["cpu"])
         if "memory" in resources:
-            op.set_memory_limit(resources["memory"])
-            op.set_memory_request(resources["memory"])
+            operator.set_memory_limit(resources["memory"])
+            operator.set_memory_request(resources["memory"])
         if "cloud.google.com/gke-accelerator" in resources:
-            op.add_node_selector_constraint(
+            operator.add_node_selector_constraint(
                 "cloud.google.com/gke-accelerator",
                 resources["cloud.google.com/gke-accelerator"],
             )
         if "nvidia.com/gpu" in resources:
-            op.set_gpu_limit(resources["nvidia.com/gpu"])
+            operator.set_gpu_limit(resources["nvidia.com/gpu"])
 
     def _get_data_path(self):
         return (
@@ -214,7 +233,8 @@ class PipelineGenerator(object):
         command = " ".join(
             [
                 f"mkdir --parents /gcs/{self._get_data_path()}",
-                "&&" "cp",
+                "&&",
+                "cp",
                 "--verbose",
                 "-r",
                 "/home/kedro/data/*",
@@ -233,9 +253,9 @@ class PipelineGenerator(object):
 
         with NamedTemporaryFile(
             mode="w", prefix="kedro-kubeflow-data-volume-init", suffix=".yaml"
-        ) as f:
-            spec.save(f.name)
-            component = kfp.components.load_component_from_file(f.name)
+        ) as spec_file:
+            spec.save(spec_file.name)
+            component = kfp.components.load_component_from_file(spec_file.name)
             volume_init = component()
 
         return volume_init
