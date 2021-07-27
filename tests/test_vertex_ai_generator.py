@@ -8,7 +8,7 @@ from kedro.pipeline import Pipeline, node
 from kfp.dsl import PipelineParam
 
 from kedro_kubeflow.config import PluginConfig
-from kedro_kubeflow.generator_v2 import PipelineGenerator
+from kedro_kubeflow.vertex_ai.generator import PipelineGenerator
 
 
 def identity(input1: str):

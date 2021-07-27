@@ -6,10 +6,10 @@ from kfp.v2 import compiler
 from kfp.v2.google.client import AIPlatformClient
 from tabulate import tabulate
 
-from .generator_v2 import PipelineGenerator
+from .generator import PipelineGenerator
 
 
-class KubeflowClient(object):
+class VertexAIPipelinesClient(object):
     log = logging.getLogger(__name__)
 
     def __init__(self, config, project_name, context):

@@ -8,7 +8,7 @@ from kfp.components.structures import ComponentSpec, ContainerSpec, \
     ContainerImplementation, OutputSpec, InputSpec, OutputPathPlaceholder
 from kfp.v2 import dsl
 
-from .utils import clean_name, is_mlflow_enabled
+from kedro_kubeflow.utils import clean_name, is_mlflow_enabled
 
 
 class PipelineGenerator(object):

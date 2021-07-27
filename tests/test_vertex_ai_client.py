@@ -4,17 +4,17 @@ import unittest
 from unittest.mock import patch, MagicMock
 
 from kedro_kubeflow.utils import strip_margin
-from kedro_kubeflow.vertexaiclient import KubeflowClient
+from kedro_kubeflow.vertex_ai.client import VertexAIPipelinesClient
 
 
 class TestKubeflowClient(unittest.TestCase):
 
     def create_client(self):
-        return KubeflowClient(MagicMock(), MagicMock(), MagicMock())
+        return VertexAIPipelinesClient(MagicMock(), MagicMock(), MagicMock())
 
     def test_compile(self):
-        with patch("kedro_kubeflow.generator_v2.PipelineGenerator"), \
-                patch("kfp.v2.google.client.AIPlatformClient"), \
+        with patch("kedro_kubeflow.vertex_ai.generator.PipelineGenerator"), \
+                patch("kedro_kubeflow.vertex_ai.client.AIPlatformClient"), \
                 patch("kfp.v2.compiler.Compiler") as Compiler:
             compiler = Compiler.return_value
 
@@ -24,17 +24,17 @@ class TestKubeflowClient(unittest.TestCase):
             compiler.compile.assert_called_once()
 
     def test_upload_not_supported_by_vertex_ai(self):
-        with patch("kedro_kubeflow.generator_v2.PipelineGenerator"), \
-                patch("kfp.v2.google.client.AIPlatformClient"):
+        with patch("kedro_kubeflow.vertex_ai.generator.PipelineGenerator"), \
+                patch("kedro_kubeflow.vertex_ai.client.AIPlatformClient"):
             client_under_test = self.create_client()
 
             with self.assertRaises(NotImplementedError):
                 client_under_test.upload(MagicMock("pipeline"), "image")
 
     def test_run_once(self):
-        with patch("kedro_kubeflow.generator_v2.PipelineGenerator"), \
+        with patch("kedro_kubeflow.vertex_ai.generator.PipelineGenerator"), \
                 patch(
-                    "kedro_kubeflow.vertexaiclient.AIPlatformClient") as AIPlatformClient, \
+                    "kedro_kubeflow.vertex_ai.client.AIPlatformClient") as AIPlatformClient, \
                 patch("kfp.v2.compiler.Compiler"):
             ai_client = AIPlatformClient.return_value
 
@@ -47,7 +47,7 @@ class TestKubeflowClient(unittest.TestCase):
             assert run_mock == run
 
     def test_should_list_pipelines(self):
-        with patch("kedro_kubeflow.vertexaiclient.AIPlatformClient") as AIPlatformClient:
+        with patch("kedro_kubeflow.vertex_ai.client.AIPlatformClient") as AIPlatformClient:
             ai_client = AIPlatformClient.return_value
             ai_client.list_jobs.return_value = [
                 type('pipeline', (), {"name": "run1", "id": "abc123"}),
@@ -64,14 +64,14 @@ class TestKubeflowClient(unittest.TestCase):
             assert tabulation == strip_margin(expected_output)
 
     def test_should_schedule_pipeline(self):
-        with patch("kedro_kubeflow.generator_v2.PipelineGenerator"), \
+        with patch("kedro_kubeflow.vertex_ai.generator.PipelineGenerator"), \
                 patch(
-                    "kedro_kubeflow.vertexaiclient.AIPlatformClient") as AIPlatformClient, \
+                    "kedro_kubeflow.vertex_ai.client.AIPlatformClient") as AIPlatformClient, \
                 patch("kfp.v2.compiler.Compiler"):
             ai_client = AIPlatformClient.return_value
 
             client_under_test = self.create_client()
             client_under_test.schedule(MagicMock("pipeline"), "image", "0 0 12 * *",
-                                             "test-run")
+                                       "test-run")
 
             ai_client.create_schedule_from_job_spec.assert_called_once()
