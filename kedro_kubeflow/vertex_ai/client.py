@@ -15,8 +15,9 @@ class VertexAIPipelinesClient(object):
     def __init__(self, config, project_name, context):
         self.generator = PipelineGenerator(config, project_name, context)
         self.api_client = AIPlatformClient(
-            project_id="gid-ml-ops-sandbox", region="europe-west4"
+            project_id=config.project_id, region=config.region
         )
+        self.run_config = config.run_config
 
     def list_pipelines(self):
         pipelines = self.api_client.list_jobs()
@@ -43,12 +44,11 @@ class VertexAIPipelinesClient(object):
                 image_pull_policy=image_pull_policy,
             )
 
-            root = "gs://gid-ml-ops-sandbox-kubeflowpipelines-default/kedro-kubeflow"
             run = self.api_client.create_run_from_job_spec(
                 service_account=os.getenv("SERVICE_ACCOUNT"),
                 job_spec_path=f.name,
                 job_id=run_name,
-                pipeline_root=root,
+                pipeline_root=f"gs://{self.run_config.root}",
                 parameter_values={},
                 enable_caching=False,
             )

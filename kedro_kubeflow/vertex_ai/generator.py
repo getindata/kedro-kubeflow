@@ -208,12 +208,11 @@ class PipelineGenerator(object):
             kedro_command = (
                 f'kedro run {params_parameter} --node "{node.name}"'
             )
-            data_path = "gid-ml-ops-sandbox-kubeflowpipelines-default/kedro-kubeflow/data"
             node_command = " ".join(
                 [
                     "rm -r /home/kedro/data"
                     "&&"
-                    f"ln -s /gcs/{data_path} /home/kedro/data"
+                    f"ln -s /gcs/{self._get_data_path()} /home/kedro/data"
                     "&&",
                     mlflow_tokens + kedro_command,
                 ]
@@ -267,19 +266,22 @@ class PipelineGenerator(object):
         if "nvidia.com/gpu" in resources:
             op.set_gpu_limit(resources["nvidia.com/gpu"])
 
-    def _setup_volume_op(self, image):
-        data_path = (
-            "gid-ml-ops-sandbox-kubeflowpipelines-default/kedro-kubeflow/data"
+    def _get_data_path(self):
+        return (
+            f"{self.run_config.root}/"
+            f"{self.run_config.experiment_name}/{self.run_config.run_name}/data"
         )
+
+    def _setup_volume_op(self, image):
         command = " ".join(
             [
-                f"mkdir --parents /gcs/{data_path}",
+                f"mkdir --parents /gcs/{self._get_data_path()}",
                 # TODO parametrize me
                 "&&" "cp",
                 "--verbose",
                 "-r",
                 "/home/kedro/data/*",
-                "/gcs/gid-ml-ops-sandbox-kubeflowpipelines-default/kedro-kubeflow/data",
+                f"/gcs/{self._get_data_path()}",
             ]
         )
         spec = ComponentSpec(

@@ -201,8 +201,16 @@ class TestGenerator(unittest.TestCase):
                 },
             },
         )
+        config_with_defaults = {
+            "root": "sample-bucket/sample-suffix",
+            "experiment_name": "test-experiment",
+            "run_name": "test-run",
+        }
+        config_with_defaults.update(config)
         self.generator_under_test = PipelineGenerator(
-            PluginConfig({"host": "http://unittest", "run_config": config}),
+            PluginConfig(
+                {"host": "http://unittest", "run_config": config_with_defaults}
+            ),
             project_name,
             context,
         )
