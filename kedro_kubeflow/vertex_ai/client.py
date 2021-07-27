@@ -75,7 +75,7 @@ class VertexAIPipelinesClient:
                 parameter_values={},
                 enable_caching=False,
             )
-            self.log.info(f"Run created {run}")
+            self.log.info("Run created %s", str(run))
             return run
 
     def compile(
@@ -101,7 +101,9 @@ class VertexAIPipelinesClient:
             pipeline_func=pipeline_func,
             package_path=output,
         )
-        self.log.info(f"Generated pipeline definition was saved to {output}")
+        self.log.info(
+            "Generated pipeline definition was saved to %s", str(output)
+        )
 
     def upload(self, pipeline, image, image_pull_policy="IfNotPresent"):
         """
