@@ -11,6 +11,10 @@ from kfp.components import structures
 from kedro_kubeflow.utils import clean_name, is_mlflow_enabled
 
 
+def _find_input_node(input_name, nodes):
+    return (node for node in nodes if input_name in node.outputs)
+
+
 def generate_inputs(
     node: Node, node_dependencies: Dict[Node, Set[Node]], catalog
 ):
@@ -31,17 +35,17 @@ def generate_inputs(
 
     input_params_mapping = {}
     for input_name in input_mapping:
-        for node_dep in node_dependencies:
-            if input_name in node_dep.outputs:
-                input_params_mapping[input_name] = node_dep
-                break
+        input_params_mapping[input_name] = next(
+            _find_input_node(input_name, node_dependencies)
+        )
+
     input_params = [
         kfp.dsl.PipelineParam(
             name=i,
             op_name=clean_name(input_params_mapping[i].name),
             param_type="Dataset",
         )
-        for i in input_params_mapping.keys()
+        for i in input_params_mapping
     ]
     input_specs = [
         structures.InputSpec(param.name, "Dataset") for param in input_params

@@ -28,6 +28,10 @@ class VertexAIPipelinesClient:
         self.run_config = config.run_config
 
     def list_pipelines(self):
+        """
+        List all the jobs (current and historical) on Vertex AI Pipelines
+        :return:
+        """
         pipelines = self.api_client.list_jobs()["pipelineJobs"]
         return tabulate(
             map(lambda x: [x["displayName"], x["name"]], pipelines),
@@ -43,6 +47,16 @@ class VertexAIPipelinesClient:
         wait=False,
         image_pull_policy="IfNotPresent",
     ):
+        """
+        Runs the pipeline in Vertex AI Pipelines
+        :param pipeline:
+        :param image:
+        :param experiment_name:
+        :param run_name:
+        :param wait:
+        :param image_pull_policy:
+        :return:
+        """
         with NamedTemporaryFile(
             mode="rt", prefix="kedro-kubeflow", suffix=".json"
         ) as spec_output:
@@ -61,7 +75,7 @@ class VertexAIPipelinesClient:
                 parameter_values={},
                 enable_caching=False,
             )
-            print(f"Run created {run}")
+            self.log.info(f"Run created {run}")
             return run
 
     def compile(
@@ -71,6 +85,14 @@ class VertexAIPipelinesClient:
         output,
         image_pull_policy="IfNotPresent",
     ):
+        """
+        Creates json file in given local output path
+        :param pipeline:
+        :param image:
+        :param output:
+        :param image_pull_policy:
+        :return:
+        """
         token = os.getenv("MLFLOW_TRACKING_TOKEN")
         pipeline_func = self.generator.generate_pipeline(
             pipeline, image, image_pull_policy, token
@@ -79,9 +101,16 @@ class VertexAIPipelinesClient:
             pipeline_func=pipeline_func,
             package_path=output,
         )
-        self.log.info("Generated pipeline definition was saved to %s" % output)
+        self.log.info(f"Generated pipeline definition was saved to {output}")
 
     def upload(self, pipeline, image, image_pull_policy="IfNotPresent"):
+        """
+        Upload is not supported by Vertex AI Pipelines
+        :param pipeline:
+        :param image:
+        :param image_pull_policy:
+        :return:
+        """
         raise NotImplementedError("Upload is not supported for VertexAI")
 
     def schedule(
@@ -91,6 +120,14 @@ class VertexAIPipelinesClient:
         cron_expression,
         image_pull_policy="IfNotPresent",
     ):
+        """
+        Schedule pipeline to Vertex AI with given cron expression
+        :param pipeline:
+        :param image:
+        :param cron_expression:
+        :param image_pull_policy:
+        :return:
+        """
         with NamedTemporaryFile(
             mode="rt", prefix="kedro-kubeflow", suffix=".json"
         ) as spec_output:
