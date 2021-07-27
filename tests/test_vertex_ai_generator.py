@@ -39,35 +39,6 @@ class TestGenerator(unittest.TestCase):
         assert dsl_pipeline.ops["node1"].container.image == "unittest-image"
         assert dsl_pipeline.ops["node1"].container.image_pull_policy == "Never"
 
-    def test_should_add_mlflow_init_step_if_enabled(self):
-        # given
-        self.create_generator()
-        self.mock_mlflow(True)
-
-        # when
-        pipeline = self.generator_under_test.generate_pipeline(
-            "pipeline", "unittest-image", "Always", "MLFLOW_TRACKING_TOKEN"
-        )
-        with kfp.dsl.Pipeline(None) as dsl_pipeline:
-            pipeline()
-
-        # then
-        assert len(dsl_pipeline.ops) == 3
-        init_step = dsl_pipeline.ops["mlflow-start-run"].container
-        assert init_step.image == "unittest-image"
-        assert init_step.args == [
-            "kubeflow",
-            "mlflow-start",
-            "{{workflow.uid}}",
-        ]
-        for node_name in ["node1", "node2"]:
-            env = dsl_pipeline.ops[node_name].container.env
-            assert env[1].name == "MLFLOW_RUN_ID"
-            assert (
-                env[1].value
-                == "{{pipelineparam:op=mlflow-start-run;name=mlflow_run_id}}"
-            )
-
     def test_should_skip_volume_init_if_requested(self):
         # given
         self.create_generator(config={"volume": {"skip_init": True}})
@@ -214,18 +185,3 @@ class TestGenerator(unittest.TestCase):
             project_name,
             context,
         )
-
-    def mock_mlflow(self, enabled=False):
-        def fakeimport(name, *args, **kw):
-            if not enabled and name == "mlflow":
-                raise ImportError
-            return self.realimport(name, *args, **kw)
-
-        __builtins__["__import__"] = fakeimport
-
-    def setUp(self):
-        self.realimport = __builtins__["__import__"]
-        self.mock_mlflow(False)
-
-    def tearDown(self):
-        __builtins__["__import__"] = self.realimport
