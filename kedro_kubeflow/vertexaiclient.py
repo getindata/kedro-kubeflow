@@ -29,9 +29,9 @@ class KubeflowClient(object):
             image,
             experiment_name,
             run_name,
-            wait,
+            wait=False,
             image_pull_policy="IfNotPresent",
-    ) -> None:
+    ):
         with NamedTemporaryFile(mode="rt", prefix="kedro-kubeflow", suffix=".json") as f:
             self.compile(pipeline, image, output=f.name,
                          image_pull_policy=image_pull_policy)
@@ -44,6 +44,7 @@ class KubeflowClient(object):
                 parameter_values={},
                 enable_caching=False)
             print(f'Run created {run}')
+            return run
 
     def compile(
             self, pipeline, image, output, image_pull_policy="IfNotPresent",
