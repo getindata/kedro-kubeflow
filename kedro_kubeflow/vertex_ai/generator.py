@@ -15,6 +15,11 @@ from kfp.components.structures import (
 from kfp.v2 import dsl
 
 from kedro_kubeflow.utils import clean_name, is_mlflow_enabled
+from kedro_kubeflow.vertex_ai.io import (
+    generate_inputs,
+    generate_mlflow_inputs,
+    generate_outputs,
+)
 
 
 class PipelineGenerator(object):
@@ -27,6 +32,12 @@ class PipelineGenerator(object):
         self.catalog = context.config_loader.get("catalog*")
 
     def generate_pipeline(self, pipeline, image, image_pull_policy, token):
+        def set_dependencies(node, dependencies, kfp_ops):
+            for dependency in dependencies:
+                name = clean_name(node.name)
+                dependency_name = clean_name(dependency.name)
+                kfp_ops[name].after(kfp_ops[dependency_name])
+
         @dsl.pipeline(
             name=self.project_name.lower().replace(" ", "-"),
             description=self.run_config.description,
@@ -37,10 +48,7 @@ class PipelineGenerator(object):
             ).node_dependencies
             kfp_ops = self._build_kfp_ops(node_dependencies, image, token)
             for node, dependencies in node_dependencies.items():
-                for dependency in dependencies:
-                    name = clean_name(node.name)
-                    dependency_name = clean_name(dependency.name)
-                    kfp_ops[name].after(kfp_ops[dependency_name])
+                set_dependencies(node, dependencies, kfp_ops)
 
             if self.run_config.volume and not self.run_config.volume.skip_init:
                 self._create_data_volume_init_op(kfp_ops, image)
@@ -101,76 +109,6 @@ class PipelineGenerator(object):
             params_parameter = f"--params {params_parameter}"
         return params_parameter
 
-    def _generate_outputs(self, node: Node):
-        data_mapping = {
-            o: self.catalog[o]["filepath"]
-            for o in node.outputs
-            if o in self.catalog
-            and "filepath" in self.catalog[o]
-            and ":/" not in self.catalog[o]["filepath"]
-        }
-        output_specs = [OutputSpec(o, "Dataset") for o in data_mapping.keys()]
-        output_copy_commands = " ".join(
-            [
-                f"&& mkdir --parents `dirname {{{{$.outputs.artifacts['{o}'].path}}}}` "
-                f"&& cp /home/kedro/{filepath} {{{{$.outputs.artifacts['{o}'].path}}}}"
-                for o, filepath in data_mapping.items()
-            ]
-        )
-        output_placeholders = [
-            OutputPathPlaceholder(output_name=o) for o in data_mapping.keys()
-        ]
-        return output_specs, output_copy_commands, output_placeholders
-
-    def _generate_inputs(
-        self, node: Node, node_dependencies: Dict[Node, Set[Node]]
-    ):
-        input_mapping = {
-            o: self.catalog[o]["filepath"]
-            for o in node.inputs
-            if o in self.catalog
-            and "filepath" in self.catalog[o]
-            and ":/" not in self.catalog[o]["filepath"]
-        }
-
-        input_params_mapping = {}
-        for i in input_mapping.keys():
-            for node in node_dependencies:
-                if i in node.outputs:
-                    input_params_mapping[i] = node
-                    break
-        input_params = [
-            kfp.dsl.PipelineParam(
-                name=i,
-                op_name=clean_name(input_params_mapping[i].name),
-                param_type="Dataset",
-            )
-            for i in input_params_mapping.keys()
-        ]
-        input_specs = [
-            InputSpec(param.name, "Dataset") for param in input_params
-        ]
-
-        return input_params, input_specs
-
-    def _generate_mlflow_inputs(self):
-        mlflow_inputs = (
-            [
-                InputSpec("mlflow_tracking_token", "String"),
-                InputSpec("mlflow_run_id", "String"),
-            ]
-            if is_mlflow_enabled()
-            else []
-        )
-        mlflow_tokens = (
-            "MLFLOW_TRACKING_TOKEN={{$.inputs.parameters['mlflow_tracking_token']}} "
-            "MLFLOW_RUN_ID=\"{{$.inputs.parameters['mlflow_run_id']}}\" "
-            if is_mlflow_enabled()
-            else ""
-        )
-
-        return mlflow_inputs, mlflow_tokens
-
     def _build_kfp_ops(
         self,
         node_dependencies: Dict[Node, Set[Node]],
@@ -194,11 +132,11 @@ class PipelineGenerator(object):
                 output_specs,
                 output_copy_commands,
                 output_placeholders,
-            ) = self._generate_outputs(node)
-            input_params, input_specs = self._generate_inputs(
-                node, node_dependencies
+            ) = generate_outputs(node, self.catalog)
+            input_params, input_specs = generate_inputs(
+                node, node_dependencies, self.catalog
             )
-            mlflow_inputs, mlflow_tokens = self._generate_mlflow_inputs()
+            mlflow_inputs, mlflow_tokens = generate_mlflow_inputs()
             component_params = (
                 [tracking_token, kfp_ops["mlflow-start-run"].output]
                 if is_mlflow_enabled()
