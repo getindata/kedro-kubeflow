@@ -57,7 +57,16 @@ class TestPluginCLI(unittest.TestCase):
         runner = CliRunner()
 
         result = runner.invoke(
-            run_once, ["-i", "new_img", "-p", "new_pipe"], obj=config
+            run_once,
+            [
+                "-i",
+                "new_img",
+                "-p",
+                "new_pipe",
+                "--experiment-namespace",
+                "my-ns",
+            ],
+            obj=config,
         )
 
         assert result.exit_code == 0
@@ -68,6 +77,7 @@ class TestPluginCLI(unittest.TestCase):
             pipeline="new_pipe",
             run_name="test run",
             wait=True,
+            experiment_namespace="my-ns",
         )
 
     @patch("webbrowser.open_new_tab")
@@ -127,7 +137,7 @@ class TestPluginCLI(unittest.TestCase):
 
         assert result.exit_code == 0
         context_helper.kfp_client.schedule.assert_called_with(
-            "test_experiment", "* * *"
+            "test_experiment", None, "* * *"
         )
 
     @patch.object(Path, "cwd")

@@ -11,7 +11,11 @@ class ContextHelper(object):
 
     CONFIG_FILE_PATTERN = "kubeflow*"
 
-    def __init__(self, metadata, env):
+    def __init__(
+        self,
+        metadata,
+        env,
+    ):
         self._metadata = metadata
         self._env = env
 
@@ -48,15 +52,28 @@ class ContextHelper(object):
         else:
             from .kfpclient import KubeflowClient
 
-            return KubeflowClient(self.config, self.project_name, self.context)
+            return KubeflowClient(
+                self.config,
+                self.project_name,
+                self.context,
+            )
 
     @staticmethod
-    def init(metadata, env):
+    def init(
+        metadata,
+        env,
+    ):
         version = VersionInfo.parse(kedro_version)
         if version.match(">=0.17.0"):
-            return ContextHelper(metadata, env)
+            return ContextHelper(
+                metadata,
+                env,
+            )
         else:
-            return ContextHelper16(metadata, env)
+            return ContextHelper16(
+                metadata,
+                env,
+            )
 
 
 class ContextHelper16(ContextHelper):

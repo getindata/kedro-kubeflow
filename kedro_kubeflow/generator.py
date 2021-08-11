@@ -8,6 +8,7 @@ from typing import Dict, Set
 import kubernetes.client as k8s
 from kedro.pipeline.node import Node
 from kfp import dsl
+from kfp.compiler._k8s_helper import sanitize_k8s_name
 
 from .auth import IAP_CLIENT_ID
 from .utils import clean_name, is_mlflow_enabled
@@ -41,6 +42,13 @@ class PipelineGenerator(object):
         self.run_config = config.run_config
         self.catalog = context.config_loader.get("catalog*")
 
+    def configure_max_cache_staleness(self, kfp_ops):
+        if self.run_config.max_cache_staleness not in [None, ""]:
+            for _, op in kfp_ops.items():
+                op.execution_options.caching_strategy.max_cache_staleness = (
+                    self.run_config.max_cache_staleness
+                )
+
     def generate_pipeline(self, pipeline, image, image_pull_policy):
         @dsl.pipeline(
             name=self.project_name,
@@ -55,17 +63,19 @@ class PipelineGenerator(object):
             node_dependencies = self.context.pipelines.get(
                 pipeline
             ).node_dependencies
-            with self._create_pipeline_exit_handler():
+            with self._create_pipeline_exit_handler(pipeline):
                 kfp_ops = self._build_kfp_ops(
-                    node_dependencies, image, image_pull_policy
+                    pipeline, node_dependencies, image, image_pull_policy
                 )
+
+                self.configure_max_cache_staleness(kfp_ops)
                 for node, dependencies in node_dependencies.items():
                     for dependency in dependencies:
                         kfp_ops[node.name].after(kfp_ops[dependency.name])
 
         return convert_kedro_pipeline_to_kfp
 
-    def _create_pipeline_exit_handler(self):
+    def _create_pipeline_exit_handler(self, pipeline):
         enable_volume_cleaning = (
             self.run_config.volume is not None
             and not self.run_config.volume.keep
@@ -74,25 +84,32 @@ class PipelineGenerator(object):
         if not enable_volume_cleaning:
             return contextlib.nullcontext()
 
-        return dsl.ExitHandler(
-            dsl.ContainerOp(
-                name="schedule-volume-termination",
-                image="gcr.io/cloud-builders/kubectl",
-                command=[
-                    "kubectl",
-                    "delete",
-                    "pvc",
-                    "{{workflow.name}}-data-volume",
-                    "--wait=false",
-                    "--ignore-not-found",
-                    "--output",
-                    "name",
-                ],
-            )
+        exit_container_op = dsl.ContainerOp(
+            name="schedule-volume-termination",
+            image="gcr.io/cloud-builders/kubectl",
+            command=[
+                "kubectl",
+                "delete",
+                "pvc",
+                "{{workflow.name}}-"
+                + sanitize_k8s_name(f"{pipeline}-data-volume"),
+                "--wait=false",
+                "--ignore-not-found",
+                "--output",
+                "name",
+            ],
         )
+
+        if self.run_config.max_cache_staleness not in [None, ""]:
+            exit_container_op.execution_options.caching_strategy.max_cache_staleness = (
+                self.run_config.max_cache_staleness
+            )
+
+        return dsl.ExitHandler(exit_container_op)
 
     def _build_kfp_ops(
         self,
+        pipeline,
         node_dependencies: Dict[Node, Set[Node]],
         image,
         image_pull_policy,
@@ -101,7 +118,9 @@ class PipelineGenerator(object):
         kfp_ops = {}
 
         node_volumes = (
-            self._setup_volumes(image, image_pull_policy)
+            self._setup_volumes(
+                f"{pipeline}-data-volume", image, image_pull_policy
+            )
             if self.run_config.volume is not None
             else {}
         )
@@ -159,6 +178,8 @@ class PipelineGenerator(object):
                         "run",
                         "--params",
                         params,
+                        "--pipeline",
+                        pipeline,
                         "--node",
                         node.name,
                     ],
@@ -185,14 +206,21 @@ class PipelineGenerator(object):
             )
         return op
 
-    def _setup_volumes(self, image, image_pull_policy):
+    def _setup_volumes(self, volume_name, image, image_pull_policy):
         vop = dsl.VolumeOp(
             name="data-volume-create",
-            resource_name="data-volume",
+            resource_name=volume_name,
             size=self.run_config.volume.size,
             modes=self.run_config.volume.access_modes,
             storage_class=self.run_config.volume.storageclass,
         )
+
+        if self.run_config.max_cache_staleness not in [None, ""]:
+            vop.add_pod_annotation(
+                "pipelines.kubeflow.org/max_cache_staleness",
+                self.run_config.max_cache_staleness,
+            )
+
         if self.run_config.volume.skip_init:
             return {"/home/kedro/data": vop.volume}
         else:

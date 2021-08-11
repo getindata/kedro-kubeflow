@@ -35,6 +35,11 @@ run_config:
   # volume after pipeline finishes) [in seconds]. Default: 1 week
   ttl: 604800
 
+  # This sets the caching option for pipeline using
+  # execution_options.caching_strategy.max_cache_staleness
+  # See https://en.wikipedia.org/wiki/ISO_8601 in section 'Duration'
+  #max_cache_staleness: P0D
+
   # Optional volume specification (only for non vertex-ai)
   volume:
 
@@ -189,6 +194,10 @@ class RunConfig(Config):
     @property
     def wait_for_completion(self):
         return bool(self._get_or_default("wait_for_completion", False))
+
+    @property
+    def max_cache_staleness(self):
+        return str(self._get_or_default("max_cache_staleness", None))
 
     @property
     def ttl(self):

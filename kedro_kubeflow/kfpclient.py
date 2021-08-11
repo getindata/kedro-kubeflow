@@ -19,9 +19,20 @@ class KubeflowClient(object):
     log = logging.getLogger(__name__)
 
     def __init__(self, config, project_name, context):
+        client_params = {}
         token = AuthHandler().obtain_id_token()
+        if token is not None:
+            client_params = {"existing_token": token}
+        dex_authservice_session = AuthHandler().obtain_dex_authservice_session(
+            kfp_api=config.host,
+        )
+        if dex_authservice_session is not None:
+            client_params = {
+                "cookies": f"authservice_session={dex_authservice_session}"
+            }
         self.host = config.host
-        self.client = Client(self.host, existing_token=token)
+        self.client = Client(host=self.host, **client_params)
+
         self.project_name = project_name
         self.pipeline_description = config.run_config.description
         self.generator = PipelineGenerator(config, project_name, context)
@@ -37,6 +48,7 @@ class KubeflowClient(object):
         pipeline,
         image,
         experiment_name,
+        experiment_namespace,
         run_name,
         wait,
         image_pull_policy="IfNotPresent",
@@ -47,6 +59,7 @@ class KubeflowClient(object):
             ),
             arguments={},
             experiment_name=experiment_name,
+            namespace=experiment_namespace,
             run_name=run_name,
         )
 
@@ -126,23 +139,28 @@ class KubeflowClient(object):
             )
             return (pipeline.id, pipeline.default_version.id)
 
-    def _ensure_experiment_exists(self, experiment_name):
+    def _ensure_experiment_exists(self, experiment_name, experiment_namespace):
         try:
             experiment = self.client.get_experiment(
-                experiment_name=experiment_name
+                experiment_name=experiment_name,
+                namespace=experiment_namespace,
             )
             self.log.info(f"Existing experiment found: {experiment.id}")
         except ValueError as e:
             if not str(e).startswith("No experiment is found"):
                 raise
 
-            experiment = self.client.create_experiment(experiment_name)
+            experiment = self.client.create_experiment(
+                experiment_name, namespace=experiment_namespace
+            )
             self.log.info(f"New experiment created: {experiment.id}")
 
         return experiment.id
 
-    def schedule(self, experiment_name, cron_expression):
-        experiment_id = self._ensure_experiment_exists(experiment_name)
+    def schedule(self, experiment_name, experiment_namespace, cron_expression):
+        experiment_id = self._ensure_experiment_exists(
+            experiment_name, experiment_namespace
+        )
         pipeline_id = self._get_pipeline_id(self.project_name)
         self._disable_runs(experiment_id, pipeline_id)
         self.client.create_recurring_run(
