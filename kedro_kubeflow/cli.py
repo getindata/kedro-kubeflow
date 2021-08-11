@@ -26,11 +26,7 @@ def commands():
 )
 @click.pass_obj
 @click.pass_context
-def kubeflow_group(
-    ctx,
-    metadata,
-    env,
-):
+def kubeflow_group(ctx, metadata, env):
     """Interact with Kubeflow Pipelines"""
     ctx.ensure_object(dict)
     ctx.obj["context_helper"] = ContextHelper.init(
