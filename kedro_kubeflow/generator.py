@@ -42,6 +42,13 @@ class PipelineGenerator(object):
         self.run_config = config.run_config
         self.catalog = context.config_loader.get("catalog*")
 
+    def configure_max_cache_staleness(self, kfp_ops):
+        if self.run_config.max_cache_staleness not in [None, ""]:
+            for _, op in kfp_ops.items():
+                op.execution_options.caching_strategy.max_cache_staleness = (
+                    self.run_config.max_cache_staleness
+                )
+
     def generate_pipeline(self, pipeline, image, image_pull_policy):
         @dsl.pipeline(
             name=self.project_name,
@@ -61,12 +68,7 @@ class PipelineGenerator(object):
                     pipeline, node_dependencies, image, image_pull_policy
                 )
 
-                if self.run_config.max_cache_staleness not in [None, ""]:
-                    for _, op in kfp_ops.items():
-                        op.execution_options.caching_strategy.max_cache_staleness = (
-                            self.run_config.max_cache_staleness
-                        )
-
+                self.configure_max_cache_staleness(kfp_ops)
                 for node, dependencies in node_dependencies.items():
                     for dependency in dependencies:
                         kfp_ops[node.name].after(kfp_ops[dependency.name])
