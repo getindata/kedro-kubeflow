@@ -86,6 +86,7 @@ class TestKubeflowClient(unittest.TestCase):
             image="unittest-image",
             experiment_name="experiment",
             wait=False,
+            experiment_namespace="exp_namespace",
         )
 
         # then
@@ -99,6 +100,7 @@ class TestKubeflowClient(unittest.TestCase):
             "arguments": {},
             "experiment_name": "experiment",
             "run_name": "unittest",
+            "namespace": "exp_namespace",
         }
 
     def test_should_run_pipeline_and_wait(self):
@@ -115,6 +117,7 @@ class TestKubeflowClient(unittest.TestCase):
             image="unittest-image",
             experiment_name="experiment",
             wait=True,
+            experiment_namespace=None,
         )
 
         # then
@@ -143,6 +146,9 @@ class TestKubeflowClient(unittest.TestCase):
         auth_handler_mock.return_value.obtain_id_token.return_value = (
             "unittest-token"
         )
+        auth_handler_mock.return_value.obtain_dex_authservice_session.return_value = (
+            None
+        )
 
         # when
         self.client_under_test = KubeflowClient(
@@ -153,7 +159,31 @@ class TestKubeflowClient(unittest.TestCase):
 
         # then
         kfp_client_mock.assert_called_with(
-            "http://unittest", existing_token="unittest-token"
+            host="http://unittest", existing_token="unittest-token"
+        )
+
+    @patch("kedro_kubeflow.kfpclient.AuthHandler")
+    @patch("kedro_kubeflow.kfpclient.PipelineGenerator")
+    @patch("kedro_kubeflow.kfpclient.Client")
+    def test_should_use_dex_session_in_kfp_client(
+        self, kfp_client_mock, pipeline_generator_mock, auth_handler_mock
+    ):
+        # given
+        auth_handler_mock.return_value.obtain_id_token.return_value = None
+        auth_handler_mock.return_value.obtain_dex_authservice_session.return_value = (
+            "session_id"
+        )
+
+        # when
+        self.client_under_test = KubeflowClient(
+            PluginConfig({"host": "http://unittest", "run_config": {}}),
+            None,
+            None,
+        )
+
+        # then
+        kfp_client_mock.assert_called_with(
+            host="http://unittest", cookies="authservice_session=session_id"
         )
 
     def test_should_schedule_pipeline(self):
@@ -170,6 +200,7 @@ class TestKubeflowClient(unittest.TestCase):
         self.client_under_test.schedule(
             experiment_name="EXPERIMENT",
             cron_expression="0 * * * * *",
+            experiment_namespace=None,
         )
 
         # then
@@ -199,6 +230,7 @@ class TestKubeflowClient(unittest.TestCase):
         self.client_under_test.schedule(
             experiment_name="EXPERIMENT",
             cron_expression="0 * * * * *",
+            experiment_namespace=None,
         )
 
         # then
@@ -228,6 +260,7 @@ class TestKubeflowClient(unittest.TestCase):
         self.client_under_test.schedule(
             experiment_name="EXPERIMENT",
             cron_expression="0 * * * * *",
+            experiment_namespace=None,
         )
 
         # then

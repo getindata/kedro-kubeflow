@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2021-08-11
+
+-   Support for kedro-mlflow>=0.7
+-   Support of Google Vertex AI Pipelines (EXPERIMENTAL)
+-   Ability to access KFP API behind Dex+authservice authentication
+-   Support for multi-user KFP setup (experiment namespace passed via `run-once` or `schedule`)
+-   New config param: `max_cache_staleness` to avoid caching KFP steps if required
+
 ## [0.3.1] - 2021-05-25
 
 ### Fixed
@@ -61,7 +69,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.3.1...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.0...HEAD
+
+[0.4.0]: https://github.com/getindata/kedro-kubeflow/compare/0.3.1...0.4.0
 
 [0.3.1]: https://github.com/getindata/kedro-kubeflow/compare/0.3.0...0.3.1
 

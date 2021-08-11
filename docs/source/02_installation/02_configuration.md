@@ -15,6 +15,9 @@ run_config:
   # Pull pilicy to be used for the steps. Use Always if you push the images
   # on the same tag, or Never if you use only local images
   image_pull_policy: IfNotPresent
+  
+  # Location of Vertex AI GCS root, required only for vertex ai pipelines configuration
+  root: bucket_name/gcs_suffix
 
   # Name of the kubeflow experiment to be created
   experiment_name: Kubeflow Plugin Demo

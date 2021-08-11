@@ -29,7 +29,10 @@ def commands():
 def kubeflow_group(ctx, metadata, env):
     """Interact with Kubeflow Pipelines"""
     ctx.ensure_object(dict)
-    ctx.obj["context_helper"] = ContextHelper.init(metadata, env)
+    ctx.obj["context_helper"] = ContextHelper.init(
+        metadata,
+        env,
+    )
 
 
 @kubeflow_group.command()
@@ -55,8 +58,17 @@ def list_pipelines(ctx):
     help="Name of pipeline to run",
     default="__default__",
 )
+@click.option(
+    "-en",
+    "--experiment-namespace",
+    "experiment_namespace",
+    type=str,
+    default=None,
+    help="Namespace where pipeline experiment run should be deployed to. Not needed "
+    "if provided experiment name already exists.",
+)
 @click.pass_context
-def run_once(ctx, image: str, pipeline: str):
+def run_once(ctx, image: str, pipeline: str, experiment_namespace: str):
     """Deploy pipeline as a single run within given experiment.
     Config can be specified in kubeflow.yml as well."""
     context_helper = ctx.obj["context_helper"]
@@ -66,6 +78,7 @@ def run_once(ctx, image: str, pipeline: str):
         pipeline=pipeline,
         image=image if image else config.image,
         experiment_name=config.experiment_name,
+        experiment_namespace=experiment_namespace,
         run_name=config.run_name,
         wait=config.wait_for_completion,
         image_pull_policy=config.image_pull_policy,
@@ -159,14 +172,27 @@ def upload_pipeline(ctx, image, pipeline) -> None:
     type=str,
     help="Name of experiment associated with this run.",
 )
+@click.option(
+    "-en",
+    "--experiment-namespace",
+    "experiment_namespace",
+    type=str,
+    default=None,
+    help="Namespace where pipeline experiment run should be deployed to. Not needed "
+    "if provided experiment name already exists.",
+)
 @click.pass_context
-def schedule(ctx, experiment_name: str, cron_expression: str):
+def schedule(
+    ctx, experiment_namespace: str, experiment_name: str, cron_expression: str
+):
     """Schedules recurring execution of latest version of the pipeline"""
     context_helper = ctx.obj["context_helper"]
     config = context_helper.config.run_config
     experiment = experiment_name if experiment_name else config.experiment_name
 
-    context_helper.kfp_client.schedule(experiment, cron_expression)
+    context_helper.kfp_client.schedule(
+        experiment, experiment_namespace, cron_expression
+    )
 
 
 @kubeflow_group.command()
@@ -218,9 +244,16 @@ def mlflow_start(ctx, kubeflow_run_id: str, output: str):
         os.environ["MLFLOW_TRACKING_TOKEN"] = token
         LOG.info("Configuring MLFLOW_TRACKING_TOKEN")
 
-    kedro_context = ctx.obj["context_helper"].context
-    mlflow_conf = get_mlflow_config(kedro_context)
-    mlflow_conf.setup(kedro_context)
+    try:
+        kedro_context = ctx.obj["context_helper"].context
+        mlflow_conf = get_mlflow_config(kedro_context)
+        mlflow_conf.setup(kedro_context)
+    except AttributeError:
+        kedro_session = ctx.obj["context_helper"].session
+        with kedro_session:
+            mlflow_conf = get_mlflow_config(kedro_session)
+            mlflow_conf.setup()
+
     run = mlflow.start_run(
         experiment_id=mlflow_conf.experiment.experiment_id, nested=False
     )

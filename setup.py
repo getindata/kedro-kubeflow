@@ -8,7 +8,7 @@ with open("README.md") as f:
 INSTALL_REQUIRES = [
     "kedro>=0.16,<=0.18",
     "click<8.0",
-    "kfp~=1.2.0",
+    "kfp~=1.6.0",
     "tabulate>=0.8.7",
     "semver~=2.10",
     "google-auth<2.0dev",
@@ -22,6 +22,7 @@ EXTRA_REQUIRE = {
         "pytest-cov>=2.8.0, <3.0.0",
         "tox==3.23.1",
         "pre-commit==2.9.3",
+        "responses>=0.13.4",
     ],
     "docs": [
         "sphinx==3.4.2",
@@ -32,7 +33,7 @@ EXTRA_REQUIRE = {
 
 setup(
     name="kedro-kubeflow",
-    version="0.3.1",
+    version="0.4.0",
     description="Kedro plugin with Kubeflow support",
     long_description=README,
     long_description_content_type="text/markdown",

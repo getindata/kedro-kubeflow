@@ -1,7 +1,13 @@
 import logging
 import os
+import re
+from urllib.parse import urlsplit, urlunsplit
+
+import requests
 
 IAP_CLIENT_ID = "IAP_CLIENT_ID"
+DEX_USERNAME = "DEX_USERNAME"
+DEX_PASSWORD = "DEX_PASSWORD"
 
 
 class AuthHandler(object):
@@ -42,3 +48,38 @@ class AuthHandler(object):
             self.log.error("Failed to obtain IAP access token. " + str(e))
         finally:
             return jwt_token
+
+    def obtain_dex_authservice_session(self, kfp_api):
+        if DEX_USERNAME not in os.environ or DEX_PASSWORD not in os.environ:
+            self.log.debug(
+                "Skipping DEX authentication due to missing env variables"
+            )
+            return None
+
+        s = requests.Session()
+        r = s.get(kfp_api)
+        form_relative_url = re.search(
+            '/dex/auth/local\\?req=([^"]*)', r.text
+        ).group(0)
+
+        kfp_url_parts = urlsplit(kfp_api)
+        form_absolute_url = urlunsplit(
+            [
+                kfp_url_parts.scheme,
+                kfp_url_parts.netloc,
+                form_relative_url,
+                None,
+                None,
+            ]
+        )
+
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+        }
+        data = {
+            "login": os.environ[DEX_USERNAME],
+            "password": os.environ[DEX_PASSWORD],
+        }
+
+        s.post(form_absolute_url, headers=headers, data=data)
+        return s.cookies.get_dict()["authservice_session"]
