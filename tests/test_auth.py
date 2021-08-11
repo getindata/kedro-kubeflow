@@ -2,6 +2,7 @@ import os
 import unittest
 from unittest.mock import patch
 
+import responses
 from google.auth.exceptions import DefaultCredentialsError
 
 from kedro_kubeflow.auth import AuthHandler
@@ -55,3 +56,60 @@ class TestAuthHandler(unittest.TestCase):
 
         # then
         assert token == "TOKEN"
+
+    def test_should_skip_dex_auth_if_env_is_not_set(self):
+        # given
+        # no env set
+
+        # when
+        session = AuthHandler().obtain_dex_authservice_session(None)
+
+        # then
+        assert session is None
+
+    def test_should_skip_dex_auth_if_env_is_incomplete(self):
+        # given
+        os.environ["DEX_USERNAME"] = "user@example.com"
+        # no password set
+
+        # when
+        session = AuthHandler().obtain_dex_authservice_session(None)
+
+        # then
+        assert session is None
+
+    def tearDown(self):
+        if "DEX_USERNAME" in os.environ:
+            del os.environ["DEX_USERNAME"]
+        if "DEX_PASSWORD" in os.environ:
+            del os.environ["DEX_PASSWORD"]
+        if "IAP_CLIENT_ID" in os.environ:
+            del os.environ["IAP_CLIENT_ID"]
+
+    @responses.activate
+    def test_should_get_cookie_from_dex_secured_system(self):
+        # given
+        os.environ["DEX_USERNAME"] = "user@example.com"
+        os.environ["DEX_PASSWORD"] = "pa$$"
+        responses.add(
+            responses.GET,
+            "https://kubeflow.local/pipeline",
+            body='<a href="/dex/auth/local?req=qjrrnpg3hngdu6odii3hcmfae" target="_self"',
+        )
+        responses.add(
+            responses.POST,
+            "https://kubeflow.local/dex/auth/local?req=qjrrnpg3hngdu6odii3hcmfae",
+            headers={"Set-cookie": "authservice_session=sessionID"},
+        )
+
+        # when
+        session = AuthHandler().obtain_dex_authservice_session(
+            "https://kubeflow.local/pipeline"
+        )
+
+        # then
+        assert session == "sessionID"
+        assert (
+            responses.calls[1].request.body
+            == "login=user%40example.com&password=pa%24%24"
+        )
