@@ -16,6 +16,9 @@ run_config:
   # on the same tag, or Never if you use only local images
   image_pull_policy: IfNotPresent
 
+  # Location of Vertex AI GCS root, required only for vertex ai pipelines configuration
+  #root: bucket_name/gcs_suffix
+
   # Name of the kubeflow experiment to be created
   experiment_name: {project}
 
@@ -37,7 +40,7 @@ run_config:
   # See https://en.wikipedia.org/wiki/ISO_8601 in section 'Duration'
   #max_cache_staleness: P0D
 
-  # Optional volume specification
+  # Optional volume specification (only for non vertex-ai)
   volume:
 
     # Storage class - use null (or no value) to use the default storage
@@ -161,6 +164,10 @@ class RunConfig(Config):
         return self._get_or_default("image_pull_policy", "IfNotPresent")
 
     @property
+    def root(self):
+        return self._get_or_fail("root")
+
+    @property
     def experiment_name(self):
         return self._get_or_fail("experiment_name")
 
@@ -213,6 +220,18 @@ class PluginConfig(Config):
     @staticmethod
     def sample_config(**kwargs):
         return DEFAULT_CONFIG_TEMPLATE.format(**kwargs)
+
+    @property
+    def project_id(self):
+        return self._get_or_fail("project_id")
+
+    @property
+    def region(self):
+        return self._get_or_fail("region")
+
+    @property
+    def is_vertex_ai_pipelines(self):
+        return self.host == "vertex-ai-pipelines"
 
     @staticmethod
     def initialize_github_actions(project_name, where, templates_dir):

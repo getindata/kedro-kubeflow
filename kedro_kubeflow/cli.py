@@ -272,9 +272,16 @@ def mlflow_start(ctx, kubeflow_run_id: str, output: str):
         os.environ["MLFLOW_TRACKING_TOKEN"] = token
         LOG.info("Configuring MLFLOW_TRACKING_TOKEN")
 
-    kedro_context = ctx.obj["context_helper"].context
-    mlflow_conf = get_mlflow_config(kedro_context)
-    mlflow_conf.setup(kedro_context)
+    try:
+        kedro_context = ctx.obj["context_helper"].context
+        mlflow_conf = get_mlflow_config(kedro_context)
+        mlflow_conf.setup(kedro_context)
+    except AttributeError:
+        kedro_session = ctx.obj["context_helper"].session
+        with kedro_session:
+            mlflow_conf = get_mlflow_config(kedro_session)
+            mlflow_conf.setup()
+
     run = mlflow.start_run(
         experiment_id=mlflow_conf.experiment.experiment_id, nested=False
     )
