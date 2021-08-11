@@ -18,23 +18,20 @@ class KubeflowClient(object):
 
     log = logging.getLogger(__name__)
 
-    def __init__(
-        self, config, project_name, context
-    ):
+    def __init__(self, config, project_name, context):
         client_params = {}
         token = AuthHandler().obtain_id_token()
         if token is not None:
-            client_params = {'existing_token': token}
+            client_params = {"existing_token": token}
         dex_authservice_session = AuthHandler().obtain_dex_authservice_session(
             kfp_api=config.host,
         )
         if dex_authservice_session is not None:
-            client_params = {'cookies': f"authservice_session={dex_authservice_session}"}
+            client_params = {
+                "cookies": f"authservice_session={dex_authservice_session}"
+            }
         self.host = config.host
-        self.client = Client(
-            host=self.host,
-            **client_params
-        )
+        self.client = Client(host=self.host, **client_params)
 
         self.project_name = project_name
         self.pipeline_description = config.run_config.description

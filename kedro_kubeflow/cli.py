@@ -186,7 +186,9 @@ def upload_pipeline(ctx, image, pipeline) -> None:
     "if provided experiment name already exists.",
 )
 @click.pass_context
-def schedule(ctx, experiment_namespace: str, experiment_name: str, cron_expression: str):
+def schedule(
+    ctx, experiment_namespace: str, experiment_name: str, cron_expression: str
+):
     """Schedules recurring execution of latest version of the pipeline"""
     context_helper = ctx.obj["context_helper"]
     config = context_helper.config.run_config
