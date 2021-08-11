@@ -24,60 +24,18 @@ def commands():
 @click.option(
     "-e", "--env", "env", type=str, default="base", help="Environment to use."
 )
-@click.option(
-    "-u",
-    "--username",
-    "username",
-    type=str,
-    default=None,
-    help="Username to use for DEX Auth.",
-)
-@click.option(
-    "-p",
-    "--password",
-    "password",
-    type=str,
-    default=None,
-    help="Passowrd to use for DEX Auth. If username is provided but password is not, "
-    "password prompt will be shown.",
-)
-@click.option(
-    "-en",
-    "--experiment-namespace",
-    "experiment_namespace",
-    type=str,
-    default=None,
-    help="Namespace where pipeline experiment run should be deployed to. Not needed "
-    "if provided experiment name already exists.",
-)
-@click.option(
-    "-n",
-    "--namespace",
-    "namespace",
-    type=str,
-    default="kubeflow",
-    help="Namespace where kubeflow-pipelines control plane is deployed to.",
-)
 @click.pass_obj
 @click.pass_context
 def kubeflow_group(
     ctx,
     metadata,
     env,
-    username,
-    password,
-    experiment_namespace,
-    namespace,
 ):
     """Interact with Kubeflow Pipelines"""
     ctx.ensure_object(dict)
     ctx.obj["context_helper"] = ContextHelper.init(
         metadata,
         env,
-        username,
-        password,
-        experiment_namespace,
-        namespace,
     )
 
 
@@ -104,13 +62,21 @@ def list_pipelines(ctx):
     help="Name of pipeline to run",
     default="__default__",
 )
+@click.option(
+    "-en",
+    "--experiment-namespace",
+    "experiment_namespace",
+    type=str,
+    default=None,
+    help="Namespace where pipeline experiment run should be deployed to. Not needed "
+    "if provided experiment name already exists.",
+)
 @click.pass_context
-def run_once(ctx, image: str, pipeline: str):
+def run_once(ctx, image: str, pipeline: str, experiment_namespace: str):
     """Deploy pipeline as a single run within given experiment.
     Config can be specified in kubeflow.yml as well."""
     context_helper = ctx.obj["context_helper"]
     config = context_helper.config.run_config
-    experiment_namespace = context_helper._experiment_namespace
 
     context_helper.kfp_client.run_once(
         pipeline=pipeline,
@@ -210,13 +176,21 @@ def upload_pipeline(ctx, image, pipeline) -> None:
     type=str,
     help="Name of experiment associated with this run.",
 )
+@click.option(
+    "-en",
+    "--experiment-namespace",
+    "experiment_namespace",
+    type=str,
+    default=None,
+    help="Namespace where pipeline experiment run should be deployed to. Not needed "
+    "if provided experiment name already exists.",
+)
 @click.pass_context
-def schedule(ctx, experiment_name: str, cron_expression: str):
+def schedule(ctx, experiment_namespace: str, experiment_name: str, cron_expression: str):
     """Schedules recurring execution of latest version of the pipeline"""
     context_helper = ctx.obj["context_helper"]
     config = context_helper.config.run_config
     experiment = experiment_name if experiment_name else config.experiment_name
-    experiment_namespace = context_helper._experiment_namespace
 
     context_helper.kfp_client.schedule(
         experiment, experiment_namespace, cron_expression

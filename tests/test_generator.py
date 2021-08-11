@@ -204,6 +204,8 @@ class TestGenerator(unittest.TestCase):
                 "--params",
                 "param1:{{pipelineparam:op=;name=param1}},"
                 "param2:{{pipelineparam:op=;name=param2}}",
+                "--pipeline",
+                "pipeline",
                 "--node",
                 node_name,
             ]
