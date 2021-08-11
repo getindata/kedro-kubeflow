@@ -4,6 +4,9 @@
 
 -   Support for kedro-mlflow>=0.7
 -   Support of Google Vertex AI Pipelines (EXPERIMENTAL)
+-   Ability to access KFP API behind Dex+authservice authentication
+-   Support for multi-user KFP setup (experiment namespace passed via `run-once` or `schedule`)
+-   New config param: `max_cache_staleness` to avoid caching KFP steps if required
 
 ## [0.3.1] - 2021-05-25
 
