@@ -71,6 +71,10 @@ class TestKubeflowClient(unittest.TestCase):
                         "name": "projects/29350373243/locations/"
                         "europe-west4/pipelineJobs/run2",
                     },
+                    {
+                        "name": "projects/123/locations/"
+                        "europe-west4/pipelineJobs/no-display-name",
+                    },
                 ]
             }
 
@@ -79,9 +83,10 @@ class TestKubeflowClient(unittest.TestCase):
 
             expected_output = """
             |Name    ID
-            |------  -------------------------------------------------------------
+            |------  ----------------------------------------------------------------
             |run1    projects/29350373243/locations/europe-west4/pipelineJobs/run1
-            |run2    projects/29350373243/locations/europe-west4/pipelineJobs/run2"""
+            |run2    projects/29350373243/locations/europe-west4/pipelineJobs/run2
+            |        projects/123/locations/europe-west4/pipelineJobs/no-display-name"""
             assert tabulation == strip_margin(expected_output)
 
     def test_should_schedule_pipeline(self):

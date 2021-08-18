@@ -54,6 +54,12 @@ def generate_inputs(
     return input_params, input_specs
 
 
+def get_output_type(output, catalog):
+    if catalog[output].get("layer") == "models":
+        return "Model"
+    return "Dataset"
+
+
 def generate_outputs(node: Node, catalog):
     """
     Generates outputs for a particular kedro node
@@ -66,7 +72,8 @@ def generate_outputs(node: Node, catalog):
         and ":/" not in catalog[o]["filepath"]
     }
     output_specs = [
-        structures.OutputSpec(o, "Dataset") for o in data_mapping.keys()
+        structures.OutputSpec(o, get_output_type(o, catalog))
+        for o in data_mapping.keys()
     ]
     output_copy_commands = " ".join(
         [

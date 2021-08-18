@@ -34,7 +34,7 @@ class VertexAIPipelinesClient:
         """
         pipelines = self.api_client.list_jobs()["pipelineJobs"]
         return tabulate(
-            map(lambda x: [x["displayName"], x["name"]], pipelines),
+            map(lambda x: [x.get("displayName"), x["name"]], pipelines),
             headers=["Name", "ID"],
         )
 
@@ -46,6 +46,7 @@ class VertexAIPipelinesClient:
         run_name,
         wait=False,
         image_pull_policy="IfNotPresent",
+        experiment_namespace=None,
     ):
         """
         Runs the pipeline in Vertex AI Pipelines
