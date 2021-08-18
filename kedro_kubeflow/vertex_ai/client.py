@@ -34,7 +34,7 @@ class VertexAIPipelinesClient:
         """
         pipelines = self.api_client.list_jobs()["pipelineJobs"]
         return tabulate(
-            map(lambda x: [x["displayName"], x["name"]], pipelines),
+            map(lambda x: [x.get("displayName"), x["name"]], pipelines),
             headers=["Name", "ID"],
         )
 
@@ -46,6 +46,7 @@ class VertexAIPipelinesClient:
         run_name,
         wait=False,
         image_pull_policy="IfNotPresent",
+        experiment_namespace=None,
     ):
         """
         Runs the pipeline in Vertex AI Pipelines
@@ -118,14 +119,16 @@ class VertexAIPipelinesClient:
     def schedule(
         self,
         pipeline,
-        image,
+        experiment_name,
+        experiment_namespace,
         cron_expression,
         image_pull_policy="IfNotPresent",
     ):
         """
         Schedule pipeline to Vertex AI with given cron expression
         :param pipeline:
-        :param image:
+        :param experiment_name:
+        :param experiment_namespace:
         :param cron_expression:
         :param image_pull_policy:
         :return:
@@ -135,7 +138,7 @@ class VertexAIPipelinesClient:
         ) as spec_output:
             self.compile(
                 pipeline,
-                image,
+                self.run_config.image,
                 output=spec_output.name,
                 image_pull_policy=image_pull_policy,
             )

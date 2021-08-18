@@ -198,6 +198,7 @@ class TestKubeflowClient(unittest.TestCase):
 
         # when
         self.client_under_test.schedule(
+            pipeline=None,
             experiment_name="EXPERIMENT",
             cron_expression="0 * * * * *",
             experiment_namespace=None,
@@ -228,6 +229,7 @@ class TestKubeflowClient(unittest.TestCase):
 
         # when
         self.client_under_test.schedule(
+            pipeline=None,
             experiment_name="EXPERIMENT",
             cron_expression="0 * * * * *",
             experiment_namespace=None,
@@ -258,6 +260,7 @@ class TestKubeflowClient(unittest.TestCase):
 
         # when
         self.client_under_test.schedule(
+            pipeline=None,
             experiment_name="EXPERIMENT",
             cron_expression="0 * * * * *",
             experiment_namespace=None,
@@ -352,4 +355,5 @@ class TestKubeflowClient(unittest.TestCase):
         self.create_client({})
 
     def tearDown(self):
+        __builtins__["__import__"] = self.realimport
         os.environ["IAP_CLIENT_ID"] = ""

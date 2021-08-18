@@ -132,12 +132,14 @@ class TestPluginCLI(unittest.TestCase):
         runner = CliRunner()
 
         result = runner.invoke(
-            schedule, ["-c", "* * *", "-x", "test_experiment"], obj=config
+            schedule,
+            ["-c", "* * *", "-x", "test_experiment", "-p", "my-pipeline"],
+            obj=config,
         )
 
         assert result.exit_code == 0
         context_helper.kfp_client.schedule.assert_called_with(
-            "test_experiment", None, "* * *"
+            "my-pipeline", "test_experiment", None, "* * *"
         )
 
     @patch.object(Path, "cwd")

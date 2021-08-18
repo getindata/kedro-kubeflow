@@ -159,6 +159,14 @@ def upload_pipeline(ctx, image, pipeline) -> None:
 
 @kubeflow_group.command()
 @click.option(
+    "-p",
+    "--pipeline",
+    "pipeline",
+    type=str,
+    help="Name of pipeline to run",
+    default="__default__",
+)
+@click.option(
     "-c",
     "--cron-expression",
     type=str,
@@ -183,7 +191,11 @@ def upload_pipeline(ctx, image, pipeline) -> None:
 )
 @click.pass_context
 def schedule(
-    ctx, experiment_namespace: str, experiment_name: str, cron_expression: str
+    ctx,
+    pipeline: str,
+    experiment_namespace: str,
+    experiment_name: str,
+    cron_expression: str,
 ):
     """Schedules recurring execution of latest version of the pipeline"""
     context_helper = ctx.obj["context_helper"]
@@ -191,7 +203,7 @@ def schedule(
     experiment = experiment_name if experiment_name else config.experiment_name
 
     context_helper.kfp_client.schedule(
-        experiment, experiment_namespace, cron_expression
+        pipeline, experiment, experiment_namespace, cron_expression
     )
 
 

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.4.1] - 2021-08-18
+
+-   Passing Kedro environment and pipeline name in Vertex nodes
+-   Setting artifact type based on catalog layer in Vertex pipeline
+-   Added `pipeline` param to `schedule` in Vertex
+
 ## [0.4.0] - 2021-08-11
 
 -   Support for kedro-mlflow>=0.7
@@ -69,7 +75,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.0...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.1...HEAD
+
+[0.4.1]: https://github.com/getindata/kedro-kubeflow/compare/0.4.0...0.4.1
 
 [0.4.0]: https://github.com/getindata/kedro-kubeflow/compare/0.3.1...0.4.0
 
