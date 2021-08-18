@@ -51,7 +51,6 @@ class TestGenerator(unittest.TestCase):
             pipeline()
 
         # then
-        print(len(dsl_pipeline.ops))
         assert len(dsl_pipeline.ops) == 2
         assert "data-volume-init" not in dsl_pipeline.ops
         for node_name in ["node1", "node2"]:
