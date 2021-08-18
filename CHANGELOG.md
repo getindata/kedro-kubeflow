@@ -4,6 +4,7 @@
 
 -   Passing Kedro environment and pipeline name in Vertex nodes
 -   Setting artifact type based on catalog layer in Vertex pipeline
+-   Added `pipeline` param to `schedule` in Vertex
 
 ## [0.4.0] - 2021-08-11
 
