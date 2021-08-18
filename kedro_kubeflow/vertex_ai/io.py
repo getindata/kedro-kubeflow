@@ -55,6 +55,9 @@ def generate_inputs(
 
 
 def get_output_type(output, catalog):
+    """
+    Returns Vertex output type based on the layer in Kedro catalog
+    """
     if catalog[output].get("layer") == "models":
         return "Model"
     return "Dataset"
