@@ -157,7 +157,9 @@ class KubeflowClient(object):
 
         return experiment.id
 
-    def schedule(self, experiment_name, experiment_namespace, cron_expression):
+    def schedule(
+        self, pipeline, experiment_name, experiment_namespace, cron_expression
+    ):
         experiment_id = self._ensure_experiment_exists(
             experiment_name, experiment_namespace
         )

@@ -65,7 +65,9 @@ class PipelineGenerator:
             node_dependencies = self.context.pipelines.get(
                 pipeline
             ).node_dependencies
-            kfp_ops = self._build_kfp_ops(node_dependencies, image, token)
+            kfp_ops = self._build_kfp_ops(
+                node_dependencies, image, pipeline, token
+            )
             for node, dependencies in node_dependencies.items():
                 set_dependencies(node, dependencies, kfp_ops)
 
@@ -93,11 +95,12 @@ class PipelineGenerator:
                 "`dirname {{$.outputs.parameters['output'].output_file}}`",
                 "&&",
                 "MLFLOW_TRACKING_TOKEN={{$.inputs.parameters['mlflow_tracking_token']}} "
-                "kedro kubeflow mlflow-start "
+                f"kedro kubeflow -e {self.context.env} mlflow-start "
                 "--output {{$.outputs.parameters['output'].output_file}} "
                 + self.run_config.run_name,
             ]
         )
+
         spec = ComponentSpec(
             name="mlflow-start-run",
             inputs=[InputSpec("mlflow_tracking_token", "String")],
@@ -132,6 +135,7 @@ class PipelineGenerator:
         self,
         node_dependencies: Dict[Node, Set[Node]],
         image,
+        pipeline,
         tracking_token=None,
     ) -> Dict[str, dsl.ContainerOp]:
         """Build kfp container graph from Kedro node dependencies."""
@@ -162,8 +166,13 @@ class PipelineGenerator:
                 else []
             )
 
-            kedro_command = (
-                f'kedro run {params_parameter} --node "{node.name}"'
+            kedro_command = " ".join(
+                [
+                    f"kedro run -e {self.context.env}",
+                    f"--pipeline {pipeline}",
+                    f"{params_parameter}",
+                    f'--node "{node.name}"',
+                ]
             )
             node_command = " ".join(
                 [
@@ -227,6 +236,12 @@ class PipelineGenerator:
         return (
             f"{self.run_config.root}/"
             f"{self.run_config.experiment_name}/{self.run_config.run_name}/data"
+        )
+
+    def _get_mlruns_path(self):
+        return (
+            f"{self.run_config.root}/"
+            f"{self.run_config.experiment_name}/{self.run_config.run_name}/mlruns"
         )
 
     def _setup_volume_op(self, image):

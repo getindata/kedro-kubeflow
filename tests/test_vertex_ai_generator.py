@@ -117,7 +117,12 @@ class TestGenerator(unittest.TestCase):
                 "B": {
                     "type": "pandas.CSVDataSet",
                     "filepath": "data/02_intermediate/b.csv",
-                }
+                },
+                "C": {
+                    "type": "pickle.PickleDataSet",
+                    "filepath": "data/06_models/model.pkl",
+                    "layer": "models",
+                },
             }
         )
 
@@ -136,7 +141,7 @@ class TestGenerator(unittest.TestCase):
             name="B", op_name="node1", param_type="Dataset"
         )
         outputs2 = dsl_pipeline.ops["node2"].outputs
-        assert len(outputs2) == 0  # output "C" is missing in the catalog
+        assert outputs2["C"].param_type == "Model"
 
     def test_should_skip_volume_removal_if_requested(self):
         # given
@@ -152,6 +157,43 @@ class TestGenerator(unittest.TestCase):
         # then
         assert "schedule-volume-termination" not in dsl_pipeline.ops
 
+    def test_should_add_env_and_pipeline_in_the_invocations(self):
+        # given
+        self.create_generator()
+        self.mock_mlflow(True)
+
+        # when
+        pipeline = self.generator_under_test.generate_pipeline(
+            "pipeline", "unittest-image", "Never", "MLFLOW_TRACKING_TOKEN"
+        )
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            pipeline()
+
+        # then
+        assert (
+            "kedro kubeflow -e unittests mlflow-start"
+            in dsl_pipeline.ops["mlflow-start-run"].container.args[0]
+        )
+        assert (
+            'kedro run -e unittests --pipeline pipeline  --node "node1"'
+            in dsl_pipeline.ops["node1"].container.args[0]
+        )
+
+    def mock_mlflow(self, enabled=False):
+        def fakeimport(name, *args, **kw):
+            if not enabled and name == "mlflow":
+                raise ImportError
+            return self.realimport(name, *args, **kw)
+
+        __builtins__["__import__"] = fakeimport
+
+    def setUp(self):
+        self.realimport = __builtins__["__import__"]
+        self.mock_mlflow(False)
+
+    def tearDown(self):
+        __builtins__["__import__"] = self.realimport
+
     def create_generator(self, config={}, params={}, catalog={}):
         project_name = "my-awesome-project"
         config_loader = MagicMock()
@@ -160,6 +202,7 @@ class TestGenerator(unittest.TestCase):
             "obj",
             (object,),
             {
+                "env": "unittests",
                 "params": params,
                 "config_loader": config_loader,
                 "pipelines": {
