@@ -16,7 +16,7 @@ INSTALL_REQUIRES = [
 
 # Dev Requirements
 EXTRA_REQUIRE = {
-    "mlflow": ["kedro-mlflow>=0.4.1"],
+    "mlflow": ["kedro-mlflow>=0.4.2"],
     "tests": [
         "pytest>=5.4.0, <7.0.0",
         "pytest-cov>=2.8.0, <3.0.0",
@@ -36,7 +36,7 @@ EXTRA_REQUIRE = {
 
 setup(
     name="kedro-kubeflow",
-    version="0.4.1",
+    version="0.4.2",
     description="Kedro plugin with Kubeflow support",
     long_description=README,
     long_description_content_type="text/markdown",

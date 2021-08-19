@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.2] - 2021-08-19
+
 -   Improved Vertex scheduling: removal of stale schedules
 
 ## [0.4.1] - 2021-08-18
@@ -77,7 +79,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.1...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.2...HEAD
+
+[0.4.2]: https://github.com/getindata/kedro-kubeflow/compare/0.4.1...0.4.2
 
 [0.4.1]: https://github.com/getindata/kedro-kubeflow/compare/0.4.0...0.4.1
 
