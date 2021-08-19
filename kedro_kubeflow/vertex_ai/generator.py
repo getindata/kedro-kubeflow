@@ -40,6 +40,12 @@ class PipelineGenerator:
         self.run_config = config.run_config
         self.catalog = context.config_loader.get("catalog*")
 
+    def get_pipeline_name(self):
+        """
+        Returns Vertex-compatible pipeline name
+        """
+        return self.project_name.lower().replace(" ", "-")
+
     def generate_pipeline(self, pipeline, image, image_pull_policy, token):
         """
         This method return @dsl.pipeline annotated function that contains
@@ -58,7 +64,7 @@ class PipelineGenerator:
                 kfp_ops[name].after(kfp_ops[dependency_name])
 
         @dsl.pipeline(
-            name=self.project_name.lower().replace(" ", "-"),
+            name=self.get_pipeline_name(),
             description=self.run_config.description,
         )
         def convert_kedro_pipeline_to_kfp() -> None:

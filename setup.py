@@ -29,6 +29,9 @@ EXTRA_REQUIRE = {
         "recommonmark==0.7.1",
         "sphinx_rtd_theme==0.5.1",
     ],
+    "vertexai": [
+        "google-cloud-scheduler>=2.3.2",
+    ],
 }
 
 setup(

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Improved Vertex scheduling: removal of stale schedules
+
 ## [0.4.1] - 2021-08-18
 
 -   Passing Kedro environment and pipeline name in Vertex nodes
