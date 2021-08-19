@@ -2,10 +2,14 @@
 Vertex AI Pipelines specific client, based on AIPlatformClient.
 """
 
+import json
 import logging
 import os
 from tempfile import NamedTemporaryFile
 
+from google.cloud.scheduler_v1.services.cloud_scheduler import (
+    CloudSchedulerClient,
+)
 from kfp.v2 import compiler
 from kfp.v2.google.client import AIPlatformClient
 from tabulate import tabulate
@@ -24,6 +28,10 @@ class VertexAIPipelinesClient:
         self.generator = PipelineGenerator(config, project_name, context)
         self.api_client = AIPlatformClient(
             project_id=config.project_id, region=config.region
+        )
+        self.cloud_scheduler_client = CloudSchedulerClient()
+        self.location = (
+            f"projects/{config.project_id}/locations/{config.region}"
         )
         self.run_config = config.run_config
 
@@ -116,6 +124,24 @@ class VertexAIPipelinesClient:
         """
         raise NotImplementedError("Upload is not supported for VertexAI")
 
+    def _cleanup_old_schedule(self, pipeline_name):
+        """
+        Removes old jobs scheduled for given pipeline name
+        """
+        for job in self.cloud_scheduler_client.list_jobs(parent=self.location):
+            if "jobs/pipeline_pipeline" not in job.name:
+                continue
+
+            job_pipeline_name = json.loads(job.http_target.body)[
+                "pipelineSpec"
+            ]["pipelineInfo"]["name"]
+            if job_pipeline_name == pipeline_name:
+                self.log.info(
+                    "Found existing schedule for the pipeline at %s, deleting...",
+                    job.schedule,
+                )
+                self.cloud_scheduler_client.delete_job(name=job.name)
+
     def schedule(
         self,
         pipeline,
@@ -133,6 +159,7 @@ class VertexAIPipelinesClient:
         :param image_pull_policy:
         :return:
         """
+        self._cleanup_old_schedule(self.generator.get_pipeline_name())
         with NamedTemporaryFile(
             mode="rt", prefix="kedro-kubeflow", suffix=".json"
         ) as spec_output:
@@ -144,8 +171,10 @@ class VertexAIPipelinesClient:
             )
             self.api_client.create_schedule_from_job_spec(
                 job_spec_path=spec_output.name,
+                time_zone="Etc/UTC",
                 schedule=cron_expression,
-                parameter_values={},
+                pipeline_root=f"gs://{self.run_config.root}",
+                enable_caching=False,
             )
 
             self.log.info("Pipeline scheduled to %s", cron_expression)
