@@ -117,13 +117,11 @@ class TestKubeflowClient(unittest.TestCase):
             )
 
             ai_client.create_schedule_from_job_spec.assert_called_once()
-            schedule_args = ai_client.create_schedule_from_job_spec.call_args
-            assert schedule_args.kwargs["time_zone"] == "Etc/UTC"
-            assert schedule_args.kwargs["enable_caching"] is False
-            assert schedule_args.kwargs["schedule"] == "0 0 12 * *"
-            assert (
-                schedule_args.kwargs["pipeline_root"] == "gs://BUCKET/PREFIX"
-            )
+            args, kwargs = ai_client.create_schedule_from_job_spec.call_args
+            assert kwargs["time_zone"] == "Etc/UTC"
+            assert kwargs["enable_caching"] is False
+            assert kwargs["schedule"] == "0 0 12 * *"
+            assert kwargs["pipeline_root"] == "gs://BUCKET/PREFIX"
 
     def test_should_remove_old_schedule(self):
         def mock_job(job_name, pipeline_name=None):
@@ -181,8 +179,11 @@ class TestKubeflowClient(unittest.TestCase):
             # then
             ai_client.create_schedule_from_job_spec.assert_called_once()
             self.cloud_scheduler_client_mock.delete_job.assert_called_once()
-            delete_args = self.cloud_scheduler_client_mock.delete_job.call_args
+            (
+                args,
+                kwargs,
+            ) = self.cloud_scheduler_client_mock.delete_job.call_args
             assert (
-                delete_args.kwargs["name"]
+                kwargs["name"]
                 == "projects/.../locations/.../jobs/pipeline_pipeline_def"
             )
