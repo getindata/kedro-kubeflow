@@ -149,6 +149,8 @@ class TestGenerator(unittest.TestCase):
         assert init_step.image == "unittest-image"
         assert init_step.args == [
             "kubeflow",
+            "--env",
+            "unittests",
             "mlflow-start",
             "{{workflow.uid}}",
         ]
@@ -201,6 +203,8 @@ class TestGenerator(unittest.TestCase):
             args = dsl_pipeline.ops[node_name].container.args
             assert args == [
                 "run",
+                "--env",
+                "unittests",
                 "--params",
                 "param1:{{pipelineparam:op=;name=param1}},"
                 "param2:{{pipelineparam:op=;name=param2}}",
@@ -312,6 +316,7 @@ class TestGenerator(unittest.TestCase):
             "obj",
             (object,),
             {
+                "env": "unittests",
                 "params": params,
                 "config_loader": config_loader,
                 "pipelines": {
