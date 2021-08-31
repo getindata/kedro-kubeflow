@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Kedro environment used by `kedro kubeflow` invocation is passed to the steps
+
 ## [0.4.2] - 2021-08-19
 
 -   Improved Vertex scheduling: removal of stale schedules

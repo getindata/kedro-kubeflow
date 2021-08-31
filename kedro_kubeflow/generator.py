@@ -138,6 +138,8 @@ class PipelineGenerator(object):
                     command=["kedro"],
                     arguments=[
                         "kubeflow",
+                        "--env",
+                        self.context.env,
                         "mlflow-start",
                         dsl.RUN_ID_PLACEHOLDER,
                     ],
@@ -176,6 +178,8 @@ class PipelineGenerator(object):
                     command=["kedro"],
                     arguments=[
                         "run",
+                        "--env",
+                        self.context.env,
                         "--params",
                         params,
                         "--pipeline",
