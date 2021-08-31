@@ -40,6 +40,11 @@ run_config:
   # See https://en.wikipedia.org/wiki/ISO_8601 in section 'Duration'
   #max_cache_staleness: P0D
 
+  # Set to false to disable kfp artifacts exposal
+  # This setting can be useful if you don't want to store
+  # intermediate results in the MLMD
+  #expose_kedro_outputs_as_kfp_artifacts: True
+
   # Optional volume specification (only for non vertex-ai)
   volume:
 
@@ -194,6 +199,12 @@ class RunConfig(Config):
     @property
     def wait_for_completion(self):
         return bool(self._get_or_default("wait_for_completion", False))
+
+    @property
+    def expose_kedro_outputs_as_kfp_artifacts(self):
+        return bool(
+            self._get_or_default("expose_kedro_outputs_as_kfp_artifacts", True)
+        )
 
     @property
     def max_cache_staleness(self):

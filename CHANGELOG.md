@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 -   Kedro environment used by `kedro kubeflow` invocation is passed to the steps
+-   A flag to skip steps output artifacts registration in Kubeflow Metadata
 
 ## [0.4.2] - 2021-08-19
 
