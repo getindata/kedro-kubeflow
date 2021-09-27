@@ -294,6 +294,29 @@ class TestGenerator(unittest.TestCase):
         outputs2 = dsl_pipeline.ops["node2"].file_outputs
         assert len(outputs2) == 0  # output "C" is missing in the catalog
 
+    def test_should_skip_artifact_registration_if_requested(self):
+        # given
+        self.create_generator(
+            catalog={
+                "B": {
+                    "type": "pandas.CSVDataSet",
+                    "filepath": "data/02_intermediate/b.csv",
+                }
+            },
+            config={"store_kedro_outputs_as_kfp_artifacts": False},
+        )
+
+        # when
+        pipeline = self.generator_under_test.generate_pipeline(
+            "pipeline", "unittest-image", "Always"
+        )
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            pipeline()
+
+        # then
+        outputs1 = dsl_pipeline.ops["node1"].file_outputs
+        assert len(outputs1) == 0
+
     def test_should_skip_volume_removal_if_requested(self):
         # given
         self.create_generator(config={"volume": {"keep": True}})
