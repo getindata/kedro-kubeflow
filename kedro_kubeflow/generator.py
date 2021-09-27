@@ -138,6 +138,8 @@ class PipelineGenerator(object):
                     command=["kedro"],
                     arguments=[
                         "kubeflow",
+                        "--env",
+                        self.context.env,
                         "mlflow-start",
                         dsl.RUN_ID_PLACEHOLDER,
                     ],
@@ -176,6 +178,8 @@ class PipelineGenerator(object):
                     command=["kedro"],
                     arguments=[
                         "run",
+                        "--env",
+                        self.context.env,
                         "--params",
                         params,
                         "--pipeline",
@@ -191,6 +195,7 @@ class PipelineGenerator(object):
                         for output in node.outputs
                         if output in self.catalog
                         and "filepath" in self.catalog[output]
+                        and self.run_config.store_kedro_outputs_as_kfp_artifacts
                     },
                 ),
                 image_pull_policy,

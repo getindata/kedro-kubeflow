@@ -12,6 +12,7 @@ INSTALL_REQUIRES = [
     "tabulate>=0.8.7",
     "semver~=2.10",
     "google-auth<2.0dev",
+    "protobuf<3.18.0",
 ]
 
 # Dev Requirements
@@ -36,7 +37,7 @@ EXTRA_REQUIRE = {
 
 setup(
     name="kedro-kubeflow",
-    version="0.4.2",
+    version="0.4.3",
     description="Kedro plugin with Kubeflow support",
     long_description=README,
     long_description_content_type="text/markdown",
