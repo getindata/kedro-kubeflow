@@ -303,7 +303,7 @@ class TestGenerator(unittest.TestCase):
                     "filepath": "data/02_intermediate/b.csv",
                 }
             },
-            config={"expose_kedro_outputs_as_kfp_artifacts": False},
+            config={"store_kedro_outputs_as_kfp_artifacts": False},
         )
 
         # when

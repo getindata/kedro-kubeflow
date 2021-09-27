@@ -195,7 +195,7 @@ class PipelineGenerator(object):
                         for output in node.outputs
                         if output in self.catalog
                         and "filepath" in self.catalog[output]
-                        and self.run_config.expose_kedro_outputs_as_kfp_artifacts
+                        and self.run_config.store_kedro_outputs_as_kfp_artifacts
                     },
                 ),
                 image_pull_policy,

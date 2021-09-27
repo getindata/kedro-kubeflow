@@ -43,7 +43,7 @@ run_config:
   # Set to false to disable kfp artifacts exposal
   # This setting can be useful if you don't want to store
   # intermediate results in the MLMD
-  #expose_kedro_outputs_as_kfp_artifacts: True
+  #store_kedro_outputs_as_kfp_artifacts: True
 
   # Optional volume specification (only for non vertex-ai)
   volume:
@@ -201,9 +201,9 @@ class RunConfig(Config):
         return bool(self._get_or_default("wait_for_completion", False))
 
     @property
-    def expose_kedro_outputs_as_kfp_artifacts(self):
+    def store_kedro_outputs_as_kfp_artifacts(self):
         return bool(
-            self._get_or_default("expose_kedro_outputs_as_kfp_artifacts", True)
+            self._get_or_default("store_kedro_outputs_as_kfp_artifacts", True)
         )
 
     @property
