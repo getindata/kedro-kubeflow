@@ -12,6 +12,7 @@ INSTALL_REQUIRES = [
     "tabulate>=0.8.7",
     "semver~=2.10",
     "google-auth<2.0dev",
+    "protobuf<3.18.0",
 ]
 
 # Dev Requirements
