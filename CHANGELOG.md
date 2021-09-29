@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.4] - 2021-09-29
+
 -   Custom networking setup for Vertex AI pipelines run
 
 ## [0.4.3] - 2021-09-27
@@ -86,7 +88,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.3...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.4...HEAD
+
+[0.4.4]: https://github.com/getindata/kedro-kubeflow/compare/0.4.3...0.4.4
 
 [0.4.3]: https://github.com/getindata/kedro-kubeflow/compare/0.4.2...0.4.3
 
