@@ -77,6 +77,19 @@ run_config:
   root: vertex-ai-pipelines-accessible-gcs-bucket/pipelines-specific-path
 ```
 
+If the pipeline requires access to services that are not exposed to public internet, you need to configure [VPC peering between Vertex internal network and VPC that hosts the internal service](https://cloud.google.com/vertex-ai/docs/general/vpc-peering) and then set the VPC identifier in the configuration. Optionally, you can add custom host aliases:
+
+```yaml
+run_config:
+  vertex_ai_networking:
+    vpc: projects/12345/global/networks/name-of-vpc
+    host_aliases:
+    - ip: 10.10.10.10
+      hostnames: ['mlflow.internal']
+    - ip: 10.10.20.20
+      hostnames: ['featurestore.internal']
+```
+
 ##### 2. Preparing environment variables
 
 There're the following specific environment variables required for the pipeline to run correctly:

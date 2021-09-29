@@ -179,6 +179,39 @@ class TestGenerator(unittest.TestCase):
             in dsl_pipeline.ops["node1"].container.args[0]
         )
 
+    def test_should_add_host_aliases_if_requested(self):
+        # given
+        self.create_generator(
+            config={
+                "vertex_ai_networking": {
+                    "host_aliases": [
+                        {
+                            "ip": "10.10.10.10",
+                            "hostnames": ["mlflow.internal", "mlflow.cloud"],
+                        }
+                    ]
+                }
+            }
+        )
+        self.mock_mlflow(True)
+
+        # when
+        pipeline = self.generator_under_test.generate_pipeline(
+            "pipeline", "unittest-image", "Never", "MLFLOW_TRACKING_TOKEN"
+        )
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            pipeline()
+
+        # then
+        hosts_entry_cmd = (
+            "echo 10.10.10.10\tmlflow.internal mlflow.cloud >> /etc/hosts;"
+        )
+        assert (
+            hosts_entry_cmd
+            in dsl_pipeline.ops["mlflow-start-run"].container.args[0]
+        )
+        assert hosts_entry_cmd in dsl_pipeline.ops["node1"].container.args[0]
+
     def mock_mlflow(self, enabled=False):
         def fakeimport(name, *args, **kw):
             if not enabled and name == "mlflow":

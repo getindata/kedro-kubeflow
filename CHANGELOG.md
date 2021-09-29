@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Custom networking setup for Vertex AI pipelines run
+
 ## [0.4.3] - 2021-09-27
 
 -   Kedro environment used by `kedro kubeflow` invocation is passed to the steps

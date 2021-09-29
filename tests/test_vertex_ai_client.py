@@ -18,7 +18,11 @@ class TestKubeflowClient(unittest.TestCase):
             {
                 "project_id": "PROJECT_ID",
                 "region": "REGION",
-                "run_config": {"image": "IMAGE", "root": "BUCKET/PREFIX"},
+                "run_config": {
+                    "image": "IMAGE",
+                    "root": "BUCKET/PREFIX",
+                    "vertex_ai_networking": {"vpc": "my-vpc"},
+                },
             }
         )
         return VertexAIPipelinesClient(config, MagicMock(), MagicMock())
@@ -65,6 +69,8 @@ class TestKubeflowClient(unittest.TestCase):
             )
 
             assert run_mock == run
+            _, kwargs = ai_client.create_run_from_job_spec.call_args
+            assert kwargs["network"] == "my-vpc"
 
     def test_should_list_pipelines(self):
         with patch(
