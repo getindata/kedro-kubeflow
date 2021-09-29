@@ -85,6 +85,13 @@ class PipelineGenerator:
 
         return convert_kedro_pipeline_to_kfp
 
+    def _generate_hosts_file(self):
+        host_aliases = self.run_config.vertex_ai_networking.host_aliases
+        return " ".join(
+            f"echo {ip}\t{' '.join(hostnames)} >> /etc/hosts;"
+            for ip, hostnames in host_aliases.items()
+        )
+
     def _create_data_volume_init_op(
         self, kfp_ops: Dict[str, dsl.ContainerOp], image: str
     ):
@@ -97,6 +104,7 @@ class PipelineGenerator:
     def _create_mlflow_op(self, image, tracking_token) -> dsl.ContainerOp:
         mlflow_command = " ".join(
             [
+                self._generate_hosts_file(),
                 "mkdir --parents "
                 "`dirname {{$.outputs.parameters['output'].output_file}}`",
                 "&&",
@@ -182,6 +190,7 @@ class PipelineGenerator:
             )
             node_command = " ".join(
                 [
+                    self._generate_hosts_file(),
                     "rm -r /home/kedro/data"
                     "&&"
                     f"ln -s /gcs/{self._get_data_path()} /home/kedro/data"

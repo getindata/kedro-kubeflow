@@ -83,6 +83,7 @@ class VertexAIPipelinesClient:
                 pipeline_root=f"gs://{self.run_config.root}",
                 parameter_values={},
                 enable_caching=False,
+                network=self.run_config.vertex_ai_networking.vpc,
             )
             self.log.info("Run created %s", str(run))
             return run
