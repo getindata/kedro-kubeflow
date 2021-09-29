@@ -253,12 +253,6 @@ class PipelineGenerator:
             f"{self.run_config.experiment_name}/{self.run_config.run_name}/data"
         )
 
-    def _get_mlruns_path(self):
-        return (
-            f"{self.run_config.root}/"
-            f"{self.run_config.experiment_name}/{self.run_config.run_name}/mlruns"
-        )
-
     def _setup_volume_op(self, image):
         command = " ".join(
             [
