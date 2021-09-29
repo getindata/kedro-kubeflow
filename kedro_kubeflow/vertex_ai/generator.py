@@ -256,13 +256,8 @@ class PipelineGenerator:
     def _setup_volume_op(self, image):
         command = " ".join(
             [
-                f"mkdir --parents /gcs/{self._get_data_path()}",
-                "&&",
-                "cp",
-                "--verbose",
-                "-r",
-                "/home/kedro/data/*",
-                f"/gcs/{self._get_data_path()}",
+                f"mkdir --parents /gcs/{self._get_data_path()} &&",
+                f"cp -r /home/kedro/data/* /gcs/{self._get_data_path()}",
             ]
         )
         spec = ComponentSpec(
