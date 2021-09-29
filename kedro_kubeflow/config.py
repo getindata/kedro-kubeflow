@@ -120,6 +120,17 @@ class Config(object):
         return self._raw == other._raw
 
 
+class VertexAiNetworkingConfig(Config):
+    @property
+    def vpc(self):
+        return self._get_or_default("vpc", None)
+
+    @property
+    def host_aliases(self):
+        aliases = self._get_or_default("host_aliases", [])
+        return {alias["ip"]: alias["hostnames"] for alias in aliases}
+
+
 class VolumeConfig(Config):
     @property
     def storageclass(self):
@@ -213,6 +224,12 @@ class RunConfig(Config):
     @property
     def ttl(self):
         return int(self._get_or_default("ttl", 3600 * 24 * 7))
+
+    @property
+    def vertex_ai_networking(self):
+        return VertexAiNetworkingConfig(
+            self._get_or_default("vertex_ai_networking", {})
+        )
 
     def _get_prefix(self):
         return "run_config."
