@@ -4,6 +4,7 @@
 
 -   Kedro pipeline name is now added into Kubeflow pipeline name during upload
 -   Added missing on-exit-handler for `node_merge_strategy: full`
+-   Handle `KEDRO_ENV` enviroment variable
 
 ## [0.5.1] - 2022-01-28
 
