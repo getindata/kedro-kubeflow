@@ -7,8 +7,14 @@ from kfp import Client
 from kfp.compiler import Compiler
 from tabulate import tabulate
 
+from kedro_kubeflow.generators.one_pod_pipeline_generator import (
+    OnePodPipelineGenerator,
+)
+from kedro_kubeflow.generators.pod_per_node_pipeline_generator import (
+    PodPerNodePipelineGenerator,
+)
+
 from .auth import AuthHandler
-from .generator import PipelineGenerator
 from .utils import clean_name
 
 WAIT_TIMEOUT = 24 * 60 * 60
@@ -18,7 +24,7 @@ class KubeflowClient(object):
 
     log = logging.getLogger(__name__)
 
-    def __init__(self, config, project_name, context):
+    def __init__(self, config, project_name, context, one_pod_pipeline=False):
         client_params = {}
         token = AuthHandler().obtain_id_token()
         if token is not None:
@@ -35,7 +41,11 @@ class KubeflowClient(object):
 
         self.project_name = project_name
         self.pipeline_description = config.run_config.description
-        self.generator = PipelineGenerator(config, project_name, context)
+        self.generator = (
+            PodPerNodePipelineGenerator(config, project_name, context)
+            if not one_pod_pipeline
+            else OnePodPipelineGenerator(config, project_name, context)
+        )
 
     def list_pipelines(self):
         pipelines = self.client.list_pipelines(page_size=30).pipelines

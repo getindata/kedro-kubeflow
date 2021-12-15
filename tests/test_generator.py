@@ -8,7 +8,9 @@ import kfp
 from kedro.pipeline import Pipeline, node
 
 from kedro_kubeflow.config import PluginConfig
-from kedro_kubeflow.generator import PipelineGenerator
+from kedro_kubeflow.generators.pod_per_node_pipeline_generator import (
+    PodPerNodePipelineGenerator,
+)
 
 
 def identity(input1: str):
@@ -16,14 +18,6 @@ def identity(input1: str):
 
 
 class TestGenerator(unittest.TestCase):
-    def create_pipeline(self):
-        return Pipeline(
-            [
-                node(identity, "A", "B", name="node1"),
-                node(identity, "B", "C", name="node2"),
-            ]
-        )
-
     def test_support_modification_of_pull_policy(self):
         # given
         self.create_generator()
@@ -352,7 +346,7 @@ class TestGenerator(unittest.TestCase):
                 },
             },
         )
-        self.generator_under_test = PipelineGenerator(
+        self.generator_under_test = PodPerNodePipelineGenerator(
             PluginConfig({"host": "http://unittest", "run_config": config}),
             project_name,
             context,
