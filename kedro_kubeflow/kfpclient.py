@@ -24,7 +24,7 @@ class KubeflowClient(object):
 
     log = logging.getLogger(__name__)
 
-    def __init__(self, config, project_name, context, one_pod_pipeline=False):
+    def __init__(self, config, project_name, context):
         client_params = {}
         token = AuthHandler().obtain_id_token()
         if token is not None:
@@ -41,11 +41,18 @@ class KubeflowClient(object):
 
         self.project_name = project_name
         self.pipeline_description = config.run_config.description
-        self.generator = (
-            PodPerNodePipelineGenerator(config, project_name, context)
-            if not one_pod_pipeline
-            else OnePodPipelineGenerator(config, project_name, context)
-        )
+        if config.run_config.node_merge_strategy == "none":
+            self.generator = PodPerNodePipelineGenerator(
+                config, project_name, context
+            )
+        elif config.run_config.node_merge_strategy == "full":
+            self.generator = OnePodPipelineGenerator(
+                config, project_name, context
+            )
+        else:
+            raise Exception(
+                f"Invalid `node_merge_strategy`: {config.run_config.node_merge_strategy}"
+            )
 
     def list_pipelines(self):
         pipelines = self.client.list_pipelines(page_size=30).pipelines

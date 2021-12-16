@@ -45,6 +45,20 @@ run_config:
   # intermediate results in the MLMD
   #store_kedro_outputs_as_kfp_artifacts: True
 
+  # Strategy used to generate Kubeflow pipeline nodes from Kedro nodes
+  # Available strategies:
+  #  * none (default) - nodes in Kedro pipeline are mapped to separate nodes
+  #                     in Kubeflow pipelines. This strategy allows to inspect
+  #                     a whole processing graph in Kubeflow UI and override
+  #                     resources for each node (because they are run in separate pods)
+  #                     Although, performance may not be optimal due to potential
+  #                     sharing of intermediate datasets through disk.
+  #  * full - nodes in Kedro pipeline are mapped to one node in Kubeflow pipelines.
+  #           This strategy mitigate potential performance issues with `none` strategy
+  #           but at the cost of degraded user experience within Kubeflow UI: a graph
+  #           is collapsed to one node.
+  #node_merge_strategy: none
+
   # Optional volume specification (only for non vertex-ai)
   volume:
 
@@ -230,6 +244,16 @@ class RunConfig(Config):
         return VertexAiNetworkingConfig(
             self._get_or_default("vertex_ai_networking", {})
         )
+
+    @property
+    def node_merge_strategy(self):
+        strategy = str(self._get_or_default("node_merge_strategy", "none"))
+        if strategy not in ["none", "full"]:
+            raise ValueError(
+                f"Invalid {self._get_prefix()}node_merge_strategy: {strategy}"
+            )
+        else:
+            return strategy
 
     def _get_prefix(self):
         return "run_config."

@@ -35,36 +35,7 @@ class TestGenerator(unittest.TestCase):
             dsl_pipeline.ops["pipeline"].container.image_pull_policy == "Never"
         )
 
-    def test_should_add_mlflow_init_step_if_enabled(self):
-        # given
-        self.create_generator()
-        self.mock_mlflow(True)
-
-        # when
-        with kfp.dsl.Pipeline(None) as dsl_pipeline:
-            self.generator_under_test.generate_pipeline(
-                "pipeline", "unittest-image", "Always"
-            )()
-
-        # then
-        assert len(dsl_pipeline.ops) == 2
-        init_step = dsl_pipeline.ops["mlflow-start-run"].container
-        assert init_step.image == "unittest-image"
-        assert init_step.args == [
-            "kubeflow",
-            "--env",
-            "unittests",
-            "mlflow-start",
-            "{{workflow.uid}}",
-        ]
-        env = dsl_pipeline.ops["pipeline"].container.env
-        assert env[1].name == "MLFLOW_RUN_ID"
-        assert (
-            env[1].value
-            == "{{pipelineparam:op=mlflow-start-run;name=mlflow_run_id}}"
-        )
-
-    def test_should_support_params_and_inject_them_to_the_nodes(self):
+    def test_should_support_params_and_inject_them_to_the_node(self):
         # given
         self.create_generator(params={"param1": 0.3, "param2": 42})
 
@@ -80,8 +51,7 @@ class TestGenerator(unittest.TestCase):
         assert len(default_params) == 2
         assert default_params["param1"].default == 0.3
         assert default_params["param2"].default == 42
-        args = dsl_pipeline.ops["pipeline"].container.args
-        assert args == [
+        assert dsl_pipeline.ops["pipeline"].container.args == [
             "run",
             "--env",
             "unittests",
@@ -182,19 +152,6 @@ class TestGenerator(unittest.TestCase):
         # then
         assert dsl_pipeline.ops["pipeline"].file_outputs == {}
 
-    def test_should_skip_volume_removal_if_requested(self):
-        # given
-        self.create_generator(config={"volume": {"keep": True}})
-
-        # when
-        with kfp.dsl.Pipeline(None) as dsl_pipeline:
-            self.generator_under_test.generate_pipeline(
-                "pipeline", "unittest-image", "Always"
-            )()
-
-        # then
-        assert "schedule-volume-termination" not in dsl_pipeline.ops
-
     def create_generator(self, config=None, params=None, catalog=None):
         if config is None:
             config = {}
@@ -228,18 +185,3 @@ class TestGenerator(unittest.TestCase):
             project_name="my-awesome-project",
             context=context,
         )
-
-    def mock_mlflow(self, enabled=False):
-        def fakeimport(name, *args, **kw):
-            if not enabled and name == "mlflow":
-                raise ImportError
-            return self.realimport(name, *args, **kw)
-
-        __builtins__["__import__"] = fakeimport
-
-    def setUp(self):
-        self.realimport = __builtins__["__import__"]
-        self.mock_mlflow(False)
-
-    def tearDown(self):
-        __builtins__["__import__"] = self.realimport

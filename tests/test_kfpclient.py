@@ -321,6 +321,22 @@ class TestKubeflowClient(unittest.TestCase):
         self.kfp_client_mock.pipeline_uploads.upload_pipeline.assert_not_called()
         self.kfp_client_mock.pipeline_uploads.upload_pipeline_version.assert_called()
 
+    @patch("kedro_kubeflow.kfpclient.Client")
+    def test_should_raise_error_if_invalid_node_merge_strategy(
+        self, kfp_client_mock
+    ):
+        with self.assertRaises(ValueError):
+            KubeflowClient(
+                PluginConfig(
+                    {
+                        "host": "http://unittest",
+                        "run_config": {"node_merge_strategy": "other"},
+                    }
+                ),
+                None,
+                None,
+            )
+
     @patch("kedro_kubeflow.kfpclient.PodPerNodePipelineGenerator")
     @patch("kedro_kubeflow.kfpclient.Client")
     def create_client(self, config, kfp_client_mock, pipeline_generator_mock):

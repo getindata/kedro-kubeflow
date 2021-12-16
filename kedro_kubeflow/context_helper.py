@@ -11,22 +11,13 @@ class ContextHelper(object):
 
     CONFIG_FILE_PATTERN = "kubeflow*"
 
-    def __init__(self, metadata, env, one_pod_pipeline_generator):
+    def __init__(self, metadata, env):
         self._metadata = metadata
         self._env = env
-        self._one_pod_pipeline_generator = one_pod_pipeline_generator
 
     @property
     def project_name(self):
         return self._metadata.project_name
-
-    @property
-    def one_pod_pipeline_generator(self):
-        return self._one_pod_pipeline_generator
-
-    @one_pod_pipeline_generator.setter
-    def one_pod_pipeline_generator(self, value):
-        self._one_pod_pipeline_generator = value
 
     @property
     @lru_cache()
@@ -61,16 +52,15 @@ class ContextHelper(object):
                 self.config,
                 self.project_name,
                 self.context,
-                self.one_pod_pipeline_generator,
             )
 
     @staticmethod
-    def init(metadata, env, one_pod_pipeline_generator=False):
+    def init(metadata, env):
         version = VersionInfo.parse(kedro_version)
         if version.match(">=0.17.0"):
-            return ContextHelper(metadata, env, one_pod_pipeline_generator)
+            return ContextHelper(metadata, env)
         else:
-            return ContextHelper16(metadata, env, one_pod_pipeline_generator)
+            return ContextHelper16(metadata, env)
 
 
 class ContextHelper16(ContextHelper):

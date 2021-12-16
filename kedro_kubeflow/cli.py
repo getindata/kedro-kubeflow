@@ -67,19 +67,11 @@ def list_pipelines(ctx):
     help="Namespace where pipeline experiment run should be deployed to. Not needed "
     "if provided experiment name already exists.",
 )
-@click.option(
-    "--one-pod",
-    help="Generate only one pod in Kubeflow for a pipeline",
-    is_flag=True,
-)
 @click.pass_context
-def run_once(
-    ctx, image: str, pipeline: str, experiment_namespace: str, one_pod: bool
-):
+def run_once(ctx, image: str, pipeline: str, experiment_namespace: str):
     """Deploy pipeline as a single run within given experiment.
     Config can be specified in kubeflow.yml as well."""
     context_helper = ctx.obj["context_helper"]
-    context_helper.one_pod_pipeline_generator = one_pod
     config = context_helper.config.run_config
 
     context_helper.kfp_client.run_once(
@@ -123,16 +115,10 @@ def ui(ctx) -> None:
     default="pipeline.yml",
     help="Pipeline YAML definition file.",
 )
-@click.option(
-    "--one-pod",
-    help="Generate only one pod in Kubeflow for a pipeline",
-    is_flag=True,
-)
 @click.pass_context
-def compile(ctx, image, pipeline, output, one_pod) -> None:
+def compile(ctx, image, pipeline, output) -> None:
     """Translates Kedro pipeline into YAML file with Kubeflow Pipeline definition"""
     context_helper = ctx.obj["context_helper"]
-    context_helper.one_pod_pipeline_generator = one_pod
     config = context_helper.config.run_config
 
     context_helper.kfp_client.compile(
@@ -158,16 +144,10 @@ def compile(ctx, image, pipeline, output, one_pod) -> None:
     help="Name of pipeline to upload",
     default="__default__",
 )
-@click.option(
-    "--one-pod",
-    help="Generate only one pod in Kubeflow for a pipeline",
-    is_flag=True,
-)
 @click.pass_context
-def upload_pipeline(ctx, image, pipeline, one_pod) -> None:
+def upload_pipeline(ctx, image, pipeline) -> None:
     """Uploads pipeline to Kubeflow server"""
     context_helper = ctx.obj["context_helper"]
-    context_helper.one_pod_pipeline_generator = one_pod
     config = context_helper.config.run_config
 
     context_helper.kfp_client.upload(
