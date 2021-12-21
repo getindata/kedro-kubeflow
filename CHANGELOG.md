@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Add `node_merge_strategy` alongside with `full` option to run a whole pipeline in one pod
+
 ## [0.4.4] - 2021-09-29
 
 -   Custom networking setup for Vertex AI pipelines run
