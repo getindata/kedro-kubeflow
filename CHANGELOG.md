@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.5] - 2021-12-22
+
 -   Add `node_merge_strategy` alongside with `full` option to run a whole pipeline in one pod
 
 ## [0.4.4] - 2021-09-29
@@ -90,7 +92,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.4...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.5...HEAD
+
+[0.4.5]: https://github.com/getindata/kedro-kubeflow/compare/0.4.4...0.4.5
 
 [0.4.4]: https://github.com/getindata/kedro-kubeflow/compare/0.4.3...0.4.4
 
