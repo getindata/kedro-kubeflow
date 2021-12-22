@@ -7,8 +7,14 @@ from kfp import Client
 from kfp.compiler import Compiler
 from tabulate import tabulate
 
+from kedro_kubeflow.generators.one_pod_pipeline_generator import (
+    OnePodPipelineGenerator,
+)
+from kedro_kubeflow.generators.pod_per_node_pipeline_generator import (
+    PodPerNodePipelineGenerator,
+)
+
 from .auth import AuthHandler
-from .generator import PipelineGenerator
 from .utils import clean_name
 
 WAIT_TIMEOUT = 24 * 60 * 60
@@ -35,7 +41,18 @@ class KubeflowClient(object):
 
         self.project_name = project_name
         self.pipeline_description = config.run_config.description
-        self.generator = PipelineGenerator(config, project_name, context)
+        if config.run_config.node_merge_strategy == "none":
+            self.generator = PodPerNodePipelineGenerator(
+                config, project_name, context
+            )
+        elif config.run_config.node_merge_strategy == "full":
+            self.generator = OnePodPipelineGenerator(
+                config, project_name, context
+            )
+        else:
+            raise Exception(
+                f"Invalid `node_merge_strategy`: {config.run_config.node_merge_strategy}"
+            )
 
     def list_pipelines(self):
         pipelines = self.client.list_pipelines(page_size=30).pipelines

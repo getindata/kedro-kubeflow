@@ -1,8 +1,6 @@
 import contextlib
 import logging
 import os
-from functools import wraps
-from inspect import Parameter, signature
 from typing import Dict, Set
 
 import kubernetes.client as k8s
@@ -10,29 +8,12 @@ from kedro.pipeline.node import Node
 from kfp import dsl
 from kfp.compiler._k8s_helper import sanitize_k8s_name
 
-from .auth import IAP_CLIENT_ID
-from .utils import clean_name, is_mlflow_enabled
+from ..auth import IAP_CLIENT_ID
+from ..utils import clean_name, is_mlflow_enabled
+from .utils import create_params, maybe_add_params
 
 
-def maybe_add_params(kedro_parameters):
-    def decorator(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            return f()
-
-        sig = signature(f)
-        new_params = (
-            Parameter(name, Parameter.KEYWORD_ONLY, default=default)
-            for name, default in kedro_parameters.items()
-        )
-        wrapper.__signature__ = sig.replace(parameters=new_params)
-        return wrapper
-
-    return decorator
-
-
-class PipelineGenerator(object):
-
+class PodPerNodePipelineGenerator(object):
     log = logging.getLogger(__name__)
 
     def __init__(self, config, project_name, context):
@@ -158,12 +139,6 @@ class PipelineGenerator(object):
 
         for node in node_dependencies:
             name = clean_name(node.name)
-            params = ",".join(
-                [
-                    f"{param}:{dsl.PipelineParam(param)}"
-                    for param in self.context.params.keys()
-                ]
-            )
             kwargs = {"env": nodes_env}
             if self.run_config.resources.is_set_for(node.name):
                 kwargs["resources"] = k8s.V1ResourceRequirements(
@@ -181,7 +156,7 @@ class PipelineGenerator(object):
                         "--env",
                         self.context.env,
                         "--params",
-                        params,
+                        create_params(self.context.params.keys()),
                         "--pipeline",
                         pipeline,
                         "--node",
