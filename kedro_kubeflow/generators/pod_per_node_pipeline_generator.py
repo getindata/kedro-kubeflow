@@ -1,6 +1,5 @@
 import contextlib
 import logging
-import os
 from typing import Dict, Set
 
 import kubernetes.client as k8s
@@ -8,9 +7,12 @@ from kedro.pipeline.node import Node
 from kfp import dsl
 from kfp.compiler._k8s_helper import sanitize_k8s_name
 
-from ..auth import IAP_CLIENT_ID
 from ..utils import clean_name, is_mlflow_enabled
-from .utils import create_params, maybe_add_params
+from .utils import (
+    create_container_environment,
+    create_params,
+    maybe_add_params,
+)
 
 
 class PodPerNodePipelineGenerator(object):
@@ -106,10 +108,7 @@ class PodPerNodePipelineGenerator(object):
             else {}
         )
 
-        iap_env_var = k8s.V1EnvVar(
-            name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
-        )
-        nodes_env = [iap_env_var]
+        nodes_env = create_container_environment()
 
         if is_mlflow_enabled():
             kfp_ops["mlflow-start-run"] = self._customize_op(
@@ -124,7 +123,7 @@ class PodPerNodePipelineGenerator(object):
                         "mlflow-start",
                         dsl.RUN_ID_PLACEHOLDER,
                     ],
-                    container_kwargs={"env": [iap_env_var]},
+                    container_kwargs={"env": nodes_env},
                     file_outputs={"mlflow_run_id": "/tmp/mlflow_run_id"},
                 ),
                 image_pull_policy,
