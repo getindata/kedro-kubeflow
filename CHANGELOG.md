@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.6] - 2021-12-23
+
 -   Passing all `KEDRO_CONFIG_` environment variables to the pipeline nodes
 
 ## [0.4.5] - 2021-12-22
@@ -94,7 +96,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.5...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.6...HEAD
+
+[0.4.6]: https://github.com/getindata/kedro-kubeflow/compare/0.4.5...0.4.6
 
 [0.4.5]: https://github.com/getindata/kedro-kubeflow/compare/0.4.4...0.4.5
 
