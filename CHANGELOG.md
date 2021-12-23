@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Passing all `KEDRO_CONFIG_` environment variables to the pipeline nodes
+
 ## [0.4.5] - 2021-12-22
 
 -   Add `node_merge_strategy` alongside with `full` option to run a whole pipeline in one pod
