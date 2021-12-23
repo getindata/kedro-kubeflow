@@ -1,5 +1,6 @@
 """Test generator"""
 
+import os
 import unittest
 from inspect import signature
 from unittest.mock import MagicMock
@@ -324,6 +325,32 @@ class TestGenerator(unittest.TestCase):
 
         # then
         assert "schedule-volume-termination" not in dsl_pipeline.ops
+
+    def test_should_pass_kedro_config_env_to_nodes(self):
+        # given
+        self.create_generator()
+        os.environ["KEDRO_CONFIG_MY_KEY"] = "42"
+        os.environ["SOME_VALUE"] = "100"
+
+        try:
+            # when
+            with kfp.dsl.Pipeline(None) as dsl_pipeline:
+                self.generator_under_test.generate_pipeline(
+                    "pipeline", "unittest-image", "Always"
+                )()
+
+            # then
+            for node_name in ["node1", "node2"]:
+                env_values = {
+                    e.name: e.value
+                    for e in dsl_pipeline.ops[node_name].container.env
+                }
+                assert "KEDRO_CONFIG_MY_KEY" in env_values
+                assert env_values["KEDRO_CONFIG_MY_KEY"] == "42"
+                assert "SOME_VALUE" not in env_values
+        finally:
+            del os.environ["KEDRO_CONFIG_MY_KEY"]
+            del os.environ["SOME_VALUE"]
 
     def create_generator(self, config={}, params={}, catalog={}):
         project_name = "my-awesome-project"

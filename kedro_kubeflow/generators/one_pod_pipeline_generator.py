@@ -1,12 +1,14 @@
 import logging
-import os
 
 import kubernetes.client as k8s
 from kfp import dsl
 
-from ..auth import IAP_CLIENT_ID
 from ..utils import clean_name
-from .utils import create_params, maybe_add_params
+from .utils import (
+    create_container_environment,
+    create_params,
+    maybe_add_params,
+)
 
 
 class OnePodPipelineGenerator(object):
@@ -37,11 +39,7 @@ class OnePodPipelineGenerator(object):
         image_pull_policy,
     ) -> dsl.ContainerOp:
         kwargs = {
-            "env": [
-                k8s.V1EnvVar(
-                    name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
-                )
-            ],
+            "env": create_container_environment(),
             "image_pull_policy": image_pull_policy,
         }
         default_resources = self.run_config.resources.get_for("__default__")
