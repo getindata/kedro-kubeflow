@@ -1,7 +1,7 @@
 import os
 from functools import wraps
 from inspect import Parameter, signature
-from typing import Iterable
+from typing import Dict, Iterable, Optional
 
 import kubernetes.client as k8s
 from kfp import dsl
@@ -26,9 +26,15 @@ def maybe_add_params(kedro_parameters):
     return decorator
 
 
-def create_params(param_keys: Iterable[str]) -> str:
+def create_params(
+    param_keys: Iterable[str],
+    fixed_value_params: Optional[Dict[str, str]] = None,
+) -> str:
+    if fixed_value_params is None:
+        fixed_value_params = {}
     return ",".join(
         [f"{param}:{dsl.PipelineParam(param)}" for param in param_keys]
+        + [f"{key}:{value}" for key, value in fixed_value_params.items()]
     )
 
 

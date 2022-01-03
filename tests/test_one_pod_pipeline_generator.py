@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 
 import kfp
 from kedro.pipeline import Pipeline, node
+from kfp import dsl
 
 from kedro_kubeflow.config import PluginConfig
 from kedro_kubeflow.generators.one_pod_pipeline_generator import (
@@ -59,6 +60,32 @@ class TestGenerator(unittest.TestCase):
             "--params",
             "param1:{{pipelineparam:op=;name=param1}},"
             "param2:{{pipelineparam:op=;name=param2}}",
+            "--pipeline",
+            "pipeline",
+        ]
+
+    def test_should_inject_kubeflow_run_id_when_mlflow_is_enabled(self):
+        # given
+        self.create_generator(params={"param": 0.3})
+        self.mock_mlflow(True)
+
+        # when
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            pipeline = self.generator_under_test.generate_pipeline(
+                "pipeline", "unittest-image", "Always"
+            )
+            default_params = signature(pipeline).parameters
+            pipeline()
+
+        # then
+        assert default_params["param"].default == 0.3
+        assert dsl_pipeline.ops["pipeline"].container.args == [
+            "run",
+            "--env",
+            "unittests",
+            "--params",
+            "param:{{pipelineparam:op=;name=param}},"
+            f"kubeflow_run_id:{dsl.RUN_ID_PLACEHOLDER}",
             "--pipeline",
             "pipeline",
         ]
@@ -211,3 +238,18 @@ class TestGenerator(unittest.TestCase):
             project_name="my-awesome-project",
             context=context,
         )
+
+    def mock_mlflow(self, enabled=False):
+        def fakeimport(name, *args, **kw):
+            if not enabled and name == "mlflow":
+                raise ImportError
+            return self.realimport(name, *args, **kw)
+
+        __builtins__["__import__"] = fakeimport
+
+    def setUp(self):
+        self.realimport = __builtins__["__import__"]
+        self.mock_mlflow(False)
+
+    def tearDown(self):
+        __builtins__["__import__"] = self.realimport
