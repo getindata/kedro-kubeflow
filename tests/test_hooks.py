@@ -14,9 +14,14 @@ from kedro_kubeflow.hooks import (  # NOQA
 
 
 @contextmanager
-def environment(env):
+def environment(env, delete_keys=None):
     original_environ = os.environ.copy()
     os.environ.update(env)
+    if delete_keys is None:
+        delete_keys = []
+    for key in delete_keys:
+        os.environ.pop(key, None)
+
     yield
     os.environ = original_environ
 
@@ -63,18 +68,24 @@ class TestMlflowIapAuthHook(unittest.TestCase):
 @patch.object(mlflow, "set_tag")
 class TestMlflowTagsHook(unittest.TestCase):
     def test_should_set_mlflow_tags(self, mlflow_set_tag):
-        MlflowTagsHook().after_pipeline_run(
-            run_params={"extra_params": {"kubeflow_run_id": "KFP_123"}}
-        )
+        with environment({"KUBEFLOW_RUN_ID": "KFP_123"}):
+            MlflowTagsHook().after_pipeline_run()
 
         mlflow_set_tag.assert_called_with("kubeflow_run_id", "KFP_123")
 
-    def test_should_not_set_mlflow_tags_when_kubeflow_run_id_is_not_passed_in_params(
+    def test_should_not_set_mlflow_tags_when_kubeflow_run_id_env_is_not_set(
         self, mlflow_set_tag
     ):
-        MlflowTagsHook().after_pipeline_run(
-            run_params={"extra_params": {"other_param": "value"}}
-        )
+        with environment({}, delete_keys=["KUBEFLOW_RUN_ID"]):
+            MlflowTagsHook().after_pipeline_run()
+
+        mlflow_set_tag.assert_not_called()
+
+    def test_should_not_set_mlflow_tags_when_kubeflow_run_id_env_is_empty(
+        self, mlflow_set_tag
+    ):
+        with environment({"KUBEFLOW_RUN_ID": ""}):
+            MlflowTagsHook().after_pipeline_run()
 
         mlflow_set_tag.assert_not_called()
 
@@ -92,9 +103,8 @@ class TestMlflowTagsHook(unittest.TestCase):
         __builtins__["__import__"] = mlflow_import_disabled
 
         # when
-        MlflowTagsHook().after_pipeline_run(
-            run_params={"extra_params": {"kubeflow_run_id": "KFP_123"}}
-        )
+        with environment({"KUBEFLOW_RUN_ID": "KFP_123"}):
+            MlflowTagsHook().after_pipeline_run()
 
         # then
         mlflow_set_tag.assert_not_called()
