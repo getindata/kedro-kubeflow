@@ -150,10 +150,13 @@ class TestGenerator(unittest.TestCase):
             "{{workflow.uid}}",
         ]
         for node_name in ["node1", "node2"]:
-            env = dsl_pipeline.ops[node_name].container.env
-            assert env[1].name == "MLFLOW_RUN_ID"
+            env = {
+                e.name: e.value
+                for e in dsl_pipeline.ops[node_name].container.env
+            }
+            assert "MLFLOW_RUN_ID" in env
             assert (
-                env[1].value
+                env["MLFLOW_RUN_ID"]
                 == "{{pipelineparam:op=mlflow-start-run;name=mlflow_run_id}}"
             )
 
