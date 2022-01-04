@@ -205,6 +205,23 @@ class TestGenerator(unittest.TestCase):
             del os.environ["KEDRO_CONFIG_MY_KEY"]
             del os.environ["SOME_VALUE"]
 
+    def test_should_pass_kubeflow_run_id_to_nodes(self):
+        # given
+        self.create_generator(params={"param1": 0.3, "param2": 42})
+
+        # when
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            self.generator_under_test.generate_pipeline(
+                "pipeline", "unittest-image", "Always"
+            )()
+
+        # then
+        env_values = {
+            e.name: e.value for e in dsl_pipeline.ops["pipeline"].container.env
+        }
+        assert "KUBEFLOW_RUN_ID" in env_values
+        assert env_values["KUBEFLOW_RUN_ID"] == "{{workflow.uid}}"
+
     def create_generator(self, config=None, params=None, catalog=None):
         if config is None:
             config = {}
