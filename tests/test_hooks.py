@@ -69,7 +69,7 @@ class TestMlflowIapAuthHook(unittest.TestCase):
 class TestMlflowTagsHook(unittest.TestCase):
     def test_should_set_mlflow_tags(self, mlflow_set_tag):
         with environment({"KUBEFLOW_RUN_ID": "KFP_123"}):
-            MlflowTagsHook().after_pipeline_run()
+            MlflowTagsHook().before_node_run()
 
         mlflow_set_tag.assert_called_with("kubeflow_run_id", "KFP_123")
 
@@ -77,7 +77,7 @@ class TestMlflowTagsHook(unittest.TestCase):
         self, mlflow_set_tag
     ):
         with environment({}, delete_keys=["KUBEFLOW_RUN_ID"]):
-            MlflowTagsHook().after_pipeline_run()
+            MlflowTagsHook().before_node_run()
 
         mlflow_set_tag.assert_not_called()
 
@@ -85,7 +85,7 @@ class TestMlflowTagsHook(unittest.TestCase):
         self, mlflow_set_tag
     ):
         with environment({"KUBEFLOW_RUN_ID": ""}):
-            MlflowTagsHook().after_pipeline_run()
+            MlflowTagsHook().before_node_run()
 
         mlflow_set_tag.assert_not_called()
 
@@ -104,7 +104,7 @@ class TestMlflowTagsHook(unittest.TestCase):
 
         # when
         with environment({"KUBEFLOW_RUN_ID": "KFP_123"}):
-            MlflowTagsHook().after_pipeline_run()
+            MlflowTagsHook().before_node_run()
 
         # then
         mlflow_set_tag.assert_not_called()
