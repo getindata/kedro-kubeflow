@@ -56,7 +56,7 @@ class MlflowTagsHook:
     """Adds `kubeflow_run_id` to MLFlow tags based on environment variables"""
 
     @hook_impl
-    def after_pipeline_run(self) -> None:
+    def before_node_run(self) -> None:
         if is_mlflow_enabled():
             import mlflow
 
