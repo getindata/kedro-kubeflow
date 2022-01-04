@@ -1,9 +1,11 @@
 import os
-from typing import Dict, Iterable
+from typing import Any, Dict, Iterable
 
 from kedro.config import ConfigLoader, TemplatedConfigLoader
 from kedro.framework.hooks import hook_impl
 from kedro.io import DataCatalog
+
+from kedro_kubeflow.utils import is_mlflow_enabled
 
 VAR_PREFIX = "KEDRO_CONFIG_"
 
@@ -50,5 +52,21 @@ class MlflowIapAuthHook:
             os.environ["MLFLOW_TRACKING_TOKEN"] = token
 
 
+class MlflowTagsHook:
+    """Adds `kubeflow_run_id` to MLFlow tags based on value passed from parameters"""
+
+    @hook_impl
+    def after_pipeline_run(self, run_params: Dict[str, Any]) -> None:
+        if is_mlflow_enabled():
+            import mlflow
+
+            if "kubeflow_run_id" in run_params["extra_params"]:
+                mlflow.set_tag(
+                    "kubeflow_run_id",
+                    run_params["extra_params"]["kubeflow_run_id"],
+                )
+
+
 register_templated_config_loader = RegisterTemplatedConfigLoaderHook()
 mlflow_iap_hook = MlflowIapAuthHook()
+mlflow_tags_hook = MlflowTagsHook()
