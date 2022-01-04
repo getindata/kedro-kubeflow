@@ -3,7 +3,7 @@ import logging
 import kubernetes.client as k8s
 from kfp import dsl
 
-from ..utils import clean_name, is_mlflow_enabled
+from ..utils import clean_name
 from .utils import (
     create_container_environment,
     create_params,
@@ -56,12 +56,7 @@ class OnePodPipelineGenerator(object):
                 "--env",
                 self.context.env,
                 "--params",
-                create_params(
-                    self.context.params.keys(),
-                    {"kubeflow_run_id": dsl.RUN_ID_PLACEHOLDER}
-                    if is_mlflow_enabled()
-                    else {},
-                ),
+                create_params(self.context.params.keys()),
                 "--pipeline",
                 pipeline,
             ],
