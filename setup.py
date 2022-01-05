@@ -37,7 +37,7 @@ EXTRA_REQUIRE = {
 
 setup(
     name="kedro-kubeflow",
-    version="0.4.6",
+    version="0.4.7",
     description="Kedro plugin with Kubeflow support",
     long_description=README,
     long_description_content_type="text/markdown",

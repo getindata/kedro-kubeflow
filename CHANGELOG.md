@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.7] - 2022-01-05
+
 -   Add `kubeflow_run_id` tag to MLFlow run when `full` node merge strategy is used
 
 ## [0.4.6] - 2021-12-23
@@ -98,7 +100,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.6...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.7...HEAD
+
+[0.4.7]: https://github.com/getindata/kedro-kubeflow/compare/0.4.6...0.4.7
 
 [0.4.6]: https://github.com/getindata/kedro-kubeflow/compare/0.4.5...0.4.6
 
