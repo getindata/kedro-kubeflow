@@ -36,7 +36,8 @@ def create_container_environment():
     env_vars = [
         k8s.V1EnvVar(
             name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
-        )
+        ),
+        k8s.V1EnvVar(name="KUBEFLOW_RUN_ID", value=dsl.RUN_ID_PLACEHOLDER),
     ]
     for key in os.environ.keys():
         if key.startswith("KEDRO_CONFIG_"):
