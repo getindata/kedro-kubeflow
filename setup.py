@@ -61,6 +61,7 @@ setup(
         "kedro.project_commands": ["kubeflow = kedro_kubeflow.cli:commands"],
         "kedro.hooks": [
             "kubeflow_cfg_hook = kedro_kubeflow.hooks:register_templated_config_loader",
+            "kubeflow_mlflow_tags_hook = kedro_kubeflow.hooks:mlflow_tags_hook",
         ],
     },
 )

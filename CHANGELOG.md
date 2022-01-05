@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Add `kubeflow_run_id` tag to MLFlow run when `full` node merge strategy is used
+
 ## [0.4.6] - 2021-12-23
 
 -   Passing all `KEDRO_CONFIG_` environment variables to the pipeline nodes

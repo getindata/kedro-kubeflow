@@ -5,6 +5,8 @@ from kedro.config import ConfigLoader, TemplatedConfigLoader
 from kedro.framework.hooks import hook_impl
 from kedro.io import DataCatalog
 
+from kedro_kubeflow.utils import is_mlflow_enabled
+
 VAR_PREFIX = "KEDRO_CONFIG_"
 
 # defaults provided so default variables ${commit_id|dirty} work for some entries
@@ -50,5 +52,20 @@ class MlflowIapAuthHook:
             os.environ["MLFLOW_TRACKING_TOKEN"] = token
 
 
+class MlflowTagsHook:
+    """Adds `kubeflow_run_id` to MLFlow tags based on environment variables"""
+
+    @hook_impl
+    def before_node_run(self) -> None:
+        if is_mlflow_enabled():
+            import mlflow
+
+            if os.getenv("KUBEFLOW_RUN_ID"):
+                mlflow.set_tag(
+                    "kubeflow_run_id", os.environ["KUBEFLOW_RUN_ID"]
+                )
+
+
 register_templated_config_loader = RegisterTemplatedConfigLoaderHook()
 mlflow_iap_hook = MlflowIapAuthHook()
+mlflow_tags_hook = MlflowTagsHook()
