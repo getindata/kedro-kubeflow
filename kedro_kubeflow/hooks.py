@@ -60,10 +60,7 @@ class MlflowTagsHook:
         if is_mlflow_enabled():
             import mlflow
 
-            if (
-                "KUBEFLOW_RUN_ID" in os.environ
-                and os.environ["KUBEFLOW_RUN_ID"]
-            ):
+            if os.getenv("KUBEFLOW_RUN_ID"):
                 mlflow.set_tag(
                     "kubeflow_run_id", os.environ["KUBEFLOW_RUN_ID"]
                 )
