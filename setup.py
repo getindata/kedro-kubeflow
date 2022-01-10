@@ -16,7 +16,7 @@ INSTALL_REQUIRES = [
 
 # Dev Requirements
 EXTRA_REQUIRE = {
-    "mlflow": ["kedro-mlflow>=0.4.1"],
+    "mlflow": ["kedro-mlflow>=0.4.1,<0.8.0"],
     "tests": [
         "pytest>=5.4.0, <7.0.0",
         "pytest-cov>=2.8.0, <3.0.0",
