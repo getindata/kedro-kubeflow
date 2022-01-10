@@ -12,12 +12,11 @@ INSTALL_REQUIRES = [
     "tabulate>=0.8.7",
     "semver~=2.10",
     "google-auth<2.0dev",
-    "protobuf<3.18.0",
 ]
 
 # Dev Requirements
 EXTRA_REQUIRE = {
-    "mlflow": ["kedro-mlflow>=0.4.1"],
+    "mlflow": ["kedro-mlflow>=0.4.1,<0.8.0"],
     "tests": [
         "pytest>=5.4.0, <7.0.0",
         "pytest-cov>=2.8.0, <3.0.0",
