@@ -28,7 +28,6 @@ def maybe_add_params(kedro_parameters):
 
 
 def create_params(param_keys: Iterable[str]) -> str:
-    return ""
     return ",".join(
         [f"{param}:{dsl.PipelineParam(param)}" for param in param_keys]
     )
