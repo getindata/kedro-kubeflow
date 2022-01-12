@@ -5,8 +5,9 @@ from kfp import dsl
 
 from ..utils import clean_name
 from .utils import (
+    create_arguments_from_parameters,
+    create_command_using_params_dumper,
     create_container_environment,
-    create_params,
     maybe_add_params,
 )
 
@@ -50,16 +51,16 @@ class OnePodPipelineGenerator(object):
         container_op = dsl.ContainerOp(
             name=clean_name(pipeline),
             image=image,
-            command=["kedro"],
-            arguments=[
-                "run",
-                "--env",
-                self.context.env,
-                "--params",
-                create_params(self.context.params.keys()),
-                "--pipeline",
-                pipeline,
-            ],
+            command=create_command_using_params_dumper(
+                "kedro "
+                "run "
+                f"--env {self.context.env} "
+                f"--pipeline {pipeline} "
+                f"--config config.yaml"
+            ),
+            arguments=create_arguments_from_parameters(
+                self.context.params.keys()
+            ),
             container_kwargs=kwargs,
             file_outputs={
                 output: f"/home/kedro/{self.catalog[output]['filepath']}"
