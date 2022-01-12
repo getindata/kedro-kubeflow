@@ -55,9 +55,8 @@ def create_command_using_params_dumper(command):
         "python -c 'import yaml, sys;"
         "load=lambda e: yaml.load(e, Loader=yaml.FullLoader);"
         "params=dict(zip(sys.argv[1::2], [load(e) for e in sys.argv[2::2]]));"
-        'content={"run": {"params": params}};'
-        'with open("config.yaml") as f: yaml.dump(content, f)\' "$@" && '
-        + command,
+        'f=open("config.yaml", "w");'
+        'yaml.dump({"run": {"params": params}}, f)\' "$@" &&' + command,
     ]
 
 
