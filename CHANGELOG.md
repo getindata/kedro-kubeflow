@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Kedro paramters of complex types (lists and dicts) are now supported
+
 ## [0.4.8] - 2022-01-10
 
 ## [0.4.7] - 2022-01-05

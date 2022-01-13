@@ -1,7 +1,7 @@
+import itertools
 import os
 from functools import wraps
 from inspect import Parameter, signature
-from typing import Iterable
 
 import kubernetes.client as k8s
 from kfp import dsl
@@ -26,12 +26,6 @@ def maybe_add_params(kedro_parameters):
     return decorator
 
 
-def create_params(param_keys: Iterable[str]) -> str:
-    return ",".join(
-        [f"{param}:{dsl.PipelineParam(param)}" for param in param_keys]
-    )
-
-
 def create_container_environment():
     env_vars = [
         k8s.V1EnvVar(
@@ -44,3 +38,23 @@ def create_container_environment():
             env_vars.append(k8s.V1EnvVar(name=key, value=os.environ[key]))
 
     return env_vars
+
+
+def create_command_using_params_dumper(command):
+    return [
+        "bash",
+        "-c",
+        "python -c 'import yaml, sys;"
+        "load=lambda e: yaml.load(e, Loader=yaml.FullLoader);"
+        "params=dict(zip(sys.argv[1::2], [load(e) for e in sys.argv[2::2]]));"
+        'f=open("config.yaml", "w");'
+        'yaml.dump({"run": {"params": params}}, f)\' "$@" &&' + command,
+    ]
+
+
+def create_arguments_from_parameters(paramter_names):
+    return ["_"] + list(
+        itertools.chain(
+            *[[param, dsl.PipelineParam(param)] for param in paramter_names]
+        )
+    )

@@ -52,15 +52,11 @@ class TestGenerator(unittest.TestCase):
         assert len(default_params) == 2
         assert default_params["param1"].default == 0.3
         assert default_params["param2"].default == 42
-        assert dsl_pipeline.ops["pipeline"].container.args == [
-            "run",
-            "--env",
-            "unittests",
-            "--params",
-            "param1:{{pipelineparam:op=;name=param1}},"
-            "param2:{{pipelineparam:op=;name=param2}}",
-            "--pipeline",
-            "pipeline",
+        assert dsl_pipeline.ops["pipeline"].container.args[1:] == [
+            "param1",
+            "{{pipelineparam:op=;name=param1}}",
+            "param2",
+            "{{pipelineparam:op=;name=param2}}",
         ]
 
     def test_should_not_add_resources_spec_if_not_requested(self):
