@@ -12,3 +12,4 @@ repos:
   rev: v2.3.0
   hooks:
   - id: flake8
+    args: ['--ignore=E203'] # see https://github.com/psf/black/issues/315

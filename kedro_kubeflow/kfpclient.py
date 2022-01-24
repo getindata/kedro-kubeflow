@@ -69,15 +69,16 @@ class KubeflowClient(object):
         run_name,
         wait,
         image_pull_policy="IfNotPresent",
+        parameters={},
     ) -> None:
         run = self.client.create_run_from_pipeline_func(
             self.generator.generate_pipeline(
                 pipeline, image, image_pull_policy
             ),
-            arguments={},
+            arguments=parameters,
             experiment_name=experiment_name,
             namespace=experiment_namespace,
-            run_name=run_name,
+            run_name=run_name.format(**parameters),
         )
 
         if wait:
@@ -175,29 +176,35 @@ class KubeflowClient(object):
         return experiment.id
 
     def schedule(
-        self, pipeline, experiment_name, experiment_namespace, cron_expression
+        self,
+        pipeline,
+        experiment_name,
+        experiment_namespace,
+        cron_expression,
+        run_name,
+        parameters={},
     ):
         experiment_id = self._ensure_experiment_exists(
             experiment_name, experiment_namespace
         )
         pipeline_id = self._get_pipeline_id(self.project_name)
-        self._disable_runs(experiment_id, pipeline_id)
+        formatted_run_name = run_name.format(**parameters)
+        self._disable_runs(experiment_id, formatted_run_name)
         self.client.create_recurring_run(
             experiment_id,
-            f"{self.project_name} on {cron_expression}",
+            formatted_run_name,
             cron_expression=cron_expression,
             pipeline_id=pipeline_id,
+            params=parameters,
         )
         self.log.info("Pipeline scheduled to %s", cron_expression)
 
-    def _disable_runs(self, experiment_id, pipeline_id):
+    def _disable_runs(self, experiment_id, run_name):
         runs = self.client.list_recurring_runs(experiment_id=experiment_id)
-        if runs.jobs is not None:
-            my_runs = [
-                job
-                for job in runs.jobs
-                if job.pipeline_spec.pipeline_id == pipeline_id
-            ]
-            for job in my_runs:
-                self.client.jobs.delete_job(job.id)
-                self.log.info(f"Previous schedule deleted {job.id}")
+        if runs.jobs is None:
+            return
+
+        my_runs = [job for job in runs.jobs if job.name == run_name]
+        for job in my_runs:
+            self.client.jobs.delete_job(job.id)
+            self.log.info(f"Previous schedule deleted {job.id}")
