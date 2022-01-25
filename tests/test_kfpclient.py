@@ -36,7 +36,7 @@ class TestKubeflowClient(unittest.TestCase):
             },
         )
 
-    def create_recurring_jobs_list(self, id="pipeline_id"):
+    def create_recurring_jobs_list(self, job_name="job_name"):
         return type(
             "obj",
             (object,),
@@ -46,10 +46,8 @@ class TestKubeflowClient(unittest.TestCase):
                         "obj",
                         (object,),
                         {
-                            "id": "jobid",
-                            "pipeline_spec": type(
-                                "obj", (object,), {"pipeline_id": id}
-                            ),
+                            "name": job_name,
+                            "id": job_name + "ID",
                         },
                     )
                 ]
@@ -123,6 +121,38 @@ class TestKubeflowClient(unittest.TestCase):
         # then
         self.kfp_client_mock.create_run_from_pipeline_func.assert_called()
         run_mock.wait_for_run_completion.assert_called()
+
+    def test_should_run_pipeline_adjusting_the_name(self):
+        # given
+        run_mock = unittest.mock.MagicMock()
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
+
+        # when
+        self.client_under_test.run_once(
+            run_name="unittest for region {region}",
+            pipeline="pipeline",
+            image="unittest-image",
+            experiment_name="experiment",
+            wait=False,
+            experiment_namespace="exp_namespace",
+            parameters={"region": "ABC"},
+        )
+
+        # then
+        self.kfp_client_mock.create_run_from_pipeline_func.assert_called()
+        run_mock.wait_for_run_completion.assert_not_called()
+        (
+            args,
+            kwargs,
+        ) = self.kfp_client_mock.create_run_from_pipeline_func.call_args
+        assert kwargs == {
+            "arguments": {"region": "ABC"},
+            "experiment_name": "experiment",
+            "run_name": "unittest for region ABC",
+            "namespace": "exp_namespace",
+        }
 
     def test_should_compile_pipeline(self):
         with NamedTemporaryFile(suffix=".yaml") as f:
@@ -202,6 +232,7 @@ class TestKubeflowClient(unittest.TestCase):
             experiment_name="EXPERIMENT",
             cron_expression="0 * * * * *",
             experiment_namespace=None,
+            run_name="scheduled run of pipeline X",
         )
 
         # then
@@ -209,9 +240,10 @@ class TestKubeflowClient(unittest.TestCase):
         self.kfp_client_mock.create_experiment.assert_not_called()
         self.kfp_client_mock.create_recurring_run.assert_called_with(
             "123",
-            "my-awesome-project on 0 * * * * *",
+            "scheduled run of pipeline X",
             cron_expression="0 * * * * *",
             pipeline_id="someid",
+            params={},
         )
 
     def test_should_schedule_pipeline_and_create_experiment_if_needed(self):
@@ -233,6 +265,7 @@ class TestKubeflowClient(unittest.TestCase):
             experiment_name="EXPERIMENT",
             cron_expression="0 * * * * *",
             experiment_namespace=None,
+            run_name="pipeline X",
         )
 
         # then
@@ -240,9 +273,10 @@ class TestKubeflowClient(unittest.TestCase):
         self.kfp_client_mock.create_experiment.assert_called()
         self.kfp_client_mock.create_recurring_run.assert_called_with(
             "123",
-            "my-awesome-project on 0 * * * * *",
+            "pipeline X",
             cron_expression="0 * * * * *",
             pipeline_id="someid",
+            params={},
         )
 
     def test_should_disable_old_runs_before_schedule(self):
@@ -255,7 +289,7 @@ class TestKubeflowClient(unittest.TestCase):
             self.create_pipelines_list()
         )
         self.kfp_client_mock.list_recurring_runs.return_value = (
-            self.create_recurring_jobs_list("someid")
+            self.create_recurring_jobs_list("scheduled run for region ABC")
         )
 
         # when
@@ -264,6 +298,8 @@ class TestKubeflowClient(unittest.TestCase):
             experiment_name="EXPERIMENT",
             cron_expression="0 * * * * *",
             experiment_namespace=None,
+            run_name="scheduled run for region {region}",
+            parameters={"region": "ABC"},
         )
 
         # then
@@ -272,9 +308,10 @@ class TestKubeflowClient(unittest.TestCase):
         self.kfp_client_mock.jobs.delete_job.assert_called()
         self.kfp_client_mock.create_recurring_run.assert_called_with(
             "123",
-            "my-awesome-project on 0 * * * * *",
+            "scheduled run for region ABC",
             cron_expression="0 * * * * *",
             pipeline_id="someid",
+            params={"region": "ABC"},
         )
 
     def test_should_upload_new_pipeline(self):
