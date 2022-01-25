@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 -   Kedro paramters of complex types (lists and dicts) are now supported
+-   `run_once` and `schedule` accepts Kedro parameters override
+-   Names of the one-off runs and scheduled runs are templated with parameters
 
 ## [0.4.8] - 2022-01-10
 
