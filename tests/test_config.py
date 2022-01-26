@@ -13,6 +13,7 @@ run_config:
   image_pull_policy: "Always"
   experiment_name: "Test Experiment"
   run_name: "test run"
+  scheduled_run_name: "scheduled run"
   description: "My awesome pipeline"
   wait_for_completion: True
   ttl: 300
@@ -44,6 +45,7 @@ class TestPluginConfig(unittest.TestCase):
         assert cfg.run_config.image_pull_policy == "Always"
         assert cfg.run_config.experiment_name == "Test Experiment"
         assert cfg.run_config.run_name == "test run"
+        assert cfg.run_config.scheduled_run_name == "scheduled run"
         assert cfg.run_config.wait_for_completion
         assert cfg.run_config.volume.storageclass == "default"
         assert cfg.run_config.volume.size == "3Gi"
@@ -123,3 +125,8 @@ class TestPluginConfig(unittest.TestCase):
         cfg = PluginConfig({"run_config": {}})
         assert cfg.run_config.vertex_ai_networking.vpc is None
         assert cfg.run_config.vertex_ai_networking.host_aliases == {}
+
+    def test_reuse_run_name_for_scheduled_run_name(self):
+        cfg = PluginConfig({"run_config": {"run_name": "some run"}})
+        assert cfg.run_config.run_name == "some run"
+        assert cfg.run_config.scheduled_run_name == "some run"
