@@ -9,8 +9,9 @@ from kfp.compiler._k8s_helper import sanitize_k8s_name
 
 from ..utils import clean_name, is_mlflow_enabled
 from .utils import (
+    create_arguments_from_parameters,
+    create_command_using_params_dumper,
     create_container_environment,
-    create_params,
     maybe_add_params,
 )
 
@@ -149,18 +150,17 @@ class PodPerNodePipelineGenerator(object):
                 dsl.ContainerOp(
                     name=name,
                     image=image,
-                    command=["kedro"],
-                    arguments=[
-                        "run",
-                        "--env",
-                        self.context.env,
-                        "--params",
-                        create_params(self.context.params.keys()),
-                        "--pipeline",
-                        pipeline,
-                        "--node",
-                        node.name,
-                    ],
+                    command=create_command_using_params_dumper(
+                        "kedro "
+                        "run "
+                        f"--env {self.context.env} "
+                        f"--pipeline {pipeline} "
+                        f"--node {node.name} "
+                        f"--config config.yaml"
+                    ),
+                    arguments=create_arguments_from_parameters(
+                        self.context.params.keys()
+                    ),
                     pvolumes=node_volumes,
                     container_kwargs=kwargs,
                     file_outputs={

@@ -200,16 +200,11 @@ class TestGenerator(unittest.TestCase):
         for node_name in ["node1", "node2"]:
             args = dsl_pipeline.ops[node_name].container.args
             assert args == [
-                "run",
-                "--env",
-                "unittests",
-                "--params",
-                "param1:{{pipelineparam:op=;name=param1}},"
-                "param2:{{pipelineparam:op=;name=param2}}",
-                "--pipeline",
-                "pipeline",
-                "--node",
-                node_name,
+                "_",
+                "param1",
+                "{{pipelineparam:op=;name=param1}}",
+                "param2",
+                "{{pipelineparam:op=;name=param2}}",
             ]
 
     def test_should_not_add_resources_spec_if_not_requested(self):

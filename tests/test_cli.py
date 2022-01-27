@@ -65,6 +65,8 @@ class TestPluginCLI(unittest.TestCase):
                 "new_pipe",
                 "--experiment-namespace",
                 "my-ns",
+                "--param",
+                "key1:some value",
             ],
             obj=config,
         )
@@ -78,6 +80,7 @@ class TestPluginCLI(unittest.TestCase):
             run_name="test run",
             wait=True,
             experiment_namespace="my-ns",
+            parameters={"key1": "some value"},
         )
 
     @patch("webbrowser.open_new_tab")
@@ -133,13 +136,27 @@ class TestPluginCLI(unittest.TestCase):
 
         result = runner.invoke(
             schedule,
-            ["-c", "* * *", "-x", "test_experiment", "-p", "my-pipeline"],
+            [
+                "-c",
+                "* * *",
+                "-x",
+                "test_experiment",
+                "-p",
+                "my-pipeline",
+                "--param",
+                "key1:some value",
+            ],
             obj=config,
         )
 
         assert result.exit_code == 0
         context_helper.kfp_client.schedule.assert_called_with(
-            "my-pipeline", "test_experiment", None, "* * *"
+            "my-pipeline",
+            "test_experiment",
+            None,
+            "* * *",
+            run_name="test run",
+            parameters={"key1": "some value"},
         )
 
     @patch.object(Path, "cwd")

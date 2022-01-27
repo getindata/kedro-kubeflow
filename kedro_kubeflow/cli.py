@@ -12,6 +12,10 @@ from .context_helper import ContextHelper
 LOG = logging.getLogger(__name__)
 
 
+def format_params(params: list):
+    return dict((p[: p.find(":")], p[p.find(":") + 1 :]) for p in params)
+
+
 @click.group("Kubeflow")
 def commands():
     """Kedro plugin adding support for Kubeflow Pipelines"""
@@ -67,8 +71,17 @@ def list_pipelines(ctx):
     help="Namespace where pipeline experiment run should be deployed to. Not needed "
     "if provided experiment name already exists.",
 )
+@click.option(
+    "--param",
+    "params",
+    type=str,
+    multiple=True,
+    help="Parameters override in form of `key=value`",
+)
 @click.pass_context
-def run_once(ctx, image: str, pipeline: str, experiment_namespace: str):
+def run_once(
+    ctx, image: str, pipeline: str, experiment_namespace: str, params: list
+):
     """Deploy pipeline as a single run within given experiment.
     Config can be specified in kubeflow.yml as well."""
     context_helper = ctx.obj["context_helper"]
@@ -82,6 +95,7 @@ def run_once(ctx, image: str, pipeline: str, experiment_namespace: str):
         run_name=config.run_name,
         wait=config.wait_for_completion,
         image_pull_policy=config.image_pull_policy,
+        parameters=format_params(params),
     )
 
 
@@ -189,6 +203,13 @@ def upload_pipeline(ctx, image, pipeline) -> None:
     help="Namespace where pipeline experiment run should be deployed to. Not needed "
     "if provided experiment name already exists.",
 )
+@click.option(
+    "--param",
+    "params",
+    type=str,
+    multiple=True,
+    help="Parameters override in form of `key=value`",
+)
 @click.pass_context
 def schedule(
     ctx,
@@ -196,6 +217,7 @@ def schedule(
     experiment_namespace: str,
     experiment_name: str,
     cron_expression: str,
+    params: list,
 ):
     """Schedules recurring execution of latest version of the pipeline"""
     context_helper = ctx.obj["context_helper"]
@@ -203,7 +225,12 @@ def schedule(
     experiment = experiment_name if experiment_name else config.experiment_name
 
     context_helper.kfp_client.schedule(
-        pipeline, experiment, experiment_namespace, cron_expression
+        pipeline,
+        experiment,
+        experiment_namespace,
+        cron_expression,
+        run_name=config.scheduled_run_name,
+        parameters=format_params(params),
     )
 
 

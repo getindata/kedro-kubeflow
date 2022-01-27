@@ -22,8 +22,11 @@ run_config:
   # Name of the kubeflow experiment to be created
   experiment_name: {project}
 
-  # Name of the run for run-once
+  # Name of the run for run-once, templated with the run-once parameters
   run_name: {run_name}
+
+  # Name of the scheduled run, templated with the schedule parameters
+  scheduled_run_name: {run_name}
 
   # Optional pipeline description
   #description: "Very Important Pipeline"
@@ -204,6 +207,12 @@ class RunConfig(Config):
     @property
     def run_name(self):
         return self._get_or_fail("run_name")
+
+    @property
+    def scheduled_run_name(self):
+        return self._get_or_default(
+            "scheduled_run_name", self._get_or_fail("run_name")
+        )
 
     @property
     def description(self):
