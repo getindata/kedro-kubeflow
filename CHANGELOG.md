@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.5.0] - 2022-01-27
+
 -   Kedro paramters of complex types (lists and dicts) are now supported
 -   `run_once` and `schedule` accepts Kedro parameters override
 -   Names of the one-off runs and scheduled runs are templated with parameters
@@ -106,7 +108,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.4.8...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.5.0...HEAD
+
+[0.5.0]: https://github.com/getindata/kedro-kubeflow/compare/0.4.8...0.5.0
 
 [0.4.8]: https://github.com/getindata/kedro-kubeflow/compare/0.4.7...0.4.8
 
