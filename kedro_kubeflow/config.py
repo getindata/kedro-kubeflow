@@ -38,6 +38,10 @@ run_config:
   # volume after pipeline finishes) [in seconds]. Default: 1 week
   ttl: 604800
 
+  # What Kedro pipeline should be run as the last step regardless of the
+  # pipeline status. Used to send notifications or raise the alerts
+  # on_exit_pipeline: notify_via_slack
+
   # This sets the caching option for pipeline using
   # execution_options.caching_strategy.max_cache_staleness
   # See https://en.wikipedia.org/wiki/ISO_8601 in section 'Duration'
@@ -247,6 +251,10 @@ class RunConfig(Config):
     @property
     def ttl(self):
         return int(self._get_or_default("ttl", 3600 * 24 * 7))
+
+    @property
+    def on_exit_pipeline(self):
+        return self._get_or_default("on_exit_pipeline", None)
 
     @property
     def vertex_ai_networking(self):
