@@ -47,7 +47,15 @@ class TestGenerator(unittest.TestCase):
 
         # then
         assert len(dsl_pipeline.ops) == 5
-        assert "schedule-volume-termination" in dsl_pipeline.ops
+        assert "on-exit" in dsl_pipeline.ops
+        assert (
+            dsl_pipeline.ops["on-exit"]
+            .container.command[-1]
+            .endswith(
+                "kedro kubeflow delete-pipeline-volume "
+                "{{workflow.name}}-pipeline-data-volume"
+            )
+        )
         volume_spec = dsl_pipeline.ops["data-volume-create"].k8s_resource.spec
         assert volume_spec.resources.requests["storage"] == "1Gi"
         assert volume_spec.access_modes == ["ReadWriteOnce"]
@@ -67,6 +75,54 @@ class TestGenerator(unittest.TestCase):
                 ].container.security_context.run_as_user
                 == 0
             )
+
+    def test_should_generate_on_exit_pipeline_run(self):
+        # given
+        self.create_generator(config={"on_exit_pipeline": "notify_via_slack"})
+
+        # when
+        pipeline = self.generator_under_test.generate_pipeline(
+            "pipeline", "unittest-image", "IfNotPresent"
+        )
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            pipeline()
+
+        # then
+        assert "on-exit" in dsl_pipeline.ops
+        assert (
+            dsl_pipeline.ops["on-exit"]
+            .container.command[-1]
+            .endswith(
+                "kedro run --config config.yaml "
+                "--env unittests --pipeline notify_via_slack"
+            )
+        )
+
+    def test_should_generate_volume_removal_and_on_exit_pipeline_run(self):
+        # given
+        self.create_generator(
+            config={"volume": {}, "on_exit_pipeline": "notify_via_slack"}
+        )
+
+        # when
+        pipeline = self.generator_under_test.generate_pipeline(
+            "pipeline", "unittest-image", "IfNotPresent"
+        )
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            pipeline()
+
+        # then
+        assert "on-exit" in dsl_pipeline.ops
+        assert (
+            dsl_pipeline.ops["on-exit"]
+            .container.command[-1]
+            .endswith(
+                "kedro kubeflow delete-pipeline-volume "
+                "{{workflow.name}}-pipeline-data-volume;"
+                "kedro run --config config.yaml "
+                "--env unittests --pipeline notify_via_slack"
+            )
+        )
 
     def test_should_support_inter_steps_volume_with_given_spec(self):
         # given
@@ -89,7 +145,7 @@ class TestGenerator(unittest.TestCase):
 
         # then
         assert len(dsl_pipeline.ops) == 5
-        assert "schedule-volume-termination" in dsl_pipeline.ops
+        assert "on-exit" in dsl_pipeline.ops
         volume_spec = dsl_pipeline.ops["data-volume-create"].k8s_resource.spec
         assert volume_spec.resources.requests["storage"] == "1Mi"
         assert volume_spec.access_modes == ["ReadWriteOnce"]
@@ -174,7 +230,7 @@ class TestGenerator(unittest.TestCase):
         # then
         assert len(dsl_pipeline.ops) == 4
         assert "data-volume-create" in dsl_pipeline.ops
-        assert "schedule-volume-termination" in dsl_pipeline.ops
+        assert "on-exit" in dsl_pipeline.ops
         assert "data-volume-init" not in dsl_pipeline.ops
         for node_name in ["node1", "node2"]:
             volumes = dsl_pipeline.ops[node_name].container.volume_mounts

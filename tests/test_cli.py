@@ -1,5 +1,6 @@
 import os
 import unittest
+import unittest.mock as um
 from collections import namedtuple
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -9,6 +10,7 @@ from click.testing import CliRunner
 
 from kedro_kubeflow.cli import (
     compile,
+    delete_pipeline_volume,
     init,
     list_pipelines,
     mlflow_start,
@@ -237,3 +239,20 @@ class TestPluginCLI(unittest.TestCase):
                 assert f.read() == "MLFLOW_RUN_ID"
 
         set_tag_mock.assert_called_with("kubeflow_run_id", "KUBEFLOW_RUN_ID")
+
+    @patch("kubernetes.client")
+    @patch("kubernetes.config")
+    def test_delete_pipeline_volume(self, k8s_config_mock, k8s_client_mock):
+        with um.patch(
+            "builtins.open", um.mock_open(read_data="unittest-namespace")
+        ):
+            runner = CliRunner()
+            result = runner.invoke(
+                delete_pipeline_volume,
+                ["workflow-name"],
+            )
+            assert result.exit_code == 0
+            core_api = k8s_client_mock.CoreV1Api()
+            core_api.delete_namespaced_persistent_volume_claim.assert_called_with(
+                "workflow-name", "unittest-namespace"
+            )

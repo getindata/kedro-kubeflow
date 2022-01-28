@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Possibility to run custom Kedro pipeline as on-exit-handler
+
 ## [0.5.0] - 2022-01-27
 
 -   Kedro paramters of complex types (lists and dicts) are now supported
