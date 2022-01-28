@@ -300,3 +300,21 @@ def mlflow_start(ctx, kubeflow_run_id: str, output: str):
     with open(output, "w") as f:
         f.write(run.info.run_id)
     click.echo(f"Started run: {run.info.run_id}")
+
+
+@kubeflow_group.command(hidden=True)
+@click.argument("pvc_name", type=str)
+def delete_pipeline_volume(pvc_name: str):
+    import kubernetes.client
+    import kubernetes.config
+
+    kubernetes.config.load_incluster_config()
+    current_namespace = open(
+        "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+    ).read()
+
+    kubernetes.client.CoreV1Api().delete_namespaced_persistent_volume_claim(
+        pvc_name,
+        current_namespace,
+    )
+    click.echo(f"Volume removed: {pvc_name}")
