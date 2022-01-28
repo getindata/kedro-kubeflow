@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.5.1] - 2022-01-28
+
+-   Possibility to run custom Kedro pipeline as on-exit-handler
+
 ## [0.5.0] - 2022-01-27
 
 -   Kedro paramters of complex types (lists and dicts) are now supported
@@ -108,7 +112,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.5.0...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.5.1...HEAD
+
+[0.5.1]: https://github.com/getindata/kedro-kubeflow/compare/0.5.0...0.5.1
 
 [0.5.0]: https://github.com/getindata/kedro-kubeflow/compare/0.4.8...0.5.0
 

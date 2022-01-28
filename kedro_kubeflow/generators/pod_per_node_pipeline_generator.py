@@ -47,7 +47,9 @@ class PodPerNodePipelineGenerator(object):
             node_dependencies = self.context.pipelines.get(
                 pipeline
             ).node_dependencies
-            with self._create_pipeline_exit_handler(pipeline):
+            with self._create_pipeline_exit_handler(
+                pipeline, image, image_pull_policy
+            ):
                 kfp_ops = self._build_kfp_ops(
                     pipeline, node_dependencies, image, image_pull_policy
                 )
@@ -59,29 +61,48 @@ class PodPerNodePipelineGenerator(object):
 
         return convert_kedro_pipeline_to_kfp
 
-    def _create_pipeline_exit_handler(self, pipeline):
+    def _create_pipeline_exit_handler(
+        self, pipeline, image, image_pull_policy
+    ):
         enable_volume_cleaning = (
             self.run_config.volume is not None
             and not self.run_config.volume.keep
         )
 
-        if not enable_volume_cleaning:
+        if not enable_volume_cleaning and not self.run_config.on_exit_pipeline:
             return contextlib.nullcontext()
 
-        exit_container_op = dsl.ContainerOp(
-            name="schedule-volume-termination",
-            image="gcr.io/cloud-builders/kubectl",
-            command=[
-                "kubectl",
-                "delete",
-                "pvc",
+        commands = []
+
+        if enable_volume_cleaning:
+            commands.append(
+                "kedro kubeflow delete-pipeline-volume "
                 "{{workflow.name}}-"
-                + sanitize_k8s_name(f"{pipeline}-data-volume"),
-                "--wait=false",
-                "--ignore-not-found",
-                "--output",
-                "name",
+                + sanitize_k8s_name(f"{pipeline}-data-volume")
+            )
+
+        if self.run_config.on_exit_pipeline:
+            commands.append(
+                "kedro run "
+                "--config config.yaml "
+                f"--env {self.context.env} "
+                f"--pipeline {self.run_config.on_exit_pipeline}"
+            )
+
+        exit_container_op = dsl.ContainerOp(
+            name="on-exit",
+            image=image,
+            command=create_command_using_params_dumper(";".join(commands)),
+            arguments=create_arguments_from_parameters(
+                self.context.params.keys()
+            )
+            + [
+                "status",
+                "{{workflow.status}}",
+                "failures",
+                "{{workflow.failures}}",
             ],
+            container_kwargs={"env": create_container_environment()},
         )
 
         if self.run_config.max_cache_staleness not in [None, ""]:
@@ -89,7 +110,9 @@ class PodPerNodePipelineGenerator(object):
                 self.run_config.max_cache_staleness
             )
 
-        return dsl.ExitHandler(exit_container_op)
+        return dsl.ExitHandler(
+            self._customize_op(exit_container_op, image_pull_policy)
+        )
 
     def _build_kfp_ops(
         self,
