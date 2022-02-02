@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Added missing on-exit-handler for `node_merge_strategy: full`
+
 ## [0.5.1] - 2022-01-28
 
 -   Possibility to run custom Kedro pipeline as on-exit-handler
