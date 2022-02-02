@@ -191,6 +191,29 @@ class TestGenerator(unittest.TestCase):
         assert "KUBEFLOW_RUN_ID" in env_values
         assert env_values["KUBEFLOW_RUN_ID"] == "{{workflow.uid}}"
 
+    def test_should_generate_exit_handler_if_requested(self):
+        # given
+        self.create_generator(config={"on_exit_pipeline": "notify_via_slack"})
+
+        # when
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            pipeline = self.generator_under_test.generate_pipeline(
+                "pipeline", "unittest-image", "Always"
+            )
+            pipeline()
+
+        # then
+        assert len(dsl_pipeline.ops) == 2
+        assert "on-exit" in dsl_pipeline.ops
+        assert (
+            dsl_pipeline.ops["on-exit"]
+            .container.command[-1]
+            .endswith(
+                "kedro run --config config.yaml "
+                "--env unittests --pipeline notify_via_slack"
+            )
+        )
+
     def create_generator(self, config=None, params=None, catalog=None):
         if config is None:
             config = {}

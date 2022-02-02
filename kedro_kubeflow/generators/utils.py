@@ -1,3 +1,4 @@
+import contextlib
 import itertools
 import os
 from functools import wraps
@@ -5,6 +6,7 @@ from inspect import Parameter, signature
 
 import kubernetes.client as k8s
 from kfp import dsl
+from kfp.compiler._k8s_helper import sanitize_k8s_name
 
 from ..auth import IAP_CLIENT_ID
 
@@ -58,3 +60,62 @@ def create_arguments_from_parameters(paramter_names):
             *[[param, dsl.PipelineParam(param)] for param in paramter_names]
         )
     )
+
+
+def create_pipeline_exit_handler(
+    pipeline, image, image_pull_policy, run_config, context
+):
+    enable_volume_cleaning = (
+        run_config.volume is not None and not run_config.volume.keep
+    )
+
+    if not enable_volume_cleaning and not run_config.on_exit_pipeline:
+        return contextlib.nullcontext()
+
+    commands = []
+
+    if enable_volume_cleaning:
+        commands.append(
+            "kedro kubeflow delete-pipeline-volume "
+            "{{workflow.name}}-" + sanitize_k8s_name(f"{pipeline}-data-volume")
+        )
+
+    if run_config.on_exit_pipeline:
+        commands.append(
+            "kedro run "
+            "--config config.yaml "
+            f"--env {context.env} "
+            f"--pipeline {run_config.on_exit_pipeline}"
+        )
+
+    exit_container_op = dsl.ContainerOp(
+        name="on-exit",
+        image=image,
+        command=create_command_using_params_dumper(";".join(commands)),
+        arguments=create_arguments_from_parameters(context.params.keys())
+        + [
+            "status",
+            "{{workflow.status}}",
+            "failures",
+            "{{workflow.failures}}",
+        ],
+        container_kwargs={"env": create_container_environment()},
+    )
+
+    if run_config.max_cache_staleness not in [None, ""]:
+        exit_container_op.execution_options.caching_strategy.max_cache_staleness = (
+            run_config.max_cache_staleness
+        )
+
+    return dsl.ExitHandler(
+        customize_op(exit_container_op, image_pull_policy, run_config)
+    )
+
+
+def customize_op(op, image_pull_policy, run_config):
+    op.container.set_image_pull_policy(image_pull_policy)
+    if run_config.volume and run_config.volume.owner is not None:
+        op.container.set_security_context(
+            k8s.V1SecurityContext(run_as_user=run_config.volume.owner)
+        )
+    return op
