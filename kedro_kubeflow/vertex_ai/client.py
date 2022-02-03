@@ -40,11 +40,19 @@ class VertexAIPipelinesClient:
         List all the jobs (current and historical) on Vertex AI Pipelines
         :return:
         """
-        pipelines = self.api_client.list_jobs()["pipelineJobs"]
-        return tabulate(
-            map(lambda x: [x.get("displayName"), x["name"]], pipelines),
-            headers=["Name", "ID"],
-        )
+        self.log.info(self.api_client.list_jobs())
+        jobs_key = "pipelineJobs"
+        if jobs_key in self.api_client.list_jobs():
+            pipelines = self.api_client.list_jobs()[jobs_key]
+            return tabulate(
+                map(lambda x: [x.get("displayName"), x["name"]], pipelines),
+                headers=["Name", "ID"],
+            )
+        else:
+            return tabulate(
+                {},
+                headers=["Name", "ID"],
+            )
 
     def run_once(
         self,
@@ -55,6 +63,7 @@ class VertexAIPipelinesClient:
         wait=False,
         image_pull_policy="IfNotPresent",
         experiment_namespace=None,
+        parameters={},
     ):
         """
         Runs the pipeline in Vertex AI Pipelines

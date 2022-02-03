@@ -1,3 +1,4 @@
+import logging
 from functools import lru_cache
 from pathlib import Path
 
@@ -8,8 +9,9 @@ from .config import PluginConfig
 
 
 class ContextHelper(object):
-
     CONFIG_FILE_PATTERN = "kubeflow*"
+
+    log = logging.getLogger(__name__)
 
     def __init__(self, metadata, env):
         self._metadata = metadata
@@ -39,6 +41,9 @@ class ContextHelper(object):
     @property
     @lru_cache()
     def kfp_client(self):
+        self.log.info(
+            f"Using Vertex AI API {self.config.is_vertex_ai_pipelines}"
+        )
         if self.config.is_vertex_ai_pipelines:
             from .vertex_ai.client import VertexAIPipelinesClient
 

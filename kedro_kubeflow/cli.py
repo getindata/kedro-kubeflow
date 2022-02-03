@@ -86,7 +86,7 @@ def run_once(
     Config can be specified in kubeflow.yml as well."""
     context_helper = ctx.obj["context_helper"]
     config = context_helper.config.run_config
-
+    LOG.info(config)
     context_helper.kfp_client.run_once(
         pipeline=pipeline,
         image=image if image else config.image,
