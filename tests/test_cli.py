@@ -127,7 +127,7 @@ class TestPluginCLI(unittest.TestCase):
 
         assert result.exit_code == 0
         context_helper.kfp_client.upload.assert_called_with(
-            image="img", image_pull_policy="Always", pipeline="pipe"
+            image="img", image_pull_policy="Always", pipeline_name="pipe"
         )
 
     def test_schedule(self):

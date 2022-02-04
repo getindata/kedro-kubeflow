@@ -165,7 +165,7 @@ def upload_pipeline(ctx, image, pipeline) -> None:
     config = context_helper.config.run_config
 
     context_helper.kfp_client.upload(
-        pipeline=pipeline,
+        pipeline_name=pipeline,
         image=image if image else config.image,
         image_pull_policy=config.image_pull_policy,
     )

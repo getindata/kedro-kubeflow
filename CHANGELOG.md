@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Kedro pipeline name is now added into Kubeflow pipeline name during upload
+
 ## [0.5.1] - 2022-01-28
 
 -   Possibility to run custom Kedro pipeline as on-exit-handler
