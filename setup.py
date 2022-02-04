@@ -48,7 +48,7 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     keywords="kedro kubeflow plugin",
-    author=u"Mateusz Pytel, Mariusz Strzelecki",
+    author="Mateusz Pytel, Mariusz Strzelecki",
     author_email="mateusz@getindata.com",
     url="https://github.com/getindata/kedro-kubeflow/",
     packages=find_packages(exclude=["ez_setup", "examples", "tests", "docs"]),
