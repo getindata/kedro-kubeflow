@@ -8,7 +8,7 @@ with open("README.md") as f:
 INSTALL_REQUIRES = [
     "kedro>=0.16,<=0.18",
     "click<8.0",
-    "kfp~=1.6.0",
+    "kfp~=1.8.0",
     "tabulate>=0.8.7",
     "semver~=2.10",
     "google-auth<2.0dev",
@@ -48,7 +48,7 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     keywords="kedro kubeflow plugin",
-    author=u"Mateusz Pytel, Mariusz Strzelecki",
+    author="Mateusz Pytel, Mariusz Strzelecki",
     author_email="mateusz@getindata.com",
     url="https://github.com/getindata/kedro-kubeflow/",
     packages=find_packages(exclude=["ez_setup", "examples", "tests", "docs"]),

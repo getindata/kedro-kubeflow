@@ -221,10 +221,7 @@ class TestKubeflowClient(unittest.TestCase):
         self.kfp_client_mock.get_experiment.return_value = (
             self.create_experiment()
         )
-        self.kfp_client_mock.pipelines = unittest.mock.MagicMock()
-        self.kfp_client_mock.pipelines.list_pipelines.return_value = (
-            self.create_pipelines_list()
-        )
+        self.kfp_client_mock.get_pipeline_id.return_value = "someid"
 
         # when
         self.client_under_test.schedule(
@@ -254,10 +251,7 @@ class TestKubeflowClient(unittest.TestCase):
         self.kfp_client_mock.create_experiment.return_value = (
             self.create_experiment()
         )
-        self.kfp_client_mock.pipelines = unittest.mock.MagicMock()
-        self.kfp_client_mock.pipelines.list_pipelines.return_value = (
-            self.create_pipelines_list()
-        )
+        self.kfp_client_mock.get_pipeline_id.return_value = "someid"
 
         # when
         self.client_under_test.schedule(
@@ -284,10 +278,7 @@ class TestKubeflowClient(unittest.TestCase):
         self.kfp_client_mock.get_experiment.return_value = (
             self.create_experiment()
         )
-        self.kfp_client_mock.pipelines = unittest.mock.MagicMock()
-        self.kfp_client_mock.pipelines.list_pipelines.return_value = (
-            self.create_pipelines_list()
-        )
+        self.kfp_client_mock.get_pipeline_id.return_value = "someid"
         self.kfp_client_mock.list_recurring_runs.return_value = (
             self.create_recurring_jobs_list("scheduled run for region ABC")
         )
@@ -317,14 +308,11 @@ class TestKubeflowClient(unittest.TestCase):
     def test_should_upload_new_pipeline(self):
         # given
         self.create_client({"description": "Very Important Pipeline"})
-        self.kfp_client_mock.pipelines = unittest.mock.MagicMock()
-        self.kfp_client_mock.pipelines.list_pipelines.return_value = (
-            self.create_empty_pipelines_list()
-        )
+        self.kfp_client_mock.get_pipeline_id.return_value = None
 
         # when
         self.client_under_test.upload(
-            pipeline="pipeline",
+            pipeline_name="pipeline_name",
             image="unittest-image",
             image_pull_policy="Always",
         )
@@ -336,20 +324,16 @@ class TestKubeflowClient(unittest.TestCase):
             args,
             kwargs,
         ) = self.kfp_client_mock.pipeline_uploads.upload_pipeline.call_args
-        assert kwargs["name"] == "my-awesome-project"
+        assert kwargs["name"] == "[my-awesome-project] pipeline_name"
         assert kwargs["description"] == "Very Important Pipeline"
 
     def test_should_upload_new_version_of_existing_pipeline(self):
         # given
-        self.kfp_client_mock.pipelines = unittest.mock.MagicMock()
-        self.kfp_client_mock.pipelines = unittest.mock.MagicMock()
-        self.kfp_client_mock.pipelines.list_pipelines.return_value = (
-            self.create_pipelines_list()
-        )
+        self.kfp_client_mock.get_pipeline_id.return_value = "123"
 
         # when
         self.client_under_test.upload(
-            pipeline="pipeline",
+            pipeline_name="pipeline",
             image="unittest-image",
             image_pull_policy="Always",
         )
