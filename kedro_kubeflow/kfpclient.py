@@ -1,4 +1,3 @@
-import json
 import logging
 import uuid
 from tempfile import NamedTemporaryFile
@@ -95,17 +94,23 @@ class KubeflowClient(object):
         )
         self.log.info("Generated pipeline definition was saved to %s" % output)
 
-    def upload(self, pipeline, image, image_pull_policy="IfNotPresent"):
+    def get_full_pipeline_name(self, pipeline_name):
+        return f"[{self.project_name}] {pipeline_name}"
+
+    def upload(self, pipeline_name, image, image_pull_policy="IfNotPresent"):
         pipeline = self.generator.generate_pipeline(
-            pipeline, image, image_pull_policy
+            pipeline_name, image, image_pull_policy
         )
 
-        if self._pipeline_exists(self.project_name):
-            pipeline_id = self._get_pipeline_id(self.project_name)
+        full_pipeline_name = self.get_full_pipeline_name(pipeline_name)
+        if self._pipeline_exists(full_pipeline_name):
+            pipeline_id = self.client.get_pipeline_id(full_pipeline_name)
             version_id = self._upload_pipeline_version(pipeline, pipeline_id)
             self.log.info("New version of pipeline created: %s", version_id)
         else:
-            (pipeline_id, version_id) = self._upload_pipeline(pipeline)
+            (pipeline_id, version_id) = self._upload_pipeline(
+                pipeline, full_pipeline_name
+            )
             self.log.info("Pipeline created")
 
         self.log.info(
@@ -115,25 +120,7 @@ class KubeflowClient(object):
         )
 
     def _pipeline_exists(self, pipeline_name):
-        return self._get_pipeline_id(pipeline_name) is not None
-
-    def _get_pipeline_id(self, pipeline_name):
-        pipelines = self.client.pipelines.list_pipelines(
-            filter=json.dumps(
-                {
-                    "predicates": [
-                        {
-                            "key": "name",
-                            "op": 1,
-                            "string_value": pipeline_name,
-                        }
-                    ]
-                }
-            )
-        ).pipelines
-
-        if pipelines:
-            return pipelines[0].id
+        return self.client.get_pipeline_id(pipeline_name) is not None
 
     def _upload_pipeline_version(self, pipeline_func, pipeline_id):
         version_name = f"{clean_name(self.project_name)}-{uuid.uuid4()}"[:100]
@@ -146,12 +133,12 @@ class KubeflowClient(object):
                 _request_timeout=10000,
             ).id
 
-    def _upload_pipeline(self, pipeline_func):
+    def _upload_pipeline(self, pipeline_func, pipeline_name):
         with NamedTemporaryFile(suffix=".yaml") as f:
             Compiler().compile(pipeline_func, f.name)
             pipeline = self.client.pipeline_uploads.upload_pipeline(
                 f.name,
-                name=self.project_name,
+                name=pipeline_name,
                 description=self.pipeline_description,
                 _request_timeout=10000,
             )
@@ -187,7 +174,9 @@ class KubeflowClient(object):
         experiment_id = self._ensure_experiment_exists(
             experiment_name, experiment_namespace
         )
-        pipeline_id = self._get_pipeline_id(self.project_name)
+        pipeline_id = self.client.get_pipeline_id(
+            self.get_full_pipeline_name(pipeline)
+        )
         formatted_run_name = run_name.format(**parameters)
         self._disable_runs(experiment_id, formatted_run_name)
         self.client.create_recurring_run(
