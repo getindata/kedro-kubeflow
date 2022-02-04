@@ -191,10 +191,10 @@ class PipelineGenerator:
             node_command = " ".join(
                 [
                     self._generate_hosts_file(),
-                    "rm -r /home/kedro/data"
+                    "rm -rf /home/kedro/data "
                     "&&"
-                    f"ln -s /gcs/{self._get_data_path()} /home/kedro/data"
-                    "&&",
+                    f"ln -s /gcs/{self._get_data_path()} /home/kedro/data "
+                    "&& ",
                     mlflow_tokens + kedro_command,
                 ]
             )
