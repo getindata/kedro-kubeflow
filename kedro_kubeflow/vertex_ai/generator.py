@@ -18,6 +18,7 @@ from kfp.components.structures import (
 )
 from kfp.v2 import dsl
 
+from kedro_kubeflow.auth import AuthHandler
 from kedro_kubeflow.utils import clean_name, is_mlflow_enabled
 from kedro_kubeflow.vertex_ai.io import (
     generate_inputs,
@@ -154,8 +155,9 @@ class PipelineGenerator:
     ) -> Dict[str, dsl.ContainerOp]:
         """Build kfp container graph from Kedro node dependencies."""
         kfp_ops = {}
-
+        self.log.info(f"MLflow status: {is_mlflow_enabled()}")
         if is_mlflow_enabled():
+            tracking_token = AuthHandler().obtain_id_token()
             kfp_ops["mlflow-start-run"] = self._create_mlflow_op(
                 image, tracking_token
             )
