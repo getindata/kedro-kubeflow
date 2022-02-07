@@ -208,8 +208,7 @@ class PipelineGenerator:
                     container=ContainerSpec(
                         image=image,
                         command=["/bin/bash", "-c"],
-                        args=[node_command + " " + output_copy_commands]
-                        + output_placeholders,
+                        args=[node_command + " "] + output_placeholders,
                     )
                 ),
             )
