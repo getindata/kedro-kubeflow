@@ -147,7 +147,7 @@ class PodPerNodePipelineGenerator(object):
                         "mlflow-start",
                         dsl.RUN_ID_PLACEHOLDER,
                     ],
-                    container_kwargs={"env": nodes_env},
+                    container_kwargs={"env": nodes_env.copy()},
                     file_outputs={"mlflow_run_id": "/tmp/mlflow_run_id"},
                 ),
                 image_pull_policy,
