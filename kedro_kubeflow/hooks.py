@@ -36,6 +36,7 @@ class RegisterTemplatedConfigLoaderHook:
     ) -> ConfigLoader:
         return TemplatedConfigLoader(
             conf_paths,
+            globals_pattern="*globals.yml",
             globals_dict=self.read_env(),
         )
 
