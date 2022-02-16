@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 -   Kedro pipeline name is now added into Kubeflow pipeline name during upload
+-   Project hook that injected environmental variables values into all the configuration files is dropped, with backward compatibility to support these in `kubeflow.yaml`
 
 ## [0.5.1] - 2022-01-28
 
