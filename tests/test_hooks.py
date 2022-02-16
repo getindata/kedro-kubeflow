@@ -1,59 +1,13 @@
 import os
 import unittest
-from contextlib import contextmanager
 from unittest.mock import patch
 
 import mlflow
 
 from kedro_kubeflow.auth import AuthHandler
-from kedro_kubeflow.hooks import (  # NOQA
-    MlflowIapAuthHook,
-    MlflowTagsHook,
-    RegisterTemplatedConfigLoaderHook,
-)
+from kedro_kubeflow.hooks import MlflowIapAuthHook, MlflowTagsHook  # NOQA
 
-
-@contextmanager
-def environment(env, delete_keys=None):
-    original_environ = os.environ.copy()
-    os.environ.update(env)
-    if delete_keys is None:
-        delete_keys = []
-    for key in delete_keys:
-        os.environ.pop(key, None)
-
-    yield
-    os.environ = original_environ
-
-
-class TestRegisterTemplatedConfigLoaderHook(unittest.TestCase):
-    @staticmethod
-    def get_config():
-        config_path = [os.path.dirname(os.path.abspath(__file__))]
-        loader = RegisterTemplatedConfigLoaderHook().register_config_loader(
-            conf_paths=config_path
-        )
-        return loader.get("test_config.yml")
-
-    def test_loader_with_defaults(self):
-        config = self.get_config()
-        assert config["run_config"]["image"] == "gcr.io/project-image/dirty"
-        assert config["run_config"]["experiment_name"] == "[Test] local"
-        assert config["run_config"]["run_name"] == "dirty"
-
-    def test_loader_with_env(self):
-        with environment(
-            {
-                "KEDRO_CONFIG_COMMIT_ID": "123abc",
-                "KEDRO_CONFIG_BRANCH_NAME": "feature-1",
-                "KEDRO_CONFIG_XYZ123": "123abc",
-            }
-        ):
-            config = self.get_config()
-
-        assert config["run_config"]["image"] == "gcr.io/project-image/123abc"
-        assert config["run_config"]["experiment_name"] == "[Test] feature-1"
-        assert config["run_config"]["run_name"] == "123abc"
+from .utils import environment
 
 
 class TestMlflowIapAuthHook(unittest.TestCase):
