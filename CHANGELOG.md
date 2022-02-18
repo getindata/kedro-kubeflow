@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2022-02-18
+
 -   Kedro pipeline name is now added into Kubeflow pipeline name during upload
 -   Project hook that injected environmental variables values into all the configuration files is dropped, with backward compatibility to support these in `kubeflow.yaml`
 -   Added missing on-exit-handler for `node_merge_strategy: full`
@@ -117,7 +119,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.5.1...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.6.0...HEAD
+
+[0.6.0]: https://github.com/getindata/kedro-kubeflow/compare/0.5.1...0.6.0
 
 [0.5.1]: https://github.com/getindata/kedro-kubeflow/compare/0.5.0...0.5.1
 

@@ -28,7 +28,7 @@ EXTRA_REQUIRE = {
     "docs": [
         "sphinx==3.4.2",
         "recommonmark==0.7.1",
-        "sphinx_rtd_theme==0.5.1",
+        "sphinx_rtd_theme==0.6.0",
     ],
     "vertexai": [
         "google-cloud-scheduler>=2.3.2",
@@ -37,7 +37,7 @@ EXTRA_REQUIRE = {
 
 setup(
     name="kedro-kubeflow",
-    version="0.5.1",
+    version="0.6.0",
     description="Kedro plugin with Kubeflow support",
     long_description=README,
     long_description_content_type="text/markdown",
