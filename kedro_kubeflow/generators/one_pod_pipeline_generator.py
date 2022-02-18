@@ -8,6 +8,7 @@ from .utils import (
     create_arguments_from_parameters,
     create_command_using_params_dumper,
     create_container_environment,
+    create_pipeline_exit_handler,
     maybe_add_params,
 )
 
@@ -29,7 +30,14 @@ class OnePodPipelineGenerator(object):
             dsl.get_pipeline_conf().set_ttl_seconds_after_finished(
                 self.run_config.ttl
             )
-            self._build_kfp_op(pipeline, image, image_pull_policy)
+            with create_pipeline_exit_handler(
+                pipeline,
+                image,
+                image_pull_policy,
+                self.run_config,
+                self.context,
+            ):
+                self._build_kfp_op(pipeline, image, image_pull_policy)
 
         return convert_kedro_pipeline_to_kfp
 
