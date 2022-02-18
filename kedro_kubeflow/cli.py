@@ -26,7 +26,12 @@ def commands():
     name="kubeflow", context_settings=dict(help_option_names=["-h", "--help"])
 )
 @click.option(
-    "-e", "--env", "env", type=str, default="local", help="Environment to use."
+    "-e",
+    "--env",
+    "env",
+    type=str,
+    default=lambda: os.environ.get("KEDRO_ENV", "local"),
+    help="Environment to use.",
 )
 @click.pass_obj
 @click.pass_context
@@ -165,7 +170,7 @@ def upload_pipeline(ctx, image, pipeline) -> None:
     config = context_helper.config.run_config
 
     context_helper.kfp_client.upload(
-        pipeline=pipeline,
+        pipeline_name=pipeline,
         image=image if image else config.image,
         image_pull_policy=config.image_pull_policy,
     )

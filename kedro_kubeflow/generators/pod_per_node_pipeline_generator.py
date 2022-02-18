@@ -1,17 +1,17 @@
-import contextlib
 import logging
 from typing import Dict, Set
 
 import kubernetes.client as k8s
 from kedro.pipeline.node import Node
 from kfp import dsl
-from kfp.compiler._k8s_helper import sanitize_k8s_name
 
 from ..utils import clean_name, is_mlflow_enabled
 from .utils import (
     create_arguments_from_parameters,
     create_command_using_params_dumper,
     create_container_environment,
+    create_pipeline_exit_handler,
+    customize_op,
     maybe_add_params,
 )
 
@@ -47,8 +47,12 @@ class PodPerNodePipelineGenerator(object):
             node_dependencies = self.context.pipelines.get(
                 pipeline
             ).node_dependencies
-            with self._create_pipeline_exit_handler(
-                pipeline, image, image_pull_policy
+            with create_pipeline_exit_handler(
+                pipeline,
+                image,
+                image_pull_policy,
+                self.run_config,
+                self.context,
             ):
                 kfp_ops = self._build_kfp_ops(
                     pipeline, node_dependencies, image, image_pull_policy
@@ -60,59 +64,6 @@ class PodPerNodePipelineGenerator(object):
                         kfp_ops[node.name].after(kfp_ops[dependency.name])
 
         return convert_kedro_pipeline_to_kfp
-
-    def _create_pipeline_exit_handler(
-        self, pipeline, image, image_pull_policy
-    ):
-        enable_volume_cleaning = (
-            self.run_config.volume is not None
-            and not self.run_config.volume.keep
-        )
-
-        if not enable_volume_cleaning and not self.run_config.on_exit_pipeline:
-            return contextlib.nullcontext()
-
-        commands = []
-
-        if enable_volume_cleaning:
-            commands.append(
-                "kedro kubeflow delete-pipeline-volume "
-                "{{workflow.name}}-"
-                + sanitize_k8s_name(f"{pipeline}-data-volume")
-            )
-
-        if self.run_config.on_exit_pipeline:
-            commands.append(
-                "kedro run "
-                "--config config.yaml "
-                f"--env {self.context.env} "
-                f"--pipeline {self.run_config.on_exit_pipeline}"
-            )
-
-        exit_container_op = dsl.ContainerOp(
-            name="on-exit",
-            image=image,
-            command=create_command_using_params_dumper(";".join(commands)),
-            arguments=create_arguments_from_parameters(
-                self.context.params.keys()
-            )
-            + [
-                "status",
-                "{{workflow.status}}",
-                "failures",
-                "{{workflow.failures}}",
-            ],
-            container_kwargs={"env": create_container_environment()},
-        )
-
-        if self.run_config.max_cache_staleness not in [None, ""]:
-            exit_container_op.execution_options.caching_strategy.max_cache_staleness = (
-                self.run_config.max_cache_staleness
-            )
-
-        return dsl.ExitHandler(
-            self._customize_op(exit_container_op, image_pull_policy)
-        )
 
     def _build_kfp_ops(
         self,
@@ -135,7 +86,7 @@ class PodPerNodePipelineGenerator(object):
         nodes_env = create_container_environment()
 
         if is_mlflow_enabled():
-            kfp_ops["mlflow-start-run"] = self._customize_op(
+            kfp_ops["mlflow-start-run"] = customize_op(
                 dsl.ContainerOp(
                     name="mlflow-start-run",
                     image=image,
@@ -147,10 +98,11 @@ class PodPerNodePipelineGenerator(object):
                         "mlflow-start",
                         dsl.RUN_ID_PLACEHOLDER,
                     ],
-                    container_kwargs={"env": nodes_env},
+                    container_kwargs={"env": nodes_env.copy()},
                     file_outputs={"mlflow_run_id": "/tmp/mlflow_run_id"},
                 ),
                 image_pull_policy,
+                self.run_config,
             )
 
             nodes_env.append(
@@ -169,7 +121,7 @@ class PodPerNodePipelineGenerator(object):
                     requests=self.run_config.resources.get_for(node.name),
                 )
 
-            kfp_ops[node.name] = self._customize_op(
+            kfp_ops[node.name] = customize_op(
                 dsl.ContainerOp(
                     name=name,
                     image=image,
@@ -196,17 +148,10 @@ class PodPerNodePipelineGenerator(object):
                     },
                 ),
                 image_pull_policy,
+                self.run_config,
             )
 
         return kfp_ops
-
-    def _customize_op(self, op, image_pull_policy):
-        op.container.set_image_pull_policy(image_pull_policy)
-        if self.run_config.volume and self.run_config.volume.owner is not None:
-            op.container.set_security_context(
-                k8s.V1SecurityContext(run_as_user=self.run_config.volume.owner)
-            )
-        return op
 
     def _setup_volumes(self, volume_name, image, image_pull_policy):
         vop = dsl.VolumeOp(
@@ -226,7 +171,7 @@ class PodPerNodePipelineGenerator(object):
         if self.run_config.volume.skip_init:
             return {"/home/kedro/data": vop.volume}
         else:
-            volume_init = self._customize_op(
+            volume_init = customize_op(
                 dsl.ContainerOp(
                     name="data-volume-init",
                     image=image,
@@ -245,5 +190,6 @@ class PodPerNodePipelineGenerator(object):
                     pvolumes={"/home/kedro/datavolume": vop.volume},
                 ),
                 image_pull_policy,
+                self.run_config,
             )
             return {"/home/kedro/data": volume_init.pvolume}

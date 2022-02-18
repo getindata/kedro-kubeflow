@@ -8,7 +8,7 @@ with open("README.md") as f:
 INSTALL_REQUIRES = [
     "kedro>=0.16,<=0.18",
     "click<8.0",
-    "kfp~=1.6.0",
+    "kfp~=1.8.0",
     "tabulate>=0.8.7",
     "semver~=2.10",
     "google-auth<2.0dev",
@@ -20,6 +20,7 @@ EXTRA_REQUIRE = {
     "tests": [
         "pytest>=5.4.0, <7.0.0",
         "pytest-cov>=2.8.0, <3.0.0",
+        "pytest-subtests>=0.5.0, <1.0.0",
         "tox==3.23.1",
         "pre-commit==2.9.3",
         "responses>=0.13.4",
@@ -27,7 +28,7 @@ EXTRA_REQUIRE = {
     "docs": [
         "sphinx==3.4.2",
         "recommonmark==0.7.1",
-        "sphinx_rtd_theme==0.5.1",
+        "sphinx_rtd_theme==0.6.0",
     ],
     "vertexai": [
         "google-cloud-scheduler>=2.3.2",
@@ -36,7 +37,7 @@ EXTRA_REQUIRE = {
 
 setup(
     name="kedro-kubeflow",
-    version="0.5.1",
+    version="0.6.0",
     description="Kedro plugin with Kubeflow support",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -48,7 +49,7 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     keywords="kedro kubeflow plugin",
-    author=u"Mateusz Pytel, Mariusz Strzelecki",
+    author="Mateusz Pytel, Mariusz Strzelecki",
     author_email="mateusz@getindata.com",
     url="https://github.com/getindata/kedro-kubeflow/",
     packages=find_packages(exclude=["ez_setup", "examples", "tests", "docs"]),
@@ -59,7 +60,6 @@ setup(
     entry_points={
         "kedro.project_commands": ["kubeflow = kedro_kubeflow.cli:commands"],
         "kedro.hooks": [
-            "kubeflow_cfg_hook = kedro_kubeflow.hooks:register_templated_config_loader",
             "kubeflow_mlflow_tags_hook = kedro_kubeflow.hooks:mlflow_tags_hook",
         ],
     },

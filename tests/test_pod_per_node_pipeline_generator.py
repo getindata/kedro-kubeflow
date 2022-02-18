@@ -205,6 +205,7 @@ class TestGenerator(unittest.TestCase):
             "mlflow-start",
             "{{workflow.uid}}",
         ]
+        assert "MLFLOW_RUN_ID" not in {e.name for e in init_step.env}
         for node_name in ["node1", "node2"]:
             env = {
                 e.name: e.value
