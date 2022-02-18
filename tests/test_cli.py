@@ -12,6 +12,7 @@ from kedro_kubeflow.cli import (
     compile,
     delete_pipeline_volume,
     init,
+    kubeflow_group,
     list_pipelines,
     mlflow_start,
     run_once,
@@ -256,3 +257,31 @@ class TestPluginCLI(unittest.TestCase):
             core_api.delete_namespaced_persistent_volume_claim.assert_called_with(
                 "workflow-name", "unittest-namespace"
             )
+
+    @patch.object(ContextHelper, "init")
+    def test_handle_env_arguments(self, context_helper_init):
+        for testname, env_var, cli, expected in [
+            (
+                "CLI arg should have preference over environment variable",
+                "pipelines",
+                "custom",
+                "custom",
+            ),
+            (
+                "KEDRO_ENV should be taken into account",
+                "pipelines",
+                None,
+                "pipelines",
+            ),
+            ("CLI arg should be taken into account", None, "custom", "custom"),
+            ("default value should be set", None, None, "local"),
+        ]:
+            runner = CliRunner()
+            with self.subTest(msg=testname):
+                cli = ["--env", cli] if cli else []
+                env = dict(KEDRO_ENV=env_var) if env_var else dict()
+
+                runner.invoke(
+                    kubeflow_group, cli + ["compile", "--help"], env=env
+                )
+                context_helper_init.assert_called_with(None, expected)
