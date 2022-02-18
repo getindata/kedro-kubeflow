@@ -1,10 +1,17 @@
+import os
 import unittest
 from unittest.mock import MagicMock, Mock, patch
 
 from kedro.framework.session import KedroSession
 
 from kedro_kubeflow.config import PluginConfig
-from kedro_kubeflow.context_helper import ContextHelper, ContextHelper16
+from kedro_kubeflow.context_helper import (
+    ContextHelper,
+    ContextHelper16,
+    EnvTemplatedConfigLoader,
+)
+
+from .utils import environment
 
 
 class TestContextHelper(unittest.TestCase):
@@ -38,7 +45,37 @@ class TestContextHelper(unittest.TestCase):
         metadata.package_name = "test_package"
         context = MagicMock()
         context.config_loader.return_value.get.return_value = ["one", "two"]
-        with patch.object(KedroSession, "create", context) as create:
-            create().load_context().config_loader.get.return_value = {}
+        with patch.object(KedroSession, "create", context), patch(
+            "kedro_kubeflow.context_helper.EnvTemplatedConfigLoader"
+        ) as config_loader:
+            config_loader.return_value.get.return_value = {}
             helper = ContextHelper.init(metadata, "test")
             assert helper.config == PluginConfig({})
+
+
+class TestEnvTemplatedConfigLoader(unittest.TestCase):
+    @staticmethod
+    def get_config():
+        config_path = [os.path.dirname(os.path.abspath(__file__))]
+        loader = EnvTemplatedConfigLoader(config_path)
+        return loader.get("test_config.yml")
+
+    def test_loader_with_defaults(self):
+        config = self.get_config()
+        assert config["run_config"]["image"] == "gcr.io/project-image/dirty"
+        assert config["run_config"]["experiment_name"] == "[Test] local"
+        assert config["run_config"]["run_name"] == "dirty"
+
+    def test_loader_with_env(self):
+        with environment(
+            {
+                "KEDRO_CONFIG_COMMIT_ID": "123abc",
+                "KEDRO_CONFIG_BRANCH_NAME": "feature-1",
+                "KEDRO_CONFIG_XYZ123": "123abc",
+            }
+        ):
+            config = self.get_config()
+
+        assert config["run_config"]["image"] == "gcr.io/project-image/123abc"
+        assert config["run_config"]["experiment_name"] == "[Test] feature-1"
+        assert config["run_config"]["run_name"] == "123abc"
