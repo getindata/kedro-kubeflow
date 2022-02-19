@@ -157,7 +157,8 @@ class PipelineGenerator:
         kfp_ops = {}
         self.log.info(f"MLflow status: {is_mlflow_enabled()}")
         if is_mlflow_enabled():
-            tracking_token = AuthHandler().obtain_id_token()
+            if not tracking_token:
+                tracking_token = AuthHandler().obtain_id_token()
             kfp_ops["mlflow-start-run"] = self._create_mlflow_op(
                 image, tracking_token
             )
