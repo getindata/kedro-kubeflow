@@ -56,7 +56,6 @@ class TestGenerator(unittest.TestCase):
             pipeline()
 
         # then
-        print(default_params)
         assert len(default_params) == 3
         assert default_params["param1"].default == 0.3
         assert default_params["param2"].default == 42
