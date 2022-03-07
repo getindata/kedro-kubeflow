@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Fixed support for parameters of type `datetime.date`
+
 ## [0.6.0] - 2022-02-18
 
 -   Kedro pipeline name is now added into Kubeflow pipeline name during upload
