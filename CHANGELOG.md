@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.6.1] - 2022-03-07
+
 -   Fixed support for parameters of type `datetime.date`
 
 ## [0.6.0] - 2022-02-18
@@ -121,7 +123,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.6.0...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.6.1...HEAD
+
+[0.6.1]: https://github.com/getindata/kedro-kubeflow/compare/0.6.0...0.6.1
 
 [0.6.0]: https://github.com/getindata/kedro-kubeflow/compare/0.5.1...0.6.0
 
