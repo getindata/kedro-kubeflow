@@ -1,5 +1,6 @@
 """Test generator"""
 
+import datetime
 import os
 import unittest
 from inspect import signature
@@ -38,7 +39,13 @@ class TestGenerator(unittest.TestCase):
 
     def test_should_support_params_and_inject_them_to_the_node(self):
         # given
-        self.create_generator(params={"param1": 0.3, "param2": 42})
+        self.create_generator(
+            params={
+                "param1": 0.3,
+                "param2": 42,
+                "param3": datetime.date(2022, 2, 24),
+            }
+        )
 
         # when
         with kfp.dsl.Pipeline(None) as dsl_pipeline:
@@ -49,14 +56,17 @@ class TestGenerator(unittest.TestCase):
             pipeline()
 
         # then
-        assert len(default_params) == 2
+        assert len(default_params) == 3
         assert default_params["param1"].default == 0.3
         assert default_params["param2"].default == 42
+        assert default_params["param3"].default == "2022-02-24"
         assert dsl_pipeline.ops["pipeline"].container.args[1:] == [
             "param1",
             "{{pipelineparam:op=;name=param1}}",
             "param2",
             "{{pipelineparam:op=;name=param2}}",
+            "param3",
+            "{{pipelineparam:op=;name=param3}}",
         ]
 
     def test_should_not_add_resources_spec_if_not_requested(self):

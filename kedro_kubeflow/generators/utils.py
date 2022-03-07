@@ -1,5 +1,6 @@
 import contextlib
 import itertools
+import json
 import os
 from functools import wraps
 from inspect import Parameter, signature
@@ -11,6 +12,10 @@ from kfp.compiler._k8s_helper import sanitize_k8s_name
 from ..auth import IAP_CLIENT_ID
 
 
+def ensure_json_serializable(value):
+    return json.loads(json.dumps(value, default=str))
+
+
 def maybe_add_params(kedro_parameters):
     def decorator(f):
         @wraps(f)
@@ -19,7 +24,11 @@ def maybe_add_params(kedro_parameters):
 
         sig = signature(f)
         new_params = (
-            Parameter(name, Parameter.KEYWORD_ONLY, default=default)
+            Parameter(
+                name,
+                Parameter.KEYWORD_ONLY,
+                default=ensure_json_serializable(default),
+            )
             for name, default in kedro_parameters.items()
         )
         wrapper.__signature__ = sig.replace(parameters=new_params)
