@@ -114,13 +114,6 @@ class PodPerNodePipelineGenerator(object):
 
         for node in node_dependencies:
             name = clean_name(node.name)
-            kwargs = {"env": nodes_env}
-            if self.run_config.resources.is_set_for(node.name):
-                kwargs["resources"] = k8s.V1ResourceRequirements(
-                    limits=self.run_config.resources.get_for(node.name),
-                    requests=self.run_config.resources.get_for(node.name),
-                )
-
             kfp_ops[node.name] = customize_op(
                 dsl.ContainerOp(
                     name=name,
@@ -137,7 +130,7 @@ class PodPerNodePipelineGenerator(object):
                         self.context.params.keys()
                     ),
                     pvolumes=node_volumes,
-                    container_kwargs=kwargs,
+                    container_kwargs={"env": nodes_env},
                     file_outputs={
                         output: "/home/kedro/"
                         + self.catalog[output]["filepath"]
