@@ -127,4 +127,14 @@ def customize_op(op, image_pull_policy, run_config):
         op.container.set_security_context(
             k8s.V1SecurityContext(run_as_user=run_config.volume.owner)
         )
+
+    if run_config.resources.is_set_for(op.name):
+        op.container.resources = k8s.V1ResourceRequirements(
+            limits=run_config.resources.get_for(op.name),
+            requests=run_config.resources.get_for(op.name),
+        )
+    if run_config.retry_policy.is_set_for(op.name):
+        op.set_retry(
+            policy="Always", **run_config.retry_policy.get_for(op.name)
+        )
     return op

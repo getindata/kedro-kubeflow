@@ -116,6 +116,21 @@ run_config:
     __default__:
       cpu: 200m
       memory: 64Mi
+
+  # Optional section to provide retry policy for the steps
+  # and default policy for steps with no policy specified
+  retry_policy:
+    # 90 retries every 5 minutes
+    wait_for_partition_availability:
+      num_retries: 90
+      backoff_duration: 5m
+      backoff_factor: 1
+
+    # 4 retries after: 1 minute, 2 minutes, 4 minutes, 8 minutes
+    __default__:
+      num_retries: 4
+      backoff_duration: 60s
+      backoff_factor: 2
 """
 
 
@@ -191,6 +206,30 @@ class NodeResources(Config):
         return {**defaults, **node_specific}
 
 
+class RetryPolicy(Config):
+    def is_set_for(self, node_name):
+        return self.get_for(node_name) != {}
+
+    def get_for(self, node_name):
+        defaults = self._get_or_default("__default__", {})
+        node_specific = self._get_or_default(node_name, {})
+        values = {**defaults, **node_specific}
+        if values == {}:
+            return {}
+        values["num_retries"] = int(values.get("num_retries", 0))
+        values["backoff_factor"] = (
+            float(values["backoff_factor"])
+            if "backoff_factor" in values
+            else None
+        )
+        values["backoff_duration"] = (
+            str(values["backoff_duration"])
+            if "backoff_duration" in values
+            else None
+        )
+        return values
+
+
 class RunConfig(Config):
     @property
     def image(self):
@@ -225,6 +264,10 @@ class RunConfig(Config):
     @property
     def resources(self):
         return NodeResources(self._get_or_default("resources", {}))
+
+    @property
+    def retry_policy(self):
+        return RetryPolicy(self._get_or_default("retry_policy", {}))
 
     @property
     def volume(self):

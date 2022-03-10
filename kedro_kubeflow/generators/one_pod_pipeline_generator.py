@@ -1,6 +1,5 @@
 import logging
 
-import kubernetes.client as k8s
 from kfp import dsl
 
 from ..utils import clean_name
@@ -9,6 +8,7 @@ from .utils import (
     create_command_using_params_dumper,
     create_container_environment,
     create_pipeline_exit_handler,
+    customize_op,
     maybe_add_params,
 )
 
@@ -47,15 +47,6 @@ class OnePodPipelineGenerator(object):
         image,
         image_pull_policy,
     ) -> dsl.ContainerOp:
-        kwargs = {
-            "env": create_container_environment(),
-            "image_pull_policy": image_pull_policy,
-        }
-        default_resources = self.run_config.resources.get_for("__default__")
-        if default_resources:
-            kwargs["resources"] = k8s.V1ResourceRequirements(
-                limits=default_resources, requests=default_resources
-            )
         container_op = dsl.ContainerOp(
             name=clean_name(pipeline),
             image=image,
@@ -69,7 +60,7 @@ class OnePodPipelineGenerator(object):
             arguments=create_arguments_from_parameters(
                 self.context.params.keys()
             ),
-            container_kwargs=kwargs,
+            container_kwargs={"env": create_container_environment()},
             file_outputs={
                 output: f"/home/kedro/{self.catalog[output]['filepath']}"
                 for output in self.catalog
@@ -82,4 +73,4 @@ class OnePodPipelineGenerator(object):
             self.run_config.max_cache_staleness
         )
 
-        return container_op
+        return customize_op(container_op, image_pull_policy, self.run_config)
