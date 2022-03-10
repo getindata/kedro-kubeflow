@@ -104,6 +104,57 @@ class TestGenerator(unittest.TestCase):
         assert resources.limits == {"cpu": "100m", "memory": "8Gi"}
         assert resources.requests == {"cpu": "100m", "memory": "8Gi"}
 
+    def test_should_not_add_retry_policy_if_not_requested(self):
+        # given
+        self.create_generator(config={})
+
+        # when
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            self.generator_under_test.generate_pipeline(
+                "pipeline", "unittest-image", "Always"
+            )()
+
+        # then
+        op = dsl_pipeline.ops["pipeline"]
+        assert op.num_retries == 0
+        assert op.retry_policy is None
+        assert op.backoff_factor is None
+        assert op.backoff_duration is None
+        assert op.backoff_max_duration is None
+
+    def test_should_add_retry_policy(self):
+        # given
+        self.create_generator(
+            config={
+                "retry_policy": {
+                    "__default__": {
+                        "num_retries": 4,
+                        "backoff_duration": "60s",
+                        "backoff_factor": 2,
+                    },
+                    "node1": {
+                        "num_retries": 100,
+                        "backoff_duration": "5m",
+                        "backoff_factor": 1,
+                    },
+                }
+            }
+        )
+
+        # when
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            self.generator_under_test.generate_pipeline(
+                "pipeline", "unittest-image", "Always"
+            )()
+
+        # then
+        op = dsl_pipeline.ops["pipeline"]
+        assert op.num_retries == 4
+        assert op.retry_policy == "Always"
+        assert op.backoff_factor == 2
+        assert op.backoff_duration == "60s"
+        assert op.backoff_max_duration is None
+
     def test_should_set_description(self):
         # given
         self.create_generator(config={"description": "DESC"})

@@ -130,3 +130,35 @@ class TestPluginConfig(unittest.TestCase):
         cfg = PluginConfig({"run_config": {"run_name": "some run"}})
         assert cfg.run_config.run_name == "some run"
         assert cfg.run_config.scheduled_run_name == "some run"
+
+    def test_retry_policy_default_and_node_specific(self):
+        cfg = PluginConfig(
+            {
+                "run_config": {
+                    "retry_policy": {
+                        "__default__": {
+                            "num_retries": 4,
+                            "backoff_duration": "60s",
+                            "backoff_factor": 2,
+                        },
+                        "node3": {
+                            "num_retries": "100",
+                            "backoff_duration": "5m",
+                            "backoff_factor": 1,
+                        },
+                    }
+                }
+            }
+        )
+        assert cfg.run_config.retry_policy.is_set_for("node2")
+        assert cfg.run_config.retry_policy.get_for("node2") == {
+            "backoff_duration": "60s",
+            "backoff_factor": 2,
+            "num_retries": 4,
+        }
+        assert cfg.run_config.retry_policy.is_set_for("node3")
+        assert cfg.run_config.retry_policy.get_for("node3") == {
+            "backoff_duration": "5m",
+            "backoff_factor": 1,
+            "num_retries": 100,
+        }

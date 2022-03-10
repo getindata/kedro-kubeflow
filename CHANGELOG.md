@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Added support for defining retry policy for the Kubeflow Pipelines nodes
+
 ## [0.6.1] - 2022-03-07
 
 -   Fixed support for parameters of type `datetime.date`

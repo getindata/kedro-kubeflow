@@ -15,15 +15,18 @@ run_config:
   # Pull pilicy to be used for the steps. Use Always if you push the images
   # on the same tag, or Never if you use only local images
   image_pull_policy: IfNotPresent
-  
+
   # Location of Vertex AI GCS root, required only for vertex ai pipelines configuration
   root: bucket_name/gcs_suffix
 
   # Name of the kubeflow experiment to be created
-  experiment_name: Kubeflow Plugin Demo
+  experiment_name: Kubeflow Plugin Demo [${branch_name|local}]
 
-  # Name of the run for run-once
-  run_name: Kubeflow Plugin Demo Run
+  # Name of the run for run-once, templated with the run-once parameters
+  run_name: Kubeflow Plugin Demo Run ${pipeline_name} ${branch_name|local} ${commit_id|local}
+
+  # Name of the scheduled run, templated with the schedule parameters
+  scheduled_run_name: Kubeflow Plugin Demo Recurring Run ${pipeline_name}
 
   # Optional pipeline description
   description: Very Important Pipeline
@@ -35,7 +38,35 @@ run_config:
   # volume after pipeline finishes) [in seconds]. Default: 1 week
   ttl: 604800
 
-  # Optional volume specification
+  # What Kedro pipeline should be run as the last step regardless of the
+  # pipeline status. Used to send notifications or raise the alerts
+  # on_exit_pipeline: notify_via_slack
+
+  # This sets the caching option for pipeline using
+  # execution_options.caching_strategy.max_cache_staleness
+  # See https://en.wikipedia.org/wiki/ISO_8601 in section 'Duration'
+  #max_cache_staleness: P0D
+
+  # Set to false to disable kfp artifacts exposal
+  # This setting can be useful if you don't want to store
+  # intermediate results in the MLMD
+  #store_kedro_outputs_as_kfp_artifacts: True
+
+  # Strategy used to generate Kubeflow pipeline nodes from Kedro nodes
+  # Available strategies:
+  #  * none (default) - nodes in Kedro pipeline are mapped to separate nodes
+  #                     in Kubeflow pipelines. This strategy allows to inspect
+  #                     a whole processing graph in Kubeflow UI and override
+  #                     resources for each node (because they are run in separate pods)
+  #                     Although, performance may not be optimal due to potential
+  #                     sharing of intermediate datasets through disk.
+  #  * full - nodes in Kedro pipeline are mapped to one node in Kubeflow pipelines.
+  #           This strategy mitigate potential performance issues with `none` strategy
+  #           but at the cost of degraded user experience within Kubeflow UI: a graph
+  #           is collapsed to one node.
+  #node_merge_strategy: none
+
+  # Optional volume specification (only for non vertex-ai)
   volume:
 
     # Storage class - use null (or no value) to use the default storage
@@ -85,6 +116,21 @@ run_config:
     __default__:
       cpu: 200m
       memory: 64Mi
+
+  # Optional section to provide retry policy for the steps
+  # and default policy for steps with no policy specified
+  retry_policy:
+    # 90 retries every 5 minutes
+    wait_for_partition_availability:
+      num_retries: 90
+      backoff_duration: 5m
+      backoff_factor: 1
+
+    # 4 retries after: 1 minute, 2 minutes, 4 minutes, 8 minutes
+    __default__:
+      num_retries: 4
+      backoff_duration: 60s
+      backoff_factor: 2
 ```
 
 ## Dynamic configuration support
