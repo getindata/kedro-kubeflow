@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   KFP SDK version bumped to 1.8.11 in order to fix misbehaving TTL issue
+
 ## [0.6.2] - 2022-03-10
 
 -   Added support for defining retry policy for the Kubeflow Pipelines nodes
