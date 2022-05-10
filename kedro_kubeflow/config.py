@@ -16,9 +16,6 @@ run_config:
   # on the same tag, or Never if you use only local images
   image_pull_policy: IfNotPresent
 
-  # Location of Vertex AI GCS root, required only for vertex ai pipelines configuration
-  #root: bucket_name/gcs_suffix
-
   # Name of the kubeflow experiment to be created
   experiment_name: {project}
 
@@ -66,7 +63,7 @@ run_config:
   #           is collapsed to one node.
   #node_merge_strategy: none
 
-  # Optional volume specification (only for non vertex-ai)
+  # Optional volume specification
   volume:
 
     # Storage class - use null (or no value) to use the default storage
@@ -154,17 +151,6 @@ class Config(object):
 
     def __eq__(self, other):
         return self._raw == other._raw
-
-
-class VertexAiNetworkingConfig(Config):
-    @property
-    def vpc(self):
-        return self._get_or_default("vpc", None)
-
-    @property
-    def host_aliases(self):
-        aliases = self._get_or_default("host_aliases", [])
-        return {alias["ip"]: alias["hostnames"] for alias in aliases}
 
 
 class VolumeConfig(Config):
@@ -300,12 +286,6 @@ class RunConfig(Config):
         return self._get_or_default("on_exit_pipeline", None)
 
     @property
-    def vertex_ai_networking(self):
-        return VertexAiNetworkingConfig(
-            self._get_or_default("vertex_ai_networking", {})
-        )
-
-    @property
     def node_merge_strategy(self):
         strategy = str(self._get_or_default("node_merge_strategy", "none"))
         if strategy not in ["none", "full"]:
@@ -340,10 +320,6 @@ class PluginConfig(Config):
     @property
     def region(self):
         return self._get_or_fail("region")
-
-    @property
-    def is_vertex_ai_pipelines(self):
-        return self.host == "vertex-ai-pipelines"
 
     @staticmethod
     def initialize_github_actions(project_name, where, templates_dir):

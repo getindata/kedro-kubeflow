@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 -   KFP SDK version bumped to 1.8.11 in order to fix misbehaving TTL issue
+-   Dropped support for VertexAI, please use [kedro-vertexi](https://kedro-kubeflow.readthedocs.io/en/latest/index.html) instead
 
 ## [0.6.2] - 2022-03-10
 
