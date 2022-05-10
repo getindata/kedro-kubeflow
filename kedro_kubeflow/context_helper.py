@@ -54,6 +54,10 @@ class ContextHelper(object):
         return KedroSession.create(self._metadata.package_name, env=self._env)
 
     @property
+    def env(self):
+        return self._env
+
+    @property
     def context(self):
         return self.session.load_context()
 

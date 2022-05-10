@@ -173,6 +173,7 @@ def upload_pipeline(ctx, image, pipeline) -> None:
         pipeline_name=pipeline,
         image=image if image else config.image,
         image_pull_policy=config.image_pull_policy,
+        env=ctx.obj["context_helper"].env,
     )
 
 
@@ -236,6 +237,7 @@ def schedule(
         cron_expression,
         run_name=config.scheduled_run_name,
         parameters=format_params(params),
+        env=ctx.obj["context_helper"].env,
     )
 
 

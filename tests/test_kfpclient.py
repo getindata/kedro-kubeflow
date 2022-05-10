@@ -230,6 +230,8 @@ class TestKubeflowClient(unittest.TestCase):
             cron_expression="0 * * * * *",
             experiment_namespace=None,
             run_name="scheduled run of pipeline X",
+            parameters={},
+            env="kubeflow-env",
         )
 
         # then
@@ -260,6 +262,8 @@ class TestKubeflowClient(unittest.TestCase):
             cron_expression="0 * * * * *",
             experiment_namespace=None,
             run_name="pipeline X",
+            parameters={},
+            env="kubeflow-env",
         )
 
         # then
@@ -291,6 +295,7 @@ class TestKubeflowClient(unittest.TestCase):
             experiment_namespace=None,
             run_name="scheduled run for region {region}",
             parameters={"region": "ABC"},
+            env="kubeflow-env",
         )
 
         # then
@@ -315,6 +320,7 @@ class TestKubeflowClient(unittest.TestCase):
             pipeline_name="pipeline_name",
             image="unittest-image",
             image_pull_policy="Always",
+            env="kubeflow-env",
         )
 
         # then
@@ -324,7 +330,10 @@ class TestKubeflowClient(unittest.TestCase):
             args,
             kwargs,
         ) = self.kfp_client_mock.pipeline_uploads.upload_pipeline.call_args
-        assert kwargs["name"] == "[my-awesome-project] pipeline_name"
+        assert (
+            kwargs["name"]
+            == "[my-awesome-project] pipeline_name (env: kubeflow-env)"
+        )
         assert kwargs["description"] == "Very Important Pipeline"
 
     def test_should_upload_new_version_of_existing_pipeline(self):
@@ -336,6 +345,7 @@ class TestKubeflowClient(unittest.TestCase):
             pipeline_name="pipeline",
             image="unittest-image",
             image_pull_policy="Always",
+            env="kubeflow-env",
         )
 
         # then
