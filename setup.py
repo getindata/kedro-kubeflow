@@ -6,9 +6,9 @@ with open("README.md") as f:
 
 # Runtime Requirements.
 INSTALL_REQUIRES = [
-    "kedro>=0.16,<=0.18",
+    "kedro>=0.16,<0.18",
     "click<8.0",
-    "kfp~=1.8.0",
+    "kfp>=1.8.11,<2.0",
     "tabulate>=0.8.7",
     "semver~=2.10",
     "google-auth<2.0dev",
@@ -28,16 +28,13 @@ EXTRA_REQUIRE = {
     "docs": [
         "sphinx==3.4.2",
         "recommonmark==0.7.1",
-        "sphinx_rtd_theme==0.6.2",
-    ],
-    "vertexai": [
-        "google-cloud-scheduler>=2.3.2",
+        "sphinx_rtd_theme==0.6.3",
     ],
 }
 
 setup(
     name="kedro-kubeflow",
-    version="0.6.2",
+    version="0.6.3",
     description="Kedro plugin with Kubeflow support",
     long_description=README,
     long_description_content_type="text/markdown",

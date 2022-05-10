@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.6.3] - 2022-05-10
+
+-   KFP SDK version bumped to 1.8.11 in order to fix misbehaving TTL issue
+-   Dropped support for VertexAI, please use [kedro-vertexi](https://kedro-kubeflow.readthedocs.io/en/latest/index.html) instead
+-   Add Kedro environment name to the pipeline name during upload
+
 ## [0.6.2] - 2022-03-10
 
 -   Added support for defining retry policy for the Kubeflow Pipelines nodes
@@ -127,7 +133,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.6.2...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.6.3...HEAD
+
+[0.6.3]: https://github.com/getindata/kedro-kubeflow/compare/0.6.2...0.6.3
 
 [0.6.2]: https://github.com/getindata/kedro-kubeflow/compare/0.6.1...0.6.2
 

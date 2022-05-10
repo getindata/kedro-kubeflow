@@ -119,6 +119,7 @@ class TestPluginCLI(unittest.TestCase):
     def test_upload_pipeline(self):
         context_helper = MagicMock(ContextHelper)
         context_helper.config = test_config
+        context_helper.env = "kubeflow-env"
         config = dict(context_helper=context_helper)
         runner = CliRunner()
 
@@ -128,12 +129,16 @@ class TestPluginCLI(unittest.TestCase):
 
         assert result.exit_code == 0
         context_helper.kfp_client.upload.assert_called_with(
-            image="img", image_pull_policy="Always", pipeline_name="pipe"
+            image="img",
+            image_pull_policy="Always",
+            pipeline_name="pipe",
+            env="kubeflow-env",
         )
 
     def test_schedule(self):
         context_helper = MagicMock(ContextHelper)
         context_helper.config = test_config
+        context_helper.env = "kubeflow-env"
         config = dict(context_helper=context_helper)
         runner = CliRunner()
 
@@ -160,6 +165,7 @@ class TestPluginCLI(unittest.TestCase):
             "* * *",
             run_name="test run",
             parameters={"key1": "some value"},
+            env="kubeflow-env",
         )
 
     @patch.object(Path, "cwd")

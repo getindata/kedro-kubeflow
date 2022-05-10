@@ -21,13 +21,14 @@ $ source venv-demo/bin/activate
 Then, `kedro` must be present to enable cloning the starter project, along with the latest version of `kedro-kubeflow` plugina and kedro-docker (required to build docker images with the Kedro pipeline nodes):
 
 ```
-$ pip install 'kedro<0.17' kedro-kubeflow kedro-docker
+$ pip install 'kedro<0.18' kedro-kubeflow kedro-docker
 ```
 
 With the dependencies in place, let's create a new project:
 
 ```
-$ kedro new --starter=git+https://github.com/getindata/kedro-starter-spaceflights.git --checkout allow_nodes_with_commas
+$ kedro new --starter=spaceflights
+
 Project Name:
 =============
 Please enter a human readable name for your new project.
@@ -52,8 +53,6 @@ Change directory to the project generated in /home/mario/kedro/kubeflow-plugin-d
 
 A best-practice setup includes initialising git and creating a virtual environment before running `kedro install` to install project-specific dependencies. Refer to the Kedro documentation: https://kedro.readthedocs.io/
 ```
-
-> TODO: switch to the official `spaceflights` starter after https://github.com/quantumblacklabs/kedro-starter-spaceflights/pull/10 is merged
 
 Finally, go the demo project directory and ensure that kedro-kubeflow plugin is activated:
 
