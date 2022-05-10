@@ -68,20 +68,13 @@ class ContextHelper(object):
     @property
     @lru_cache()
     def kfp_client(self):
-        if self.config.is_vertex_ai_pipelines:
-            from .vertex_ai.client import VertexAIPipelinesClient
+        from .kfpclient import KubeflowClient
 
-            return VertexAIPipelinesClient(
-                self.config, self.project_name, self.context
-            )
-        else:
-            from .kfpclient import KubeflowClient
-
-            return KubeflowClient(
-                self.config,
-                self.project_name,
-                self.context,
-            )
+        return KubeflowClient(
+            self.config,
+            self.project_name,
+            self.context,
+        )
 
     @staticmethod
     def init(metadata, env):

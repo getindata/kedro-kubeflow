@@ -24,18 +24,6 @@ run_config:
     keep: True
 """
 
-VERTEX_YAML = """
-host: vertex-ai-pipelines
-project_id: some-project
-region: some-region
-run_config:
-  vertex_ai_networking:
-    vpc: projects/some-project-id/global/networks/some-vpc-name
-    host_aliases:
-    - ip: 10.10.10.10
-      hostnames: ['mlflow.internal']
-"""
-
 
 class TestPluginConfig(unittest.TestCase):
     def test_plugin_config(self):
@@ -110,21 +98,6 @@ class TestPluginConfig(unittest.TestCase):
     def test_do_not_keep_volume_by_default(self):
         cfg = PluginConfig({"run_config": {"volume": {}}})
         assert cfg.run_config.volume.keep is False
-
-    def test_parse_vertex_ai_networking_config(self):
-        cfg = PluginConfig(yaml.safe_load(VERTEX_YAML))
-        assert (
-            cfg.run_config.vertex_ai_networking.vpc
-            == "projects/some-project-id/global/networks/some-vpc-name"
-        )
-        assert cfg.run_config.vertex_ai_networking.host_aliases == {
-            "10.10.10.10": ["mlflow.internal"]
-        }
-
-    def test_accept_default_vertex_ai_networking_config(self):
-        cfg = PluginConfig({"run_config": {}})
-        assert cfg.run_config.vertex_ai_networking.vpc is None
-        assert cfg.run_config.vertex_ai_networking.host_aliases == {}
 
     def test_reuse_run_name_for_scheduled_run_name(self):
         cfg = PluginConfig({"run_config": {"run_name": "some run"}})
