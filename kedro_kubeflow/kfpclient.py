@@ -94,15 +94,15 @@ class KubeflowClient(object):
         )
         self.log.info("Generated pipeline definition was saved to %s" % output)
 
-    def get_full_pipeline_name(self, pipeline_name):
-        return f"[{self.project_name}] {pipeline_name}"
+    def get_full_pipeline_name(self, pipeline_name, env):
+        return f"[{self.project_name}] {pipeline_name} (env: {env})"[:100]
 
-    def upload(self, pipeline_name, image, image_pull_policy="IfNotPresent"):
+    def upload(self, pipeline_name, image, image_pull_policy, env):
         pipeline = self.generator.generate_pipeline(
             pipeline_name, image, image_pull_policy
         )
 
-        full_pipeline_name = self.get_full_pipeline_name(pipeline_name)
+        full_pipeline_name = self.get_full_pipeline_name(pipeline_name, env)
         if self._pipeline_exists(full_pipeline_name):
             pipeline_id = self.client.get_pipeline_id(full_pipeline_name)
             version_id = self._upload_pipeline_version(pipeline, pipeline_id)
@@ -169,13 +169,14 @@ class KubeflowClient(object):
         experiment_namespace,
         cron_expression,
         run_name,
-        parameters={},
+        parameters,
+        env,
     ):
         experiment_id = self._ensure_experiment_exists(
             experiment_name, experiment_namespace
         )
         pipeline_id = self.client.get_pipeline_id(
-            self.get_full_pipeline_name(pipeline)
+            self.get_full_pipeline_name(pipeline, env)
         )
         formatted_run_name = run_name.format(**parameters)
         self._disable_runs(experiment_id, formatted_run_name)
