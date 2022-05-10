@@ -95,7 +95,7 @@ class KubeflowClient(object):
         self.log.info("Generated pipeline definition was saved to %s" % output)
 
     def get_full_pipeline_name(self, pipeline_name, env):
-        return f"[{self.project_name}] {pipeline_name} (env: {env})"
+        return f"[{self.project_name}] {pipeline_name} (env: {env})"[:100]
 
     def upload(self, pipeline_name, image, image_pull_policy, env):
         pipeline = self.generator.generate_pipeline(

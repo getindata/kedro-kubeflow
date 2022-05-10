@@ -336,6 +336,30 @@ class TestKubeflowClient(unittest.TestCase):
         )
         assert kwargs["description"] == "Very Important Pipeline"
 
+    def test_should_truncated_the_pipeline_name_to_100_characters_on_upload(
+        self,
+    ):
+        # given
+        self.create_client({"description": "Very Important Pipeline"})
+        self.kfp_client_mock.get_pipeline_id.return_value = None
+
+        # when
+        self.client_under_test.upload(
+            pipeline_name="pipeline_name",
+            image="unittest-image",
+            image_pull_policy="Always",
+            env="kubeflow-env" + "1" * 100,
+        )
+
+        # then
+        self.kfp_client_mock.pipeline_uploads.upload_pipeline.assert_called()
+        self.kfp_client_mock.pipeline_uploads.upload_pipeline_version.assert_not_called()
+        (
+            args,
+            kwargs,
+        ) = self.kfp_client_mock.pipeline_uploads.upload_pipeline.call_args
+        assert len(kwargs["name"]) == 100
+
     def test_should_upload_new_version_of_existing_pipeline(self):
         # given
         self.kfp_client_mock.get_pipeline_id.return_value = "123"
