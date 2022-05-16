@@ -192,6 +192,17 @@ class NodeResources(Config):
         return {**defaults, **node_specific}
 
 
+class Tolerations(Config):
+    def is_set_for(self, node_name):
+        return bool(self.get_for(node_name))
+
+    def get_for(self, node_name):
+        node_values = self._get_or_default(node_name, [])
+        if node_values:
+            return node_values
+        return self._get_or_default("__default__", [])
+
+
 class RetryPolicy(Config):
     def is_set_for(self, node_name):
         return self.get_for(node_name) != {}
@@ -250,6 +261,10 @@ class RunConfig(Config):
     @property
     def resources(self):
         return NodeResources(self._get_or_default("resources", {}))
+
+    @property
+    def tolerations(self):
+        return Tolerations(self._get_or_default("tolerations", {}))
 
     @property
     def retry_policy(self):
