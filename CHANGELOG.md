@@ -1,6 +1,7 @@
 # Changelog
-
 ## [Unreleased]
+
+-   Added support for specifying tolerations
 
 ## [0.6.3] - 2022-05-10
 

@@ -128,6 +128,21 @@ run_config:
       num_retries: 4
       backoff_duration: 60s
       backoff_factor: 2
+    # Optional section allowing adjustment of the resources
+  # reservations and limits for the nodes
+  # optional section for specifying tolerations per node.
+  # the __default__ section will be loaded if nothing is specified for a particular node.
+  tolerations:
+    __default__:
+    - key: "dedicated"
+      operator: "Equal"
+      value: "ml-ops"
+      effect: "NoSchedule"
+    node_a:
+    - key: "gpu_resource"
+      operator: "Equal"
+      value: "voltaire"
+      effect: "NoSchedule"
 """
 
 

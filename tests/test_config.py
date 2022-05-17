@@ -96,15 +96,16 @@ class TestPluginConfig(unittest.TestCase):
         }
 
     def test_tolerations_default_only(self):
-        toleration_config = [{
-            "key": "thekey",
-            "operator": "equal",
-            "value": "thevalue",
-            "effect": "NoSchedule",
-        }]
+        toleration_config = [
+            {
+                "key": "thekey",
+                "operator": "equal",
+                "value": "thevalue",
+                "effect": "NoSchedule",
+            }
+        ]
         cfg = PluginConfig(
-            {"run_config": {"tolerations": {"__default__": toleration_config
-                                            }}}
+            {"run_config": {"tolerations": {"__default__": toleration_config}}}
         )
         assert cfg.run_config.tolerations.is_set_for("node2")
         assert cfg.run_config.tolerations.get_for("node2") == toleration_config
@@ -112,12 +113,14 @@ class TestPluginConfig(unittest.TestCase):
         assert cfg.run_config.tolerations.get_for("node3") == toleration_config
 
     def test_tolerations_no_default(self):
-        toleration_config = [{
-            "key": "thekey",
-            "operator": "equal",
-            "value": "thevalue",
-            "effect": "NoSchedule",
-        }]
+        toleration_config = [
+            {
+                "key": "thekey",
+                "operator": "equal",
+                "value": "thevalue",
+                "effect": "NoSchedule",
+            }
+        ]
         cfg = PluginConfig(
             {"run_config": {"tolerations": {"node2": toleration_config}}}
         )
@@ -126,18 +129,22 @@ class TestPluginConfig(unittest.TestCase):
         assert cfg.run_config.tolerations.is_set_for("node3") is False
 
     def test_tolerations_default_and_node_specific(self):
-        toleration_config = [{
-            "key": "thekey",
-            "operator": "equal",
-            "value": "thevalue",
-            "effect": "NoSchedule",
-        }]
-        default_toleration_config = [{
-            "key": "thekeyfordefault",
-            "operator": "equal",
-            "value": "thevaluefordefault",
-            "effect": "NoSchedule",
-        }]
+        toleration_config = [
+            {
+                "key": "thekey",
+                "operator": "equal",
+                "value": "thevalue",
+                "effect": "NoSchedule",
+            }
+        ]
+        default_toleration_config = [
+            {
+                "key": "thekeyfordefault",
+                "operator": "equal",
+                "value": "thevaluefordefault",
+                "effect": "NoSchedule",
+            }
+        ]
         cfg = PluginConfig(
             {
                 "run_config": {
@@ -151,7 +158,10 @@ class TestPluginConfig(unittest.TestCase):
         assert cfg.run_config.tolerations.is_set_for("node2")
         assert cfg.run_config.tolerations.get_for("node2") == toleration_config
         assert cfg.run_config.tolerations.is_set_for("node3")
-        assert cfg.run_config.tolerations.get_for("node3") == default_toleration_config
+        assert (
+            cfg.run_config.tolerations.get_for("node3")
+            == default_toleration_config
+        )
 
     def test_do_not_keep_volume_by_default(self):
         cfg = PluginConfig({"run_config": {"volume": {}}})
