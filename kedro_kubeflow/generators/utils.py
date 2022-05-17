@@ -137,4 +137,7 @@ def customize_op(op, image_pull_policy, run_config):
         op.set_retry(
             policy="Always", **run_config.retry_policy.get_for(op.name)
         )
+    if run_config.tolerations.is_set_for(op.name):
+        for toleration in run_config.tolerations.get_for(op.name):
+            op.add_toleration(k8s.V1Toleration(**toleration))
     return op

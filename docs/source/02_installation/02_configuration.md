@@ -90,6 +90,19 @@ run_config:
     # Flak indicating if volume for inter-node data exchange should be
     # kept after the pipeline is deleted
     keep: False
+    
+  # Optional section allowing adjustment of the tolerations for the nodes
+  tolerations:
+    __default__:
+    - key: "dedicated"
+      operator: "Equal"
+      value: "ml-ops"
+      effect: "NoSchedule"
+    node_a:
+    - key: "dedicated"
+      operator: "Equal"
+      value: "gpu_workload"
+      effect: "NoSchedule"
 
   # Optional section allowing adjustment of the resources
   # reservations and limits for the nodes
