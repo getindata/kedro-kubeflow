@@ -28,7 +28,7 @@ EXTRA_REQUIRE = {
     "docs": [
         "sphinx==3.4.2",
         "recommonmark==0.7.1",
-        "sphinx_rtd_theme==0.6.4",
+        "sphinx_rtd_theme==0.6.3",
     ],
 }
 
