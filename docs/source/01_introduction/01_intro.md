@@ -9,7 +9,7 @@ like pod or volume) and edges (dependencies between the nodes, like passing outp
 data as input). The pipelines are stored in the versioned database, allowing user 
 to run the pipeline once or schedule the recurring run.
 
-## Why to integrate Kedro project with Pipelines?
+## Why integrate a Kedro project with Pipelines?
 
 Kubeflow Pipelines' main attitude is the portability. Once you define a pipeline,
 it can be started on any Kubernetes cluster. The code to execute is stored inside 
