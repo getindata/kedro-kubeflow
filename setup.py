@@ -28,13 +28,13 @@ EXTRA_REQUIRE = {
     "docs": [
         "sphinx==3.4.2",
         "recommonmark==0.7.1",
-        "sphinx_rtd_theme==0.6.3",
+        "sphinx_rtd_theme==0.6.4",
     ],
 }
 
 setup(
     name="kedro-kubeflow",
-    version="0.6.3",
+    version="0.6.4",
     description="Kedro plugin with Kubeflow support",
     long_description=README,
     long_description_content_type="text/markdown",

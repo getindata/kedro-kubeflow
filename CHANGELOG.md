@@ -1,5 +1,8 @@
 # Changelog
+
 ## [Unreleased]
+
+## [0.6.4] - 2022-06-01
 
 -   Added support for specifying tolerations
 
@@ -134,7 +137,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.6.3...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.6.4...HEAD
+
+[0.6.4]: https://github.com/getindata/kedro-kubeflow/compare/0.6.3...0.6.4
 
 [0.6.3]: https://github.com/getindata/kedro-kubeflow/compare/0.6.2...0.6.3
 
