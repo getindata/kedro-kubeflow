@@ -110,6 +110,7 @@ run_config:
     tensorflow_step:
     - mount_path: /dev/shm
       volume:
+        name: shared_memory
         empty_dir:
           cls: V1EmptyDirVolumeSource
           params:
