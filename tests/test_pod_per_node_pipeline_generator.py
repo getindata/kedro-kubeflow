@@ -12,13 +12,14 @@ from kedro_kubeflow.config import PluginConfig
 from kedro_kubeflow.generators.pod_per_node_pipeline_generator import (
     PodPerNodePipelineGenerator,
 )
+from tests.common import MinimalConfigMixin
 
 
 def identity(input1: str):
     return input1  # pragma: no cover
 
 
-class TestGenerator(unittest.TestCase):
+class TestGenerator(unittest.TestCase, MinimalConfigMixin):
     def test_support_modification_of_pull_policy(self):
         # given
         self.create_generator()
@@ -264,7 +265,7 @@ class TestGenerator(unittest.TestCase):
                 "{{pipelineparam:op=;name=param2}}",
             ]
 
-    def test_should_not_add_resources_spec_if_not_requested(self):
+    def test_should_fallbackto_default_resources_spec_if_not_requested(self):
         # given
         self.create_generator(config={})
 
@@ -278,7 +279,7 @@ class TestGenerator(unittest.TestCase):
         # then
         for node_name in ["node1", "node2"]:
             spec = dsl_pipeline.ops[node_name].container
-            assert spec.resources is None
+            assert spec.resources is not None
 
     def test_should_add_resources_spec(self):
         # given
@@ -487,7 +488,11 @@ class TestGenerator(unittest.TestCase):
             },
         )
         self.generator_under_test = PodPerNodePipelineGenerator(
-            PluginConfig({"host": "http://unittest", "run_config": config}),
+            PluginConfig(
+                **self.minimal_config(
+                    {"host": "http://unittest", "run_config": config}
+                )
+            ),
             project_name,
             context,
         )

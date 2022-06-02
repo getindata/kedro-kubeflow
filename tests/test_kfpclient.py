@@ -10,18 +10,15 @@ from kfp import dsl
 from kedro_kubeflow.config import PluginConfig
 from kedro_kubeflow.kfpclient import KubeflowClient
 from kedro_kubeflow.utils import strip_margin
+from tests.common import MinimalConfigMixin
 
 
-class TestKubeflowClient(unittest.TestCase):
+class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
     def create_experiment(self, id="123"):
         return type("obj", (object,), {"id": id})
 
     def create_empty_pipelines_list(self):
-        return type(
-            "obj",
-            (object,),
-            {"pipelines": None},
-        )
+        return type("obj", (object,), {"pipelines": None},)
 
     def create_pipelines_list(self):
         return type(
@@ -45,10 +42,7 @@ class TestKubeflowClient(unittest.TestCase):
                     type(
                         "obj",
                         (object,),
-                        {
-                            "name": job_name,
-                            "id": job_name + "ID",
-                        },
+                        {"name": job_name, "id": job_name + "ID",},
                     )
                 ]
             },
@@ -182,7 +176,11 @@ class TestKubeflowClient(unittest.TestCase):
 
         # when
         self.client_under_test = KubeflowClient(
-            PluginConfig({"host": "http://unittest", "run_config": {}}),
+            PluginConfig(
+                **self.minimal_config(
+                    {"host": "http://unittest", "run_config": {}}
+                )
+            ),
             None,
             None,
         )
@@ -206,7 +204,11 @@ class TestKubeflowClient(unittest.TestCase):
 
         # when
         self.client_under_test = KubeflowClient(
-            PluginConfig({"host": "http://unittest", "run_config": {}}),
+            PluginConfig(
+                **self.minimal_config(
+                    {"host": "http://unittest", "run_config": {}}
+                )
+            ),
             None,
             None,
         )
@@ -283,8 +285,8 @@ class TestKubeflowClient(unittest.TestCase):
             self.create_experiment()
         )
         self.kfp_client_mock.get_pipeline_id.return_value = "someid"
-        self.kfp_client_mock.list_recurring_runs.return_value = (
-            self.create_recurring_jobs_list("scheduled run for region ABC")
+        self.kfp_client_mock.list_recurring_runs.return_value = self.create_recurring_jobs_list(
+            "scheduled run for region ABC"
         )
 
         # when
@@ -383,10 +385,12 @@ class TestKubeflowClient(unittest.TestCase):
         with self.assertRaises(ValueError):
             KubeflowClient(
                 PluginConfig(
-                    {
-                        "host": "http://unittest",
-                        "run_config": {"node_merge_strategy": "other"},
-                    }
+                    **self.minimal_config(
+                        {
+                            "host": "http://unittest",
+                            "run_config": {"node_merge_strategy": "other"},
+                        }
+                    )
                 ),
                 None,
                 None,
@@ -397,7 +401,11 @@ class TestKubeflowClient(unittest.TestCase):
     def create_client(self, config, kfp_client_mock, pipeline_generator_mock):
         project_name = "my-awesome-project"
         self.client_under_test = KubeflowClient(
-            PluginConfig({"host": "http://unittest", "run_config": config}),
+            PluginConfig(
+                **self.minimal_config(
+                    {"host": "http://unittest", "run_config": config}
+                )
+            ),
             project_name,
             None,  # context,
         )

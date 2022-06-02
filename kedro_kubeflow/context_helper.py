@@ -67,18 +67,14 @@ class ContextHelper(object):
         raw = EnvTemplatedConfigLoader(
             self.context.config_loader.conf_paths
         ).get(self.CONFIG_FILE_PATTERN)
-        return PluginConfig(raw)
+        return PluginConfig(**raw)
 
     @property
     @lru_cache()
     def kfp_client(self):
         from .kfpclient import KubeflowClient
 
-        return KubeflowClient(
-            self.config,
-            self.project_name,
-            self.context,
-        )
+        return KubeflowClient(self.config, self.project_name, self.context,)
 
     @staticmethod
     def init(metadata, env):

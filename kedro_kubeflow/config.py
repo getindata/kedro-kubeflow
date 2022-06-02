@@ -1,7 +1,3 @@
-import os
-
-from kedro.config import MissingConfigException
-
 DEFAULT_CONFIG_TEMPLATE = """
 # Base url of the Kubeflow Pipelines, should include the schema (http/https)
 host: {url}
@@ -12,7 +8,7 @@ run_config:
   # Name of the image to run as the pipeline steps
   image: {image}
 
-  # Pull pilicy to be used for the steps. Use Always if you push the images
+  # Pull policy to be used for the steps. Use Always if you push the images
   # on the same tag, or Never if you use only local images
   image_pull_policy: IfNotPresent
 
@@ -145,211 +141,351 @@ run_config:
       effect: "NoSchedule"
 """
 
+#
+# class Config(object):
+#     def __init__(self, raw):
+#         self._raw = raw
+#
+#     def _get_or_default(self, prop, default):
+#         return self._raw.get(prop, default)
+#
+#     def _get_or_fail(self, prop):
+#         if prop in self._raw.keys():
+#             return self._raw[prop]
+#         else:
+#             raise MissingConfigException(
+#                 f"Missing required configuration: '{self._get_prefix()}{prop}'."
+#             )
+#
+#     def _get_prefix(self):
+#         return ""
+#
+#     def __eq__(self, other):
+#         return self._raw == other._raw
+#
+#
+# class VolumeConfig(Config):
+#     @property
+#     def storageclass(self):
+#         return self._get_or_default("storageclass", None)
+#
+#     @property
+#     def size(self):
+#         return self._get_or_default("size", "1Gi")
+#
+#     @property
+#     def access_modes(self):
+#         return self._get_or_default("access_modes", ["ReadWriteOnce"])
+#
+#     @property
+#     def skip_init(self):
+#         return self._get_or_default("skip_init", False)
+#
+#     @property
+#     def keep(self):
+#         return self._get_or_default("keep", False)
+#
+#     @property
+#     def owner(self):
+#         return self._get_or_default("owner", 0)
+#
+#     def _get_prefix(self):
+#         return "run_config.volume."
+#
+#
+# class NodeResources(Config):
+#     def is_set_for(self, node_name):
+#         return self.get_for(node_name) != {}
+#
+#     def get_for(self, node_name):
+#         defaults = self._get_or_default("__default__", {})
+#         node_specific = self._get_or_default(node_name, {})
+#         return {**defaults, **node_specific}
+#
+#
+# class Tolerations(Config):
+#     def is_set_for(self, node_name):
+#         return bool(self.get_for(node_name))
+#
+#     def get_for(self, node_name):
+#         node_values = self._get_or_default(node_name, [])
+#         if node_values:
+#             return node_values
+#         return self._get_or_default("__default__", [])
+#
+#
+# class RetryPolicy(Config):
+#     def is_set_for(self, node_name):
+#         return self.get_for(node_name) != {}
+#
+#     def get_for(self, node_name):
+#         defaults = self._get_or_default("__default__", {})
+#         node_specific = self._get_or_default(node_name, {})
+#         values = {**defaults, **node_specific}
+#         if values == {}:
+#             return {}
+#         values["num_retries"] = int(values.get("num_retries", 0))
+#         values["backoff_factor"] = (
+#             float(values["backoff_factor"])
+#             if "backoff_factor" in values
+#             else None
+#         )
+#         values["backoff_duration"] = (
+#             str(values["backoff_duration"])
+#             if "backoff_duration" in values
+#             else None
+#         )
+#         return values
+#
+#
+# class RunConfig(Config):
+#     @property
+#     def image(self):
+#         return self._get_or_fail("image")
+#
+#     @property
+#     def image_pull_policy(self):
+#         return self._get_or_default("image_pull_policy", "IfNotPresent")
+#
+#     @property
+#     def root(self):
+#         return self._get_or_fail("root")
+#
+#     @property
+#     def experiment_name(self):
+#         return self._get_or_fail("experiment_name")
+#
+#     @property
+#     def run_name(self):
+#         return self._get_or_fail("run_name")
+#
+#     @property
+#     def scheduled_run_name(self):
+#         return self._get_or_default(
+#             "scheduled_run_name", self._get_or_fail("run_name")
+#         )
+#
+#     @property
+#     def description(self):
+#         return self._get_or_default("description", None)
+#
+#     @property
+#     def resources(self):
+#         return NodeResources(self._get_or_default("resources", {}))
+#
+#     @property
+#     def tolerations(self):
+#         return Tolerations(self._get_or_default("tolerations", {}))
+#
+#     @property
+#     def retry_policy(self):
+#         return RetryPolicy(self._get_or_default("retry_policy", {}))
+#
+#     @property
+#     def volume(self):
+#         if "volume" in self._raw.keys():
+#             cfg = self._get_or_fail("volume")
+#             return VolumeConfig(cfg)
+#         else:
+#             return None
+#
+#     @property
+#     def wait_for_completion(self):
+#         return bool(self._get_or_default("wait_for_completion", False))
+#
+#     @property
+#     def store_kedro_outputs_as_kfp_artifacts(self):
+#         return bool(
+#             self._get_or_default("store_kedro_outputs_as_kfp_artifacts", True)
+#         )
+#
+#     @property
+#     def max_cache_staleness(self):
+#         return str(self._get_or_default("max_cache_staleness", None))
+#
+#     @property
+#     def ttl(self):
+#         return int(self._get_or_default("ttl", 3600 * 24 * 7))
+#
+#     @property
+#     def on_exit_pipeline(self):
+#         return self._get_or_default("on_exit_pipeline", None)
+#
+#     @property
+#     def node_merge_strategy(self):
+#         strategy = str(self._get_or_default("node_merge_strategy", "none"))
+#         if strategy not in ["none", "full"]:
+#             raise ValueError(
+#                 f"Invalid {self._get_prefix()}node_merge_strategy: {strategy}"
+#             )
+#         else:
+#             return strategy
+#
+#     def _get_prefix(self):
+#         return "run_config."
+#
+#
+# class PluginConfig(Config):
+#     @property
+#     def host(self):
+#         return self._get_or_fail("host")
+#
+#     @property
+#     def run_config(self):
+#         cfg = self._get_or_fail("run_config")
+#         return RunConfig(cfg)
+#
+#     @staticmethod
+#     def sample_config(**kwargs):
+#         return DEFAULT_CONFIG_TEMPLATE.format(**kwargs)
+#
+#     @property
+#     def project_id(self):
+#         return self._get_or_fail("project_id")
+#
+#     @property
+#     def region(self):
+#         return self._get_or_fail("region")
+#
+#     @staticmethod
+#     def initialize_github_actions(project_name, where, templates_dir):
+#         os.makedirs(where / ".github/workflows", exist_ok=True)
+#         for template in ["on-merge-to-master.yml", "on-push.yml"]:
+#             file_path = where / ".github/workflows" / template
+#             template_file = templates_dir / f"github-{template}"
+#             with open(template_file, "r") as tfile, open(file_path, "w") as f:
+#                 f.write(tfile.read().format(project_name=project_name))
 
-class Config(object):
-    def __init__(self, raw):
-        self._raw = raw
+import os
+from collections import defaultdict
+from enum import Enum
+from typing import Dict, List, Optional, Any, Type, Union
 
-    def _get_or_default(self, prop, default):
-        return self._raw.get(prop, default)
-
-    def _get_or_fail(self, prop):
-        if prop in self._raw.keys():
-            return self._raw[prop]
-        else:
-            raise MissingConfigException(
-                f"Missing required configuration: '{self._get_prefix()}{prop}'."
-            )
-
-    def _get_prefix(self):
-        return ""
-
-    def __eq__(self, other):
-        return self._raw == other._raw
+from kubernetes.client import V1Volume
+from pydantic import BaseModel, validator
 
 
-class VolumeConfig(Config):
-    @property
-    def storageclass(self):
-        return self._get_or_default("storageclass", None)
-
-    @property
-    def size(self):
-        return self._get_or_default("size", "1Gi")
-
-    @property
-    def access_modes(self):
-        return self._get_or_default("access_modes", ["ReadWriteOnce"])
-
-    @property
-    def skip_init(self):
-        return self._get_or_default("skip_init", False)
-
-    @property
-    def keep(self):
-        return self._get_or_default("keep", False)
-
-    @property
-    def owner(self):
-        return self._get_or_default("owner", 0)
-
-    def _get_prefix(self):
-        return "run_config.volume."
-
-
-class NodeResources(Config):
-    def is_set_for(self, node_name):
-        return self.get_for(node_name) != {}
-
-    def get_for(self, node_name):
-        defaults = self._get_or_default("__default__", {})
-        node_specific = self._get_or_default(node_name, {})
-        return {**defaults, **node_specific}
-
-
-class Tolerations(Config):
-    def is_set_for(self, node_name):
-        return bool(self.get_for(node_name))
-
-    def get_for(self, node_name):
-        node_values = self._get_or_default(node_name, [])
-        if node_values:
-            return node_values
-        return self._get_or_default("__default__", [])
-
-
-class RetryPolicy(Config):
-    def is_set_for(self, node_name):
-        return self.get_for(node_name) != {}
-
-    def get_for(self, node_name):
-        defaults = self._get_or_default("__default__", {})
-        node_specific = self._get_or_default(node_name, {})
-        values = {**defaults, **node_specific}
-        if values == {}:
-            return {}
-        values["num_retries"] = int(values.get("num_retries", 0))
-        values["backoff_factor"] = (
-            float(values["backoff_factor"])
-            if "backoff_factor" in values
-            else None
+class DefaultConfigDict(defaultdict):
+    def __getitem__(self, key):
+        defaults: BaseModel = super().__getitem__("__default__")
+        this: BaseModel = super().__getitem__(key)
+        return (
+            defaults.copy(update=this.dict(exclude_none=True))
+            if defaults
+            else this
         )
-        values["backoff_duration"] = (
-            str(values["backoff_duration"])
-            if "backoff_duration" in values
-            else None
-        )
-        return values
 
 
-class RunConfig(Config):
-    @property
-    def image(self):
-        return self._get_or_fail("image")
+class ResourceConfig(BaseModel):
+    cpu: Optional[str]
+    memory: Optional[str]
 
-    @property
-    def image_pull_policy(self):
-        return self._get_or_default("image_pull_policy", "IfNotPresent")
 
-    @property
-    def root(self):
-        return self._get_or_fail("root")
+class TolerationConfig(BaseModel):
+    key: str
+    operator: str
+    value: Optional[str] = None
+    effect: str
 
-    @property
-    def experiment_name(self):
-        return self._get_or_fail("experiment_name")
 
-    @property
-    def run_name(self):
-        return self._get_or_fail("run_name")
+class RetryPolicyConfig(BaseModel):
+    num_retries: int
+    backoff_duration: str
+    backoff_factor: float
 
-    @property
-    def scheduled_run_name(self):
-        return self._get_or_default(
-            "scheduled_run_name", self._get_or_fail("run_name")
-        )
 
-    @property
-    def description(self):
-        return self._get_or_default("description", None)
+class VolumeConfig(BaseModel):
+    storageclass: Optional[str] = None
+    size: str = "1Gi"
+    access_modes: List[str] = ["ReadWriteOnce"]
+    skip_init: bool = False
+    keep: bool = False
+    owner: int = 0
 
-    @property
-    def resources(self):
-        return NodeResources(self._get_or_default("resources", {}))
 
-    @property
-    def tolerations(self):
-        return Tolerations(self._get_or_default("tolerations", {}))
+class NodeMergeStrategyEnum(str, Enum):
+    none = "none"
+    full = "full"
 
-    @property
-    def retry_policy(self):
-        return RetryPolicy(self._get_or_default("retry_policy", {}))
 
-    @property
-    def volume(self):
-        if "volume" in self._raw.keys():
-            cfg = self._get_or_fail("volume")
-            return VolumeConfig(cfg)
-        else:
-            return None
+class ExtraVolumeConfig(BaseModel):
+    volume: dict
+    mount_path: str
 
-    @property
-    def wait_for_completion(self):
-        return bool(self._get_or_default("wait_for_completion", False))
-
-    @property
-    def store_kedro_outputs_as_kfp_artifacts(self):
-        return bool(
-            self._get_or_default("store_kedro_outputs_as_kfp_artifacts", True)
-        )
-
-    @property
-    def max_cache_staleness(self):
-        return str(self._get_or_default("max_cache_staleness", None))
-
-    @property
-    def ttl(self):
-        return int(self._get_or_default("ttl", 3600 * 24 * 7))
-
-    @property
-    def on_exit_pipeline(self):
-        return self._get_or_default("on_exit_pipeline", None)
-
-    @property
-    def node_merge_strategy(self):
-        strategy = str(self._get_or_default("node_merge_strategy", "none"))
-        if strategy not in ["none", "full"]:
+    @validator("volume")
+    def volume_validator(cls, value):
+        try:
+            V1Volume(**value)
+        except:
             raise ValueError(
-                f"Invalid {self._get_prefix()}node_merge_strategy: {strategy}"
+                "Cannot construct kubernetes.client.models.v1_volume.V1Volume from the passed `volume` field"
             )
-        else:
-            return strategy
-
-    def _get_prefix(self):
-        return "run_config."
+        return value
 
 
-class PluginConfig(Config):
-    @property
-    def host(self):
-        return self._get_or_fail("host")
+def identity(x):
+    return x
 
-    @property
-    def run_config(self):
-        cfg = self._get_or_fail("run_config")
-        return RunConfig(cfg)
+
+class RunConfig(BaseModel):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        if "scheduled_run_name" not in kwargs:
+            self.scheduled_run_name = kwargs["run_name"]
+
+    @staticmethod
+    def _create_default_dict_with(
+        value: dict, default, dict_cls: Type = DefaultConfigDict
+    ):
+        default_value = (value := value or {}).get("__default__", default)
+        return dict_cls(lambda: default_value, value)
+
+    @validator("resources", always=True)
+    def _validate_resources(cls, value):
+        return RunConfig._create_default_dict_with(
+            value, ResourceConfig(cpu="500m", memory="1024Mi")
+        )
+
+    @validator("retry_policy", always=True)
+    def _validate_retry_policy(cls, value):
+        return RunConfig._create_default_dict_with(value, None)
+
+    @validator("tolerations", always=True)
+    def _validate_tolerations(cls, value):
+        return RunConfig._create_default_dict_with(value, [], defaultdict)
+
+    @validator("extra_volumes", always=True)
+    def _validate_extra_volumes(cls, value):
+        return RunConfig._create_default_dict_with(value, [], defaultdict)
+
+    image: str
+    image_pull_policy: str = "IfNotPresent"
+    root: Optional[str]
+    experiment_name: str
+    run_name: str
+    scheduled_run_name: Optional[str]
+    description: Optional[str] = None
+    resources: Optional[Dict[str, ResourceConfig]]
+    tolerations: Optional[Dict[str, List[TolerationConfig]]]
+    retry_policy: Optional[Dict[str, Optional[RetryPolicyConfig]]]
+    volume: Optional[VolumeConfig] = None
+    extra_volumes: Optional[Dict[str, List[ExtraVolumeConfig]]] = None
+    wait_for_completion: bool = False
+    store_kedro_outputs_as_kfp_artifacts: bool = True
+    max_cache_staleness: Optional[str] = None
+    ttl: int = 3600 * 24 * 7
+    on_exit_pipeline: Optional[str] = None
+    node_merge_strategy: NodeMergeStrategyEnum = NodeMergeStrategyEnum.none
+
+
+class PluginConfig(BaseModel):
+    host: str
+    run_config: RunConfig
 
     @staticmethod
     def sample_config(**kwargs):
         return DEFAULT_CONFIG_TEMPLATE.format(**kwargs)
-
-    @property
-    def project_id(self):
-        return self._get_or_fail("project_id")
-
-    @property
-    def region(self):
-        return self._get_or_fail("region")
 
     @staticmethod
     def initialize_github_actions(project_name, where, templates_dir):

@@ -24,7 +24,7 @@ from kedro_kubeflow.config import PluginConfig
 from kedro_kubeflow.context_helper import ContextHelper
 
 test_config = PluginConfig(
-    {
+    **{
         "host": "https://example.com",
         "run_config": {
             "image": "gcr.io/project-image/test",
@@ -35,7 +35,7 @@ test_config = PluginConfig(
             "volume": {
                 "storageclass": "default",
                 "size": "3Gi",
-                "access_modes": "[ReadWriteOnce]",
+                "access_modes": ["ReadWriteOnce"],
             },
         },
     }
@@ -254,10 +254,7 @@ class TestPluginCLI(unittest.TestCase):
             "builtins.open", um.mock_open(read_data="unittest-namespace")
         ):
             runner = CliRunner()
-            result = runner.invoke(
-                delete_pipeline_volume,
-                ["workflow-name"],
-            )
+            result = runner.invoke(delete_pipeline_volume, ["workflow-name"],)
             assert result.exit_code == 0
             core_api = k8s_client_mock.CoreV1Api()
             core_api.delete_namespaced_persistent_volume_claim.assert_called_with(
