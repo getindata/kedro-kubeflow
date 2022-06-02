@@ -131,7 +131,8 @@ def customize_op(op, image_pull_policy, run_config: RunConfig):
 
     resources = run_config.resources[op.name].dict(exclude_none=True)
     op.container.resources = k8s.V1ResourceRequirements(
-        limits=resources, requests=resources,
+        limits=resources,
+        requests=resources,
     )
 
     if retry_policy := run_config.retry_policy[op.name]:

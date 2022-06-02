@@ -18,7 +18,11 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
         return type("obj", (object,), {"id": id})
 
     def create_empty_pipelines_list(self):
-        return type("obj", (object,), {"pipelines": None},)
+        return type(
+            "obj",
+            (object,),
+            {"pipelines": None},
+        )
 
     def create_pipelines_list(self):
         return type(
@@ -42,7 +46,10 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
                     type(
                         "obj",
                         (object,),
-                        {"name": job_name, "id": job_name + "ID",},
+                        {
+                            "name": job_name,
+                            "id": job_name + "ID",
+                        },
                     )
                 ]
             },
@@ -285,8 +292,8 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
             self.create_experiment()
         )
         self.kfp_client_mock.get_pipeline_id.return_value = "someid"
-        self.kfp_client_mock.list_recurring_runs.return_value = self.create_recurring_jobs_list(
-            "scheduled run for region ABC"
+        self.kfp_client_mock.list_recurring_runs.return_value = (
+            self.create_recurring_jobs_list("scheduled run for region ABC")
         )
 
         # when

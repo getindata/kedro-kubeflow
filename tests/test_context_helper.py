@@ -10,8 +10,8 @@ from kedro_kubeflow.context_helper import (
     ContextHelper16,
     EnvTemplatedConfigLoader,
 )
-from .common import MinimalConfigMixin
 
+from .common import MinimalConfigMixin
 from .utils import environment
 
 

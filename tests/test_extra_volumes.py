@@ -2,7 +2,7 @@ import unittest
 from io import StringIO
 
 import yaml
-from kubernetes.client import V1Volume, V1EmptyDirVolumeSource, V1KeyToPath
+from kubernetes.client import V1EmptyDirVolumeSource, V1KeyToPath, V1Volume
 
 from kedro_kubeflow.config import ExtraVolumeConfig
 

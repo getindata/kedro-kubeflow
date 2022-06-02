@@ -1,9 +1,7 @@
 import unittest
 
 import yaml
-from kedro.config.config import MissingConfigException
 from pydantic import ValidationError
-from pydantic.utils import deep_update
 
 from kedro_kubeflow.config import PluginConfig
 from tests.common import MinimalConfigMixin
@@ -93,11 +91,17 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
         )
         self.assertDictEqual(
             cfg.run_config.resources["node2"].dict(),
-            {"cpu": "100m", "memory": "64Mi",},
+            {
+                "cpu": "100m",
+                "memory": "64Mi",
+            },
         )
         self.assertDictEqual(
             cfg.run_config.resources["node3"].dict(),
-            {"cpu": "200m", "memory": "64Mi",},
+            {
+                "cpu": "200m",
+                "memory": "64Mi",
+            },
         )
 
     def test_tolerations_default_only(self):

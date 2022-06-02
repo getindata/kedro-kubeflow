@@ -74,7 +74,11 @@ class ContextHelper(object):
     def kfp_client(self):
         from .kfpclient import KubeflowClient
 
-        return KubeflowClient(self.config, self.project_name, self.context,)
+        return KubeflowClient(
+            self.config,
+            self.project_name,
+            self.context,
+        )
 
     @staticmethod
     def init(metadata, env):

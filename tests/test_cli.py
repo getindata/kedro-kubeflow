@@ -254,7 +254,10 @@ class TestPluginCLI(unittest.TestCase):
             "builtins.open", um.mock_open(read_data="unittest-namespace")
         ):
             runner = CliRunner()
-            result = runner.invoke(delete_pipeline_volume, ["workflow-name"],)
+            result = runner.invoke(
+                delete_pipeline_volume,
+                ["workflow-name"],
+            )
             assert result.exit_code == 0
             core_api = k8s_client_mock.CoreV1Api()
             core_api.delete_namespaced_persistent_volume_claim.assert_called_with(

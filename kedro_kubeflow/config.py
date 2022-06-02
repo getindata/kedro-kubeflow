@@ -2,7 +2,7 @@ import logging
 import os
 from collections import defaultdict
 from enum import Enum
-from typing import Dict, List, Optional, Any, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 from kubernetes.client import V1Volume
 from pydantic import BaseModel, validator
@@ -222,8 +222,9 @@ class ExtraVolumeConfig(BaseModel):
 
     @classmethod
     def _construct_v1_volume(cls, value: dict):
-        from kubernetes import client as k8s_client
         from importlib import import_module
+
+        from kubernetes import client as k8s_client
 
         def resolve_cls(cls_name):
             if hasattr(k8s_client, cls_name):
@@ -254,7 +255,8 @@ class ExtraVolumeConfig(BaseModel):
             cls._construct_v1_volume(value)
         except Exception as ex:
             logger.error(
-                "Cannot construct kubernetes.client.models.v1_volume.V1Volume from the passed `volume` field",
+                "Cannot construct kubernetes.client.models.v1_volume.V1Volume "
+                "from the passed `volume` field",
                 exc_info=True,
             )
             raise ex
