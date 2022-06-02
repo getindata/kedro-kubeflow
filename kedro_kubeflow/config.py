@@ -121,6 +121,17 @@ run_config:
       cpu: 200m
       memory: 64Mi
 
+  # Optional section to allow mounting additional volumes (such as EmptyDir)
+  # to specific nodes
+  extra_volumes:
+    tensorflow_step:
+    - mount_path: /dev/shm
+      volume:
+        empty_dir:
+          cls: V1EmptyDirVolumeSource
+          params:
+            medium: Memory
+
   # Optional section to provide retry policy for the steps
   # and default policy for steps with no policy specified
   retry_policy:
