@@ -254,10 +254,9 @@ class ExtraVolumeConfig(BaseModel):
         try:
             cls._construct_v1_volume(value)
         except Exception as ex:
-            logger.error(
+            logger.exception(
                 "Cannot construct kubernetes.client.models.v1_volume.V1Volume "
                 "from the passed `volume` field",
-                exc_info=True,
             )
             raise ex
         return value
