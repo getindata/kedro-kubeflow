@@ -139,4 +139,12 @@ def customize_op(op, image_pull_policy, run_config: RunConfig):
 
     for toleration in run_config.tolerations[op.name]:
         op.add_toleration(k8s.V1Toleration(**toleration.dict()))
+
+    if extra_volumes := run_config.extra_volumes[op.name]:
+        op.add_pvolumes(
+            {
+                ev.mount_path: dsl.PipelineVolume(volume=ev.as_v1volume())
+                for ev in extra_volumes
+            }
+        )
     return op
