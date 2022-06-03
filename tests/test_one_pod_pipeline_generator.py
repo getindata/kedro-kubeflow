@@ -280,6 +280,29 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             )
         )
 
+    def test_should_generate_exit_handler_with_max_staleness(self):
+        # given
+        self.create_generator(
+            config={
+                "on_exit_pipeline": "notify_via_slack",
+                "max_cache_staleness": "P0D",
+            }
+        )
+
+        # when
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            pipeline = self.generator_under_test.generate_pipeline(
+                "pipeline", "unittest-image", "Always"
+            )
+            pipeline()
+
+        assert (
+            dsl_pipeline.ops[
+                "on-exit"
+            ].execution_options.caching_strategy.max_cache_staleness
+            == "P0D"
+        )
+
     def create_generator(self, config=None, params=None, catalog=None):
         if config is None:
             config = {}

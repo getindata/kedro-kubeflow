@@ -394,6 +394,19 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
         assert op2.backoff_duration == "60s"
         assert op2.backoff_max_duration is None
 
+    def test_should_add_max_cache_staleness(self):
+        self.create_generator(config={"max_cache_staleness": "P0D"})
+
+        with kfp.dsl.Pipeline(None) as dsl_pipeline:
+            self.generator_under_test.generate_pipeline(
+                "pipeline", "unittest-image", "Always"
+            )()
+
+        op1 = dsl_pipeline.ops["node1"]
+        assert (
+            op1.execution_options.caching_strategy.max_cache_staleness == "P0D"
+        )
+
     def test_should_set_description(self):
         # given
         self.create_generator(config={"description": "DESC"})
