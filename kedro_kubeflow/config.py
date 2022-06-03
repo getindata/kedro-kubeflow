@@ -2,8 +2,10 @@ import logging
 import os
 from collections import defaultdict
 from enum import Enum
+from importlib import import_module
 from typing import Any, Dict, List, Optional, Type, Union
 
+from kubernetes import client as k8s_client
 from kubernetes.client import V1Volume
 from pydantic import BaseModel, validator
 
@@ -220,34 +222,40 @@ class ExtraVolumeConfig(BaseModel):
     def as_v1volume(self) -> V1Volume:
         return self._construct_v1_volume(self.volume)
 
+    @staticmethod
+    def _resolve_cls(cls_name):
+        if hasattr(k8s_client, cls_name):
+            return getattr(k8s_client, cls_name, None)
+        else:
+            module_name, class_name = cls_name.rsplit(".", 1)
+            module = import_module(module_name)
+            return getattr(module, class_name, None)
+
+    @staticmethod
+    def _construct(value: Union[ObjectKwargs, Any]):
+        if isinstance(value, ObjectKwargs):
+            assert (
+                actual_cls := ExtraVolumeConfig._resolve_cls(value.cls)
+            ) is not None, f"Cannot import class {value.cls}"
+            return actual_cls(
+                **{
+                    k: ExtraVolumeConfig._construct(v)
+                    for k, v in value.params.items()
+                }
+            )
+        elif isinstance(value, list):
+            return [
+                ExtraVolumeConfig._construct(ObjectKwargs.parse_obj(v))
+                for v in value
+            ]
+        else:
+            return value
+
     @classmethod
     def _construct_v1_volume(cls, value: dict):
-        from importlib import import_module
-
-        from kubernetes import client as k8s_client
-
-        def resolve_cls(cls_name):
-            if hasattr(k8s_client, cls_name):
-                return getattr(k8s_client, cls_name, None)
-            else:
-                module_name, class_name = cls_name.rsplit(".", 1)
-                module = import_module(module_name)
-                return getattr(module, class_name, None)
-
-        def construct(value: Union[ObjectKwargs, Any]):
-            if isinstance(value, ObjectKwargs):
-                assert (
-                    actual_cls := resolve_cls(value.cls)
-                ) is not None, f"Cannot import class {value.cls}"
-                return actual_cls(
-                    **{k: construct(v) for k, v in value.params.items()}
-                )
-            elif isinstance(value, list):
-                return [construct(ObjectKwargs.parse_obj(v)) for v in value]
-            else:
-                return value
-
-        return V1Volume(**{k: construct(v) for k, v in value.items()})
+        return V1Volume(
+            **{k: ExtraVolumeConfig._construct(v) for k, v in value.items()}
+        )
 
     @validator("volume")
     def volume_validator(cls, value):
