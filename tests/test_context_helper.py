@@ -11,10 +11,11 @@ from kedro_kubeflow.context_helper import (
     EnvTemplatedConfigLoader,
 )
 
+from .common import MinimalConfigMixin
 from .utils import environment
 
 
-class TestContextHelper(unittest.TestCase):
+class TestContextHelper(unittest.TestCase, MinimalConfigMixin):
     def test_init_different_kedro_versions(self):
 
         with patch("kedro_kubeflow.context_helper.kedro_version", "0.16.0"):
@@ -48,9 +49,9 @@ class TestContextHelper(unittest.TestCase):
         with patch.object(KedroSession, "create", context), patch(
             "kedro_kubeflow.context_helper.EnvTemplatedConfigLoader"
         ) as config_loader:
-            config_loader.return_value.get.return_value = {}
+            config_loader.return_value.get.return_value = self.minimal_config()
             helper = ContextHelper.init(metadata, "test")
-            assert helper.config == PluginConfig({})
+            assert helper.config == PluginConfig(**self.minimal_config())
 
 
 class TestEnvTemplatedConfigLoader(unittest.TestCase):

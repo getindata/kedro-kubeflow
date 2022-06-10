@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+- Added support for extra volumes per node 
+- Refactored configuration classes to Pydantic
 
 ## [0.6.4] - 2022-06-01
 

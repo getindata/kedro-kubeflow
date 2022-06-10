@@ -24,7 +24,7 @@ from kedro_kubeflow.config import PluginConfig
 from kedro_kubeflow.context_helper import ContextHelper
 
 test_config = PluginConfig(
-    {
+    **{
         "host": "https://example.com",
         "run_config": {
             "image": "gcr.io/project-image/test",
@@ -35,7 +35,7 @@ test_config = PluginConfig(
             "volume": {
                 "storageclass": "default",
                 "size": "3Gi",
-                "access_modes": "[ReadWriteOnce]",
+                "access_modes": ["ReadWriteOnce"],
             },
         },
     }

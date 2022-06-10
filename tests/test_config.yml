@@ -2,3 +2,5 @@ run_config:
   image: "gcr.io/project-image/${commit_id|dirty}"
   experiment_name: "[Test] ${branch_name|local}"
   run_name: "${xyz123|dirty}"
+  host: http://localhost:1234
+

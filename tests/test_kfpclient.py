@@ -8,11 +8,15 @@ from unittest.mock import patch
 from kfp import dsl
 
 from kedro_kubeflow.config import PluginConfig
+from kedro_kubeflow.generators.one_pod_pipeline_generator import (
+    OnePodPipelineGenerator,
+)
 from kedro_kubeflow.kfpclient import KubeflowClient
 from kedro_kubeflow.utils import strip_margin
+from tests.common import MinimalConfigMixin
 
 
-class TestKubeflowClient(unittest.TestCase):
+class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
     def create_experiment(self, id="123"):
         return type("obj", (object,), {"id": id})
 
@@ -182,7 +186,11 @@ class TestKubeflowClient(unittest.TestCase):
 
         # when
         self.client_under_test = KubeflowClient(
-            PluginConfig({"host": "http://unittest", "run_config": {}}),
+            PluginConfig(
+                **self.minimal_config(
+                    {"host": "http://unittest", "run_config": {}}
+                )
+            ),
             None,
             None,
         )
@@ -206,7 +214,11 @@ class TestKubeflowClient(unittest.TestCase):
 
         # when
         self.client_under_test = KubeflowClient(
-            PluginConfig({"host": "http://unittest", "run_config": {}}),
+            PluginConfig(
+                **self.minimal_config(
+                    {"host": "http://unittest", "run_config": {}}
+                )
+            ),
             None,
             None,
         )
@@ -336,6 +348,24 @@ class TestKubeflowClient(unittest.TestCase):
         )
         assert kwargs["description"] == "Very Important Pipeline"
 
+    @patch("kedro_kubeflow.kfpclient.Client")
+    @patch("kedro.framework.context.context.KedroContext")
+    def test_can_create_client_with_node_strategy_full(self, context, _):
+        client = KubeflowClient(
+            PluginConfig(
+                **self.minimal_config(
+                    {
+                        "host": "http://unittest",
+                        "run_config": {"node_merge_strategy": "full"},
+                    }
+                )
+            ),
+            "unit-test-project",
+            context,
+        )
+
+        assert isinstance(client.generator, OnePodPipelineGenerator)
+
     def test_should_truncated_the_pipeline_name_to_100_characters_on_upload(
         self,
     ):
@@ -380,24 +410,31 @@ class TestKubeflowClient(unittest.TestCase):
     def test_should_raise_error_if_invalid_node_merge_strategy(
         self, kfp_client_mock
     ):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as raises:
             KubeflowClient(
                 PluginConfig(
-                    {
-                        "host": "http://unittest",
-                        "run_config": {"node_merge_strategy": "other"},
-                    }
+                    **self.minimal_config(
+                        {
+                            "host": "http://unittest",
+                            "run_config": {"node_merge_strategy": "other"},
+                        }
+                    )
                 ),
                 None,
                 None,
             )
+        assert "validation error" in str(raises.exception)
 
     @patch("kedro_kubeflow.kfpclient.PodPerNodePipelineGenerator")
     @patch("kedro_kubeflow.kfpclient.Client")
     def create_client(self, config, kfp_client_mock, pipeline_generator_mock):
         project_name = "my-awesome-project"
         self.client_under_test = KubeflowClient(
-            PluginConfig({"host": "http://unittest", "run_config": config}),
+            PluginConfig(
+                **self.minimal_config(
+                    {"host": "http://unittest", "run_config": config}
+                )
+            ),
             project_name,
             None,  # context,
         )

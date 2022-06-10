@@ -14,6 +14,7 @@ from kedro_kubeflow.generators.pod_per_node_pipeline_generator import (
 )
 
 from .auth import AuthHandler
+from .config import NodeMergeStrategyEnum, PluginConfig
 from .utils import clean_name
 
 WAIT_TIMEOUT = 24 * 60 * 60
@@ -23,7 +24,7 @@ class KubeflowClient(object):
 
     log = logging.getLogger(__name__)
 
-    def __init__(self, config, project_name, context):
+    def __init__(self, config: PluginConfig, project_name, context):
         client_params = {}
         token = AuthHandler().obtain_id_token()
         if token is not None:
@@ -40,17 +41,15 @@ class KubeflowClient(object):
 
         self.project_name = project_name
         self.pipeline_description = config.run_config.description
-        if config.run_config.node_merge_strategy == "none":
+        if config.run_config.node_merge_strategy == NodeMergeStrategyEnum.none:
             self.generator = PodPerNodePipelineGenerator(
                 config, project_name, context
             )
-        elif config.run_config.node_merge_strategy == "full":
+        elif (
+            config.run_config.node_merge_strategy == NodeMergeStrategyEnum.full
+        ):
             self.generator = OnePodPipelineGenerator(
                 config, project_name, context
-            )
-        else:
-            raise Exception(
-                f"Invalid `node_merge_strategy`: {config.run_config.node_merge_strategy}"
             )
 
     def list_pipelines(self):
