@@ -8,6 +8,7 @@ on: # workflow_dispatch
 
 jobs:
   build:
+    if: (github.event.pull_request.head.repo.full_name || github.push.repository.full_name) == github.repository
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -30,8 +31,8 @@ jobs:
         kedro new --starter spaceflights --config tests/e2e/starter-config.yml --verbose
 
     - name: Install project dependencies
+      working-directory: ./spaceflights
       run: |
-        cd ./spaceflights
         echo "git+https://github.com/getindata/kedro-kubeflow.git@$GITHUB_SHA" >> src/requirements.txt
         echo "kedro-docker" >> src/requirements.txt
         sed -i '/kedro-telemetry/d' src/requirements.txt
@@ -39,8 +40,8 @@ jobs:
         pip install -r src/requirements.txt
 
     - name: Init and update configuration
+      working-directory: ./spaceflights
       run: |
-        cd ./spaceflights
         kedro docker init
         kedro kubeflow init http://localhost:9000
         echo "!data/01_raw" >> .dockerignore
@@ -55,8 +56,8 @@ jobs:
         install: true
 
     - name: Build pipeline docker image
+      working-directory: ./spaceflights
       run: |
-        cd ./spaceflights
         docker build --build-arg BASE_IMAGE=python:3.8-buster --tag kedro-kubeflow-e2e:latest --load .
 
     - name: Set up GCP Credentials
@@ -79,4 +80,5 @@ jobs:
         export KEDRO_CONFIG_COMMIT_ID=$GITHUB_SHA
         kedro kubeflow upload-pipeline
         kedro kubeflow run-once
-
+      env:
+        KEDRO_CONFIG_KUBEFLOW_HOSTNAME: ${{ secrets.KUBEFLOW_HOSTNAME }}
