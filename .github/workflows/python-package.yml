@@ -34,8 +34,9 @@ jobs:
       run: |
         pip install tox-pip-version
         tox -v -e py38
-
+    
     - name: Report coverage
+      if: (github.event.pull_request.head.repo.full_name || github.push.repository.full_name) == github.repository
       uses: paambaati/codeclimate-action@v2.7.5
       env:
         CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE }}
