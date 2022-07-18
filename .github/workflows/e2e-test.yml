@@ -33,7 +33,7 @@ jobs:
     - name: Install project dependencies
       working-directory: ./spaceflights
       run: |
-        echo "git+https://github.com/getindata/kedro-kubeflow.git[gcp]@$GITHUB_SHA" >> src/requirements.txt
+        echo "kedro-kubeflow[gcp] @ git+https://github.com/getindata/kedro-kubeflow.git@$GITHUB_SHA" >> src/requirements.txt
         echo "kedro-docker" >> src/requirements.txt
         sed -i '/kedro-telemetry/d' src/requirements.txt
         cat src/requirements.txt
