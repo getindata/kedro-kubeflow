@@ -77,7 +77,7 @@ run_config:
 
     # Flag indicating if the data-volume-init step (copying raw data to the
     # fresh volume) should be skipped
-    skip_init: False
+    skip_init: True
 
     # Allows to specify user executing pipelines within containers
     # Default: root user (to avoid issues with volumes in GKE)
