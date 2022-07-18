@@ -30,6 +30,11 @@ EXTRA_REQUIRE = {
         "recommonmark==0.7.1",
         "sphinx_rtd_theme==1.0.0",
     ],
+    "gcp": [
+        "google-auth<3",
+        "gcsfs<=2022.1,>=2021.4",
+        "fsspec<=2022.1,>=2021.4"
+    ]
 }
 
 setup(
