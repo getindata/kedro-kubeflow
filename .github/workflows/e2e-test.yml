@@ -46,6 +46,7 @@ jobs:
         kedro kubeflow init http://localhost:9000
         echo "!data/01_raw" >> .dockerignore
         mv ../tests/e2e/catalog.yml conf/base/catalog.yml
+        rm -f conf/base/kubeflow.y*
         mv ../tests/e2e/kubeflow.yml conf/base/kubeflow.yml
 
     - name: Prepare docker env
@@ -73,7 +74,7 @@ jobs:
         src: kedro-kubeflow-e2e:latest
         dst: gcr.io/gid-ml-ops-sandbox/kedro-kubeflow-e2e:${{ github.sha }}
 
-    - name: Run project on vertex pipeline
+    - name: Run project on kubeflow pipeline
       run: |
         cd ./spaceflights
         export KEDRO_CONFIG_COMMIT_ID=$GITHUB_SHA
