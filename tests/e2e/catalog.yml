@@ -58,63 +58,63 @@ regressor:
   layer: models
 
 ### catalog entries required by starter version >= 0.17.7
-data_processing.preprocessed_companies:
+data_processing_preprocessed_companies:
   type: pandas.CSVDataSet
   filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/02_intermediate/preprocessed_companies.csv
   layer: intermediate
 
-data_processing.preprocessed_shuttles:
+data_processing_preprocessed_shuttles:
   type: pandas.CSVDataSet
   filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/02_intermediate/preprocessed_shuttles.csv
   layer: intermediate
 
-data_science.active_modelling_pipeline.X_train:
+data_science_active_modelling_pipeline_X_train:
   type: pickle.PickleDataSet
   filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/active_modelling_pipeline/05_model_input/X_train.pickle
   layer: model_input
 
-data_science.active_modelling_pipeline.y_train:
+data_science_active_modelling_pipeline_y_train:
   type: pickle.PickleDataSet
   filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/active_modelling_pipeline/05_model_input/y_train.pickle
   layer: model_input
 
-data_science.active_modelling_pipeline.X_test:
+data_science_active_modelling_pipeline_X_test:
   type: pickle.PickleDataSet
   filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/active_modelling_pipeline/05_model_input/X_test.pickle
   layer: model_input
 
-data_science.active_modelling_pipeline.y_test:
+data_science_active_modelling_pipeline_y_test:
   type: pickle.PickleDataSet
   filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/active_modelling_pipeline/05_model_input/y_test.pickle
   layer: model_input
 
-data_science.active_modelling_pipeline.regressor:
+data_science_active_modelling_pipeline_regressor:
   type: pickle.PickleDataSet
   filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/active_modelling_pipeline/06_models/regressor.pickle
   versioned: true
   layer: models
 
-data_science.candidate_modelling_pipeline.X_train:
+data_science_candidate_modelling_pipeline_X_train:
   type: pickle.PickleDataSet
   filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/candidate_modelling_pipeline/05_model_input/X_train.pickle
   layer: model_input
 
-data_science.candidate_modelling_pipeline.y_train:
+data_science_candidate_modelling_pipeline_y_train:
   type: pickle.PickleDataSet
   filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/candidate_modelling_pipeline/05_model_input/y_train.pickle
   layer: model_input
 
-data_science.candidate_modelling_pipeline.X_test:
+data_science_candidate_modelling_pipeline_X_test:
   type: pickle.PickleDataSet
   filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/candidate_modelling_pipeline/05_model_input/X_test.pickle
   layer: model_input
 
-data_science.candidate_modelling_pipeline.y_test:
+data_science_candidate_modelling_pipeline_y_test:
   type: pickle.PickleDataSet
   filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/candidate_modelling_pipeline/05_model_input/y_test.pickle
   layer: model_input
 
-data_science.candidate_modelling_pipeline.regressor:
+data_science_candidate_modelling_pipeline_regressor:
   type: pickle.PickleDataSet
   filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/candidate_modelling_pipeline/06_models/regressor.pickle
   versioned: true
