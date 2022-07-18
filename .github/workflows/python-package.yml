@@ -12,43 +12,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    
-    - name: Setup python
-      uses: actions/setup-python@v2.2.1
-      with:
-        python-version: 3.8
 
-    - name: Setup virtualenv
+    - name: Echo variables
       run: |
-        python -V
-        python -m pip install virtualenv
-        virtualenv venv
-        source venv/bin/activate
-   
-    - name: Check pre-commit status
-      run: |
-        pip install .[tests]
-        pre-commit run --all-files
-
-    - name: Test with tox
-      run: |
-        pip install tox-pip-version
-        tox -v -e py38
-    
-    - name : Check secrets present
-      id: checksecrets
-      shell: bash
-      run: |
-          if [ "$CC_TOKEN" == "" ]; then
-            echo ::set-output name=hassecrets::false
-          else
-            echo ::set-output name=hassecrets::true
-          fi
-      env:
-          CC_TOKEN: ${{ secrets.CODE_CLIMATE}}
+        echo ${{ github.push.repository.full_name }}
+        echo ${{ github.repository }}
+        echo ${{ github.event.pull_request.head.repo.full_name }}
+        echo ${{ github.event.pull_request.head.ref }}
     
     - name: Report coverage
-      if: steps.checksecrets.outputs.hassecrets
+      if: (github.event.pull_request.head.repo.full_name || github.push.repository.full_name) == github.repository
       uses: paambaati/codeclimate-action@v2.7.5
       env:
         CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE }}
