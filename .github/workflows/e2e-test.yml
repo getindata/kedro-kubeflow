@@ -75,10 +75,10 @@ jobs:
         dst: gcr.io/gid-ml-ops-sandbox/kedro-kubeflow-e2e:${{ github.sha }}
 
     - name: Run project on kubeflow pipeline
+      working-directory: spaceflights
       run: |
-        cd ./spaceflights
-        export KEDRO_CONFIG_COMMIT_ID=$GITHUB_SHA
         kedro kubeflow upload-pipeline
         kedro kubeflow run-once
       env:
         KEDRO_CONFIG_KUBEFLOW_HOSTNAME: ${{ secrets.KUBEFLOW_HOSTNAME }}
+        KEDRO_CONFIG_COMMIT_ID: $GITHUB_SHA
