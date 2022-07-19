@@ -338,3 +338,10 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             project_name="my-awesome-project",
             context=context,
         )
+
+    def test_is_local(self):
+        assert OnePodPipelineGenerator._is_local("data/test/file.txt") is True
+        assert (
+            OnePodPipelineGenerator._is_local("gs://test-bucket/file.txt")
+            is False
+        )

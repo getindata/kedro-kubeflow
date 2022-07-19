@@ -12,6 +12,7 @@ INSTALL_REQUIRES = [
     "tabulate>=0.8.7",
     "semver~=2.10",
     "google-auth<2.0dev",
+    "fsspec<=2022.1,>=2021.4",
 ]
 
 # Dev Requirements
@@ -33,7 +34,6 @@ EXTRA_REQUIRE = {
     "gcp": [
         "google-auth<3",
         "gcsfs<=2022.1,>=2021.4",
-        "fsspec<=2022.1,>=2021.4",
     ],
 }
 
