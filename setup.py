@@ -33,8 +33,8 @@ EXTRA_REQUIRE = {
     "gcp": [
         "google-auth<3",
         "gcsfs<=2022.1,>=2021.4",
-        "fsspec<=2022.1,>=2021.4"
-    ]
+        "fsspec<=2022.1,>=2021.4",
+    ],
 }
 
 setup(
