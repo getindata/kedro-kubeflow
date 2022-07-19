@@ -60,6 +60,13 @@ jobs:
       run: |
         docker build --build-arg BASE_IMAGE=python:3.8-buster --tag kedro-kubeflow-e2e:latest --load .
 
+    - name: Publish docker image to GCR
+      uses: mattes/gce-docker-push-action@v1
+      with:
+        creds: ${{ secrets.GOOGLE_CLOUD_TOKEN_JSON }}
+        src: kedro-kubeflow-e2e:latest
+        dst: gcr.io/gid-ml-ops-sandbox/kedro-kubeflow-e2e:${{ github.sha }}
+
     - name: Set up GCP Credentials
       uses: google-github-actions/auth@v0.6.0
       with:
@@ -67,8 +74,7 @@ jobs:
         create_credentials_file: true
         cleanup_credentials: true
 
-
-    - name: Run project on kubeflow pipeline
+    - name: Run project on kubeflow pipelines
       working-directory: spaceflights
       run: |
         kedro kubeflow upload-pipeline
