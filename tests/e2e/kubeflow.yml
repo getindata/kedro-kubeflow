@@ -30,3 +30,12 @@ run_config:
   # How long to keep underlying Argo workflow (together with pods and data
   # volume after pipeline finishes) [in seconds]. Default: 1 week
   ttl: 604800
+
+  # Optional section allowing adjustment of the resources
+  # reservations and limits for the nodes
+  resources:
+
+    # Default settings for the nodes
+    __default__:
+      cpu: 1
+      memory: 1Gi
