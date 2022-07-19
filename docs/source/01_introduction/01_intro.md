@@ -13,9 +13,9 @@ to run the pipeline once or schedule the recurring run.
 
 Kubeflow Pipelines' main attitude is the portability. Once you define a pipeline,
 it can be started on any Kubernetes cluster. The code to execute is stored inside 
-docker images that cover not only the source itself, but all the libraries and 
-entire execution environment. Portability is also one of key Kedro aspects, as 
-the pieplines must be versionable and packagebale. Kedro, with 
-[Kedro-docker](https://github.com/quantumblacklabs/kedro-docker) plugin do a fantastic 
+docker images that cover not only the source itself, but also all the libraries and 
+entire execution environment. Portability is also one of the key Kedro qualities, as 
+the pipelines must be versionable and packageable. Kedro, with 
+[Kedro-docker](https://github.com/quantumblacklabs/kedro-docker) plugin does a fantastic 
 job to achieve this and Kubeflow looks like a nice addon to run the pipelines 
 on powerful remote Kubernetes clusters.
