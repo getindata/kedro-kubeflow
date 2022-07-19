@@ -12,6 +12,7 @@ from .utils import (
     create_container_environment,
     create_pipeline_exit_handler,
     customize_op,
+    is_local_fs,
     maybe_add_params,
 )
 
@@ -137,6 +138,7 @@ class PodPerNodePipelineGenerator(object):
                         for output in node.outputs
                         if output in self.catalog
                         and "filepath" in self.catalog[output]
+                        and is_local_fs(self.catalog[output]["filepath"])
                         and self.run_config.store_kedro_outputs_as_kfp_artifacts
                     },
                 ),

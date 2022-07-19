@@ -1,6 +1,5 @@
 import logging
 
-import fsspec
 from kfp import dsl
 
 from ..utils import clean_name
@@ -10,6 +9,7 @@ from .utils import (
     create_container_environment,
     create_pipeline_exit_handler,
     customize_op,
+    is_local_fs,
     maybe_add_params,
 )
 
@@ -42,13 +42,6 @@ class OnePodPipelineGenerator(object):
 
         return convert_kedro_pipeline_to_kfp
 
-    @staticmethod
-    def _is_local(filepath):
-        from fsspec.implementations.local import LocalFileSystem
-
-        file_open = fsspec.open(filepath)
-        return isinstance(file_open.fs, LocalFileSystem)
-
     def _build_kfp_op(
         self,
         pipeline,
@@ -73,7 +66,7 @@ class OnePodPipelineGenerator(object):
                 output: f"/home/kedro/{self.catalog[output]['filepath']}"
                 for output in self.catalog
                 if "filepath" in self.catalog[output]
-                and self._is_local(self.catalog[output]["filepath"])
+                and is_local_fs(self.catalog[output]["filepath"])
                 and self.run_config.store_kedro_outputs_as_kfp_artifacts
             },
         )
