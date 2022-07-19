@@ -67,12 +67,6 @@ jobs:
         create_credentials_file: true
         cleanup_credentials: true
 
-    - name: Publish docker image to GCR
-      uses: mattes/gce-docker-push-action@v1
-      with:
-        creds: ${{ secrets.GOOGLE_CLOUD_TOKEN_JSON }}
-        src: kedro-kubeflow-e2e:latest
-        dst: gcr.io/gid-ml-ops-sandbox/kedro-kubeflow-e2e:${{ github.sha }}
 
     - name: Run project on kubeflow pipeline
       working-directory: spaceflights
@@ -82,3 +76,4 @@ jobs:
       env:
         KEDRO_CONFIG_KUBEFLOW_HOSTNAME: ${{ secrets.KUBEFLOW_HOSTNAME }}
         KEDRO_CONFIG_COMMIT_ID: ${{ github.sha }}
+        KEDRO_CONFIG_RUN_ID: ${{ github.run_id }}
