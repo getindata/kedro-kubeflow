@@ -81,4 +81,4 @@ jobs:
         kedro kubeflow run-once
       env:
         KEDRO_CONFIG_KUBEFLOW_HOSTNAME: ${{ secrets.KUBEFLOW_HOSTNAME }}
-        KEDRO_CONFIG_COMMIT_ID: $GITHUB_SHA
+        KEDRO_CONFIG_COMMIT_ID: ${{ github.sha }}
