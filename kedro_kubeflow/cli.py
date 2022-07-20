@@ -121,7 +121,7 @@ def run_once(
         )
     except TimeoutError as err:
         result = {"status": "error", "error": str(err)}
-    if result:
+    if isinstance(result, dict):
         # expected status according to kfp docs:
         # ['succeeded', 'failed', 'skipped', 'error']
         LOG.info(f"Run finished with status: {result['status']}")
@@ -129,7 +129,7 @@ def run_once(
             exit_code = 1
         if result["status"] == "error":
             LOG.error(f"Error during pipeline execution {result['error']}")
-    exit(exit_code)
+    ctx.exit(exit_code)
 
 
 @kubeflow_group.command()

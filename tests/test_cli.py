@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 from click.testing import CliRunner
 
 from kedro_kubeflow.cli import (
+    WAIT_TIMEOUT,
     compile,
     delete_pipeline_volume,
     init,
@@ -31,7 +32,7 @@ test_config = PluginConfig(
             "image_pull_policy": "Always",
             "experiment_name": "Test Experiment",
             "run_name": "test run",
-            "wait_for_completion": True,
+            "wait_for_completion": False,
             "volume": {
                 "storageclass": "default",
                 "size": "3Gi",
@@ -73,8 +74,45 @@ class TestPluginCLI(unittest.TestCase):
             ],
             obj=config,
         )
+        self.assertEqual(result.exit_code, 0)
+        context_helper.kfp_client.run_once.assert_called_with(
+            experiment_name="Test Experiment",
+            image="new_img",
+            image_pull_policy="Always",
+            pipeline="new_pipe",
+            run_name="test run",
+            wait=False,
+            timeout=WAIT_TIMEOUT,
+            experiment_namespace="my-ns",
+            parameters={"key1": "some value"},
+        )
 
-        assert result.exit_code == 0
+    def test_run_once_return_values(self):
+        context_helper = MagicMock(ContextHelper)
+        context_helper.config = test_config
+        config = dict(context_helper=context_helper)
+        runner = CliRunner()
+        context_helper.kfp_client.run_once.return_value = {
+            "status": "succeeded",
+            "error": "",
+        }
+
+        result = runner.invoke(
+            run_once,
+            [
+                "-i",
+                "new_img",
+                "-p",
+                "new_pipe",
+                "--wait-for-completion",
+                "--experiment-namespace",
+                "my-ns",
+                "--param",
+                "key1:some value",
+            ],
+            obj=config,
+        )
+        self.assertEqual(result.exit_code, 0)
         context_helper.kfp_client.run_once.assert_called_with(
             experiment_name="Test Experiment",
             image="new_img",
@@ -82,9 +120,30 @@ class TestPluginCLI(unittest.TestCase):
             pipeline="new_pipe",
             run_name="test run",
             wait=True,
+            timeout=WAIT_TIMEOUT,
             experiment_namespace="my-ns",
             parameters={"key1": "some value"},
         )
+        context_helper.kfp_client.run_once.return_value = {
+            "status": "error",
+            "error": "Simulated error",
+        }
+        result = runner.invoke(
+            run_once,
+            [
+                "-i",
+                "new_img",
+                "-p",
+                "new_pipe",
+                "--wait-for-completion",
+                "--experiment-namespace",
+                "my-ns",
+                "--param",
+                "key1:some value",
+            ],
+            obj=config,
+        )
+        self.assertEqual(result.exit_code, 1)
 
     @patch("webbrowser.open_new_tab")
     def test_ui(self, open_new_tab):
