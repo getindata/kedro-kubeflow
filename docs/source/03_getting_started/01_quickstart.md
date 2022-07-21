@@ -54,6 +54,17 @@ Change directory to the project generated in /home/mario/kedro/kubeflow-plugin-d
 A best-practice setup includes initialising git and creating a virtual environment before running `kedro install` to install project-specific dependencies. Refer to the Kedro documentation: https://kedro.readthedocs.io/
 ```
 
+There are some adjustments that need to be made to run starter Kedro project on Kubeflow. We need to replace all dots in names of catalog with other characters as Kubeflow does not accept dots in names. You can do it by using sed in starter root directory:
+```console
+for i in {1..10}; do sed -r 's/^([^ \t])([^. ]*)\./\1\2_/g' conf/base/catalog.yml > conf/base/catalog.yml; done
+```
+
+Before installing the dependencies, add the `kedro-kubeflow` and `kedro-docker` to `requirements.*` in src:
+```console
+echo kedro-kubeflow >> src/requirements* # TODO - add explicite version
+echo kedro-docker >> src/requirements* # TODO - add explicite version based on package requirements
+```
+
 Finally, go the demo project directory and ensure that kedro-kubeflow plugin is activated:
 
 ```console
