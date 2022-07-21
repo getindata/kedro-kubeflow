@@ -12,7 +12,7 @@ $ pip install 'kedro<0.17'
 
 ## Plugin installation
 
-### Install from PyPI
+### Install from `PyPI`
 
 You can install ``kedro-kubeflow`` plugin from ``PyPi`` with `pip`:
 
@@ -30,7 +30,7 @@ pip install git+https://github.com/getindata/kedro-kubeflow.git@develop
 
 ## Available commands
 
-You can check available commands by going into project directory and runnning:
+You can check available commands by going into project directory and running:
 
 ```console
 $ kedro kubeflow

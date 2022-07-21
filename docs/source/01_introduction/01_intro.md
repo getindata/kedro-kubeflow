@@ -17,5 +17,5 @@ docker images that cover not only the source itself, but also all the libraries 
 entire execution environment. Portability is also one of the key Kedro qualities, as 
 the pipelines must be versionable and packageable. Kedro, with 
 [Kedro-docker](https://github.com/quantumblacklabs/kedro-docker) plugin does a fantastic 
-job to achieve this and Kubeflow looks like a nice addon to run the pipelines 
+job to achieve this and Kubeflow looks like a nice add-on to run the pipelines 
 on powerful remote Kubernetes clusters.

@@ -19,7 +19,7 @@ Then, adjust the kedro-mlflow configuration and point to the mlflow server by ed
 $ kedro docker build
 ```
 
-And re-push the image to the remote registry. Finally, reupload the pipeline:
+And re-push the image to the remote registry. Finally, re-upload the pipeline:
 
 ```console
 $ kedro kubeflow upload-pipeline
@@ -37,4 +37,4 @@ Finally, start the pipeline. While it executes, the new Mlflow run is started an
 
 ![Mlflow UI](mlflow_ui.png)
 
-The UI presents the pipeline stauts (in form of the icon) and latest node that was run (for failed runs in indicates at what step did the pipeline fail). Also, the `kubeflow_run_id` tag can be used to correlate Mlflow run with the Kubeflow pipeline execution.
+The UI presents the pipeline status (in form of the icon) and latest node that was run (for failed runs in indicates at what step did the pipeline fail). Also, the `kubeflow_run_id` tag can be used to correlate Mlflow run with the Kubeflow pipeline execution.
