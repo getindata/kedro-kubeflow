@@ -123,4 +123,7 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# pyspelling
+dictionary.dic
+
 docs/_build
