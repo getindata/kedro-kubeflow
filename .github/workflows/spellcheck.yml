@@ -3,10 +3,12 @@ name: Spellcheck
 # Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
-  #push:
-  #  branches: [ master,docs,develop ]
-  #pull_request:
-  #  branches: [ master ]
+  push:
+    branches: [ master,develop ]
+    paths: "docs/**"
+  pull_request:
+    branches: [ master ]
+    paths: "docs/**"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
