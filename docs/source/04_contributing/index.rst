@@ -1,11 +1,8 @@
-Getting started
+Contributing
 ===============
 
 .. toctree::
    :maxdepth: 4
 
-   Quickstart <01_quickstart.md>
-   Google Cloud Platform support <02_gcp.md>
-   Kedro-Mlflow integration <03_mlflow.md>
-   Continuous Deployment <04_continuous_deployment.md>
-   Authenticating to Kubeflow Pipelines API <05_authentication.md>
+   Contributing guideline <01_guideline.md>
+   Local testing <02_local_testing.md>
