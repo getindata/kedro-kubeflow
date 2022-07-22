@@ -38,4 +38,4 @@ run_config:
     # Default settings for the nodes
     __default__:
       cpu: 0.4
-      memory: 256Mi
+      memory: 2Gi
