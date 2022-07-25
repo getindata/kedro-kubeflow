@@ -51,7 +51,6 @@ jobs:
 
     - name: Prepare docker env
       uses: docker/setup-buildx-action@v1
-      id: buildx
       with:
         install: true
 
@@ -78,7 +77,7 @@ jobs:
       working-directory: spaceflights
       run: |
         kedro kubeflow upload-pipeline
-        kedro kubeflow run-once
+        kedro kubeflow run-once --wait-for-completion --timeout 1200
       env:
         KEDRO_CONFIG_KUBEFLOW_HOSTNAME: ${{ secrets.KUBEFLOW_HOSTNAME }}
         KEDRO_CONFIG_COMMIT_ID: ${{ github.sha }}
