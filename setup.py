@@ -12,7 +12,7 @@ INSTALL_REQUIRES = [
     "tabulate>=0.8.7",
     "semver~=2.10",
     "google-auth<2.0dev",
-    "fsspec<=2022.1,>=2021.4",
+    "fsspec>=2021.4,<2022.6",
 ]
 
 # Dev Requirements
