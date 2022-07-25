@@ -125,9 +125,9 @@ def run_once(
         # expected status according to kfp docs:
         # ['succeeded', 'failed', 'skipped', 'error']
         LOG.info(f"Run finished with status: {result['status']}")
-        if result["status"] != "succeeded":
+        if result["status"].lower() != "succeeded":
             exit_code = 1
-        if result["status"] == "error":
+        if result["status"].lower() == "error":
             LOG.error(f"Error during pipeline execution {result['error']}")
     ctx.exit(exit_code)
 
