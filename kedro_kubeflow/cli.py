@@ -10,6 +10,7 @@ from .config import PluginConfig
 from .context_helper import ContextHelper
 
 LOG = logging.getLogger(__name__)
+WAIT_TIMEOUT = 24 * 60 * 60
 
 
 def format_params(params: list):
@@ -76,6 +77,14 @@ def list_pipelines(ctx):
     help="Namespace where pipeline experiment run should be deployed to. Not needed "
     "if provided experiment name already exists.",
 )
+@click.option("--wait-for-completion", type=bool, is_flag=True, default=False)
+@click.option(
+    "--timeout",
+    "timeout",
+    type=int,
+    default=WAIT_TIMEOUT,
+    help="Time in seconds for pipeline run scheduling or waiting to timeout.",
+)
 @click.option(
     "--param",
     "params",
@@ -85,23 +94,42 @@ def list_pipelines(ctx):
 )
 @click.pass_context
 def run_once(
-    ctx, image: str, pipeline: str, experiment_namespace: str, params: list
+    ctx,
+    image: str,
+    pipeline: str,
+    experiment_namespace: str,
+    wait_for_completion: bool,
+    timeout: int,
+    params: list,
 ):
     """Deploy pipeline as a single run within given experiment.
     Config can be specified in kubeflow.yml as well."""
     context_helper = ctx.obj["context_helper"]
     config = context_helper.config.run_config
-
-    context_helper.kfp_client.run_once(
-        pipeline=pipeline,
-        image=image if image else config.image,
-        experiment_name=config.experiment_name,
-        experiment_namespace=experiment_namespace,
-        run_name=config.run_name,
-        wait=config.wait_for_completion,
-        image_pull_policy=config.image_pull_policy,
-        parameters=format_params(params),
-    )
+    exit_code = 0
+    try:
+        result = context_helper.kfp_client.run_once(
+            pipeline=pipeline,
+            image=image if image else config.image,
+            experiment_name=config.experiment_name,
+            experiment_namespace=experiment_namespace,
+            run_name=config.run_name,
+            wait=wait_for_completion or config.wait_for_completion,
+            timeout=timeout,
+            image_pull_policy=config.image_pull_policy,
+            parameters=format_params(params),
+        )
+    except TimeoutError as err:
+        result = {"status": "error", "error": str(err)}
+    if isinstance(result, dict):
+        # expected status according to kfp docs:
+        # ['succeeded', 'failed', 'skipped', 'error']
+        LOG.info(f"Run finished with status: {result['status']}")
+        if result["status"].lower() != "succeeded":
+            exit_code = 1
+        if result["status"].lower() == "error":
+            LOG.error(f"Error during pipeline execution {result['error']}")
+    ctx.exit(exit_code)
 
 
 @kubeflow_group.command()

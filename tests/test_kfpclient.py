@@ -15,6 +15,8 @@ from kedro_kubeflow.kfpclient import KubeflowClient
 from kedro_kubeflow.utils import strip_margin
 from tests.common import MinimalConfigMixin
 
+TEST_TIMEOUT_DUMMY = 60 * 60
+
 
 class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
     def create_experiment(self, id="123"):
@@ -88,6 +90,7 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
             image="unittest-image",
             experiment_name="experiment",
             wait=False,
+            timeout=TEST_TIMEOUT_DUMMY,
             experiment_namespace="exp_namespace",
         )
 
@@ -119,6 +122,7 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
             image="unittest-image",
             experiment_name="experiment",
             wait=True,
+            timeout=TEST_TIMEOUT_DUMMY,
             experiment_namespace=None,
         )
 
@@ -140,6 +144,7 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
             image="unittest-image",
             experiment_name="experiment",
             wait=False,
+            timeout=TEST_TIMEOUT_DUMMY,
             experiment_namespace="exp_namespace",
             parameters={"region": "ABC"},
         )

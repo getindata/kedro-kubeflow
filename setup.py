@@ -12,6 +12,7 @@ INSTALL_REQUIRES = [
     "tabulate>=0.8.7",
     "semver~=2.10",
     "google-auth<2.0dev",
+    "fsspec<=2022.1,>=2021.4",
 ]
 
 # Dev Requirements
@@ -29,6 +30,10 @@ EXTRA_REQUIRE = {
         "sphinx==5.0.2",
         "recommonmark==0.7.1",
         "sphinx_rtd_theme==1.0.0",
+    ],
+    "gcp": [
+        "google-auth<3",
+        "gcsfs<=2022.1,>=2021.4",
     ],
 }
 

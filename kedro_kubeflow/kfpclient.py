@@ -1,6 +1,7 @@
 import logging
 import uuid
 from tempfile import NamedTemporaryFile
+from typing import Dict, Optional
 
 from kfp import Client
 from kfp.compiler import Compiler
@@ -16,8 +17,6 @@ from kedro_kubeflow.generators.pod_per_node_pipeline_generator import (
 from .auth import AuthHandler
 from .config import NodeMergeStrategyEnum, PluginConfig
 from .utils import clean_name
-
-WAIT_TIMEOUT = 24 * 60 * 60
 
 
 class KubeflowClient(object):
@@ -66,9 +65,10 @@ class KubeflowClient(object):
         experiment_namespace,
         run_name,
         wait,
+        timeout,
         image_pull_policy="IfNotPresent",
         parameters={},
-    ) -> None:
+    ) -> Optional[Dict[str, str]]:
         run = self.client.create_run_from_pipeline_func(
             self.generator.generate_pipeline(
                 pipeline, image, image_pull_policy
@@ -80,7 +80,9 @@ class KubeflowClient(object):
         )
 
         if wait:
-            run.wait_for_run_completion(timeout=WAIT_TIMEOUT)
+            ret = run.wait_for_run_completion(timeout=timeout)
+            return {"status": ret.run.status, "error": ret.run.error}
+        return None
 
     def compile(
         self, pipeline, image, output, image_pull_policy="IfNotPresent"

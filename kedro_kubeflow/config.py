@@ -193,7 +193,7 @@ class TolerationConfig(BaseModel):
 class RetryPolicyConfig(BaseModel):
     num_retries: int
     backoff_duration: str
-    backoff_factor: float
+    backoff_factor: int
 
 
 class VolumeConfig(BaseModel):

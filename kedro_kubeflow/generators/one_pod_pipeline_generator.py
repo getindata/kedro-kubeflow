@@ -9,6 +9,7 @@ from .utils import (
     create_container_environment,
     create_pipeline_exit_handler,
     customize_op,
+    is_local_fs,
     maybe_add_params,
 )
 
@@ -65,6 +66,7 @@ class OnePodPipelineGenerator(object):
                 output: f"/home/kedro/{self.catalog[output]['filepath']}"
                 for output in self.catalog
                 if "filepath" in self.catalog[output]
+                and is_local_fs(self.catalog[output]["filepath"])
                 and self.run_config.store_kedro_outputs_as_kfp_artifacts
             },
         )
