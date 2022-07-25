@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+- Added --wait-for-completion and --timeout for `kedro kubeflow run-once` command
+- Added e2e tests github action for pull requests with kubeflow setup in gcp
 - Added support for extra volumes per node 
 - Refactored configuration classes to Pydantic
 
