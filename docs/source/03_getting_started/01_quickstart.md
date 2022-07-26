@@ -24,10 +24,10 @@ Then, `kedro` must be present to enable cloning the starter project, along with 
 $ pip install 'kedro<0.18' kedro-kubeflow kedro-docker
 ```
 
-With the dependencies in place, let's create a new project:
+With the dependencies in place, let's create a new project (with the latest supported kedro version - 0.17.7):
 
 ```
-$ kedro new --starter=spaceflights
+$ kedro new --starter=spaceflights --checkout=0.17.7
 
 Project Name:
 =============
@@ -54,22 +54,20 @@ Change directory to the project generated in /home/mario/kedro/kubeflow-plugin-d
 A best-practice setup includes initialising git and creating a virtual environment before running `kedro install` to install project-specific dependencies. Refer to the Kedro documentation: https://kedro.readthedocs.io/
 ```
 
-There are some adjustments that need to be made to run starter Kedro project on Kubeflow. We need to replace all dots in names of catalog with other characters as Kubeflow does not accept dots in names. You can do it by using `sed` in starter root directory:
+Next go the demo project directory:
 ```console
-for i in {1..10}; do sed -r 's/^([^ \t])([^. ]*)\./\1\2_/g' conf/base/catalog.yml > conf/base/catalog.yml; done
+$ cd kubeflow-plugin-demo/
 ```
 
 Before installing the dependencies, add the `kedro-kubeflow` and `kedro-docker` to `requirements.*` in src:
 ```console
-echo kedro-kubeflow >> src/requirements* # TODO - add explicite version
-echo kedro-docker >> src/requirements* # TODO - add explicite version based on package requirements
+$ echo kedro-kubeflow >> src/requirements*
 ```
 
-Finally, go the demo project directory and ensure that kedro-kubeflow plugin is activated:
+Finally, ensure that kedro-kubeflow plugin is activated:
 
 ```console
-$ cd kubeflow-plugin-demo/
-$ kedro install
+$ pip install -r src/requirements.txt
 (...)
 Requirements installed!
 $ kedro kubeflow --help
@@ -139,8 +137,8 @@ kedro docker build
 When execution finishes, your docker image is ready. If you don't use local cluster, you should push the image to the remote repository:
 
 ```console
-docker tag kubeflow_plugin_demo:latest remote.repo.url.com/kubeflow_plugin_demo:latest
-docker push remote.repo.url.com/kubeflow_plugin_demo:latest
+docker tag kubeflow-plugin-demo:latest remote.repo.url.com/kubeflow-plugin-demo:latest
+docker push remote.repo.url.com/kubeflow-plugin-demo:latest
 ```
 
 ## Run the pipeline on Kubeflow
@@ -150,10 +148,18 @@ First, run `init` script to create the sample configuration. A parameter value s
 ```console
 kedro kubeflow init https://kubeflow.cluster.com
 (...)
-Configuration generated in /home/mario/kedro/kubeflow-plugin-demo/conf/base/kubeflow.yaml
+Configuration generated in /home/user/kedro/kubeflow-plugin-demo/conf/base/kubeflow.yaml
 ```
 
+````{note}
+Since kedro 0.17 there have been introduced namespaces to datasets. If you wish to experiment on newer versions, consider the following in this step: The namespaces feature has not been tested yet with the plugin and there are some errors with dots in kfp artifacts names, so for now it's best to disable it by adding the following line in `conf/base/kubeflow.yaml`:
+```yaml
+store_kedro_outputs_as_kfp_artifacts: False
+```
+````
+
 Then, if needed, adjust the `conf/base/kubeflow.yaml`. For example, the `image:` key should point to the full image name (like `remote.repo.url.com/kubeflow_plugin_demo:latest` if you pushed the image at this name). Depending on the storage classes availability in Kubernetes cluster, you may want to modify `volume.storageclass` and `volume.access_modes` (please consult with Kubernetes admin what values should be there).
+
 
 Finally, everything is set to run the pipeline on Kubeflow. Run `upload-pipeline`:
 
