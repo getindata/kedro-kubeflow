@@ -257,7 +257,7 @@ For local cluster the link is the following: `http://localhost:9000`
 
 
 ````{warning}
-Since kedro 0.17 there have been introduced namespaces to datasets which are not yet fully supported by this plugin as it causes issues within naming conventions of kfp artifacts. For now it's best to disable storage of kfp artifacts by adding/uncommenting the following line in `conf/base/kubeflow.yaml`:
+Since kedro 0.17 there have been introduced name spaces to datasets which are not yet fully supported by this plugin as it causes issues within naming conventions of kfp artifacts. For now it's best to disable storage of kfp artifacts by adding/uncommenting the following line in `conf/base/kubeflow.yaml`:
 ```yaml
 store_kedro_outputs_as_kfp_artifacts: False
 ```
@@ -312,7 +312,7 @@ By using `Create run` button you can start a run of the pipeline on the cluster.
 You can also schedule a single run by using 
 ```console
 $ kedro kubeflow run-once
-``` 
+```
 ````
 
 From the UI you can access the logs of the execution. If everything seems fine, use `schedule to create a recurring run:

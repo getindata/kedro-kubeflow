@@ -15,10 +15,10 @@ matrix:
         # ```
         # content
         # ```
-        - open: '(?s)(?P<open> *`{3,})'
+        - open: '^(?s)(?P<open>`{1,3})[^`]'
           close: '(?P=open)'
         # Ignore text between inline back ticks
-        - open: '(?P<open>`+)'
+        - open: '(?P<open>`)[^`]'
           close: '(?P=open)'
         # Ignore text in brackets [] and () 
         - open: '\['
