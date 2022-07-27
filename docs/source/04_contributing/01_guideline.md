@@ -13,13 +13,15 @@ For documentation updates we have `docs/Makefile` that runs `Sphinx` to update t
 
 There is automation using github actions that checks the spelling of the docs. [Links](), `blocks escaped with back ticks` \`...\` are omitted. In order to add new spelling exceptions, append them to the `docs/spellcheck_exceptions.txt` file.
 
+For documentation syntax, we mainly use Markdown with [myst](https://myst-parser.readthedocs.io/en/latest/syntax/syntax.html) parser.
+
 ## Github hooks
 
 For linting and keeping code clean we use pre-commit package to join with github hooks. Use it by doing:
 
-```bash
-pip install pre-commit
-pre-commit install
+```console
+$ pip install pre-commit
+$ pre-commit install
 ```
 
 ## Releasing new versions
