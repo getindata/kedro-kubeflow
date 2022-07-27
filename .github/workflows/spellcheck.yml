@@ -2,9 +2,7 @@
 name: Spellcheck
 # Controls when the action will run.
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    paths: "docs/**"
+  # Triggers the workflow on pull request events only if docs files have changed
   pull_request:
     paths: "docs/**"
   # Allows you to run this workflow manually from the Actions tab
