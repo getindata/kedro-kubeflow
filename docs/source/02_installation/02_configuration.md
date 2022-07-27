@@ -136,8 +136,8 @@ run_config:
 
     # Default settings for the nodes
     __default__:
-      cpu: 200m
-      memory: 64Mi
+      cpu: 1 
+      memory: 1Gi 
 
   # Optional section to provide retry policy for the steps
   # and default policy for steps with no policy specified

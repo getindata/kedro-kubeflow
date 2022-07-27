@@ -120,8 +120,8 @@ run_config:
 
     # Default settings for the nodes
     __default__:
-      cpu: 200m
-      memory: 64Mi
+      cpu: 1
+      memory: 1Gi
 
   # Optional section to allow mounting additional volumes (such as EmptyDir)
   # to specific nodes
