@@ -7,10 +7,12 @@ on: # workflow_dispatch
     paths: 
       - "**.py"
       - "!docs/**"
+      - ".github/workflows/test.yml"
   pull_request:
     paths: 
       - "**.py"
       - "!docs/**"
+      - ".github/workflows/test.yml"
 
 jobs:
   unit:
