@@ -33,7 +33,7 @@ version = re.match(r"^([0-9]+\.[0-9]+).*", release).group(1)
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    # "sphinx.ext.autodoc",
+    "sphinx.ext.autodoc",
     # "sphinx.ext.napoleon",
     # "sphinx_autodoc_typehints",
     # "sphinx.ext.doctest",

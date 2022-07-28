@@ -4,6 +4,7 @@ import webbrowser
 from pathlib import Path
 
 import click
+from click import ClickException
 
 from .auth import AuthHandler
 from .config import PluginConfig
@@ -311,7 +312,8 @@ def init(ctx, kfp_url: str, with_github_actions: bool):
 @click.pass_context
 def mlflow_start(ctx, kubeflow_run_id: str, output: str):
     import mlflow
-    from kedro_mlflow.framework.context import get_mlflow_config
+
+    # from kedro_mlflow.framework.context import get_mlflow_config
 
     token = AuthHandler().obtain_id_token()
     if token:
@@ -320,13 +322,16 @@ def mlflow_start(ctx, kubeflow_run_id: str, output: str):
 
     try:
         kedro_context = ctx.obj["context_helper"].context
-        mlflow_conf = get_mlflow_config(kedro_context)
-        mlflow_conf.setup(kedro_context)
+        # mlflow_conf = get_mlflow_config(kedro_context)
+        # mlflow_conf.setup(kedro_context)
+        mlflow_conf = kedro_context.mlflow
+
     except AttributeError:
-        kedro_session = ctx.obj["context_helper"].session
-        with kedro_session:
-            mlflow_conf = get_mlflow_config(kedro_session)
-            mlflow_conf.setup()
+        # kedro_session = ctx.obj["context_helper"].session
+        # with kedro_session:
+        #     mlflow_conf = get_mlflow_config(kedro_session)
+        #     mlflow_conf.setup()
+        raise ClickException("Could not read MLFlow config")
 
     run = mlflow.start_run(
         experiment_id=mlflow_conf.experiment.experiment_id, nested=False

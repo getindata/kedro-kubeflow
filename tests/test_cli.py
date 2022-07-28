@@ -278,12 +278,9 @@ class TestPluginCLI(unittest.TestCase):
                 assert "kedro kubeflow upload-pipeline" in content
                 assert "kedro kubeflow schedule" in content
 
-    @patch("kedro_mlflow.framework.context.get_mlflow_config")
     @patch("mlflow.start_run")
     @patch("mlflow.set_tag")
-    def test_mlflow_start(
-        self, set_tag_mock, start_run_mock, get_mlflow_config_mock
-    ):
+    def test_mlflow_start(self, set_tag_mock, start_run_mock):
         context_helper = MagicMock(ContextHelper)
         config = dict(context_helper=context_helper)
         runner = CliRunner()
