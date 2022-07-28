@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Added pre-commit hook for pyspelling check
 - Changed sphinx markdown engine to myst
 - Added CI for spellchecking the documentation with configuration for myst
 - Updated documentation quickstart to workaround known issues and make it work on local kind cluster
