@@ -1,8 +1,5 @@
 import os
 from functools import lru_cache
-from pathlib import Path
-
-# from typing import Dict, Iterable
 from typing import Any, Dict
 
 from kedro import __version__ as kedro_version
@@ -82,7 +79,7 @@ class ContextHelper(object):
     @lru_cache()
     def config(self) -> PluginConfig:
         raw = EnvTemplatedConfigLoader(
-            self.context.config_loader.conf_paths
+            self.context.config_loader.conf_source
         ).get(self.CONFIG_FILE_PATTERN)
         return PluginConfig(**raw)
 
@@ -115,6 +112,4 @@ class ContextHelper16(ContextHelper):
 
     @property
     def context(self):
-        from kedro.framework.context import load_context
-
-        return load_context(Path.cwd(), env=self._env)
+        return self.session.load_context()
