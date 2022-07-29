@@ -1,18 +1,14 @@
-name: Unit and E2E Tests workflow (Spaceflights Quickstart)
+name: Testing
 
-on: # workflow_dispatch
+on:
   push:
     branches:
       - develop
-    paths: 
-      - "**.py"
-      - "!docs/**"
-      - ".github/workflows/test.yml"
+    paths-ignore: 
+      - "docs/**"
   pull_request:
-    paths: 
-      - "**.py"
-      - "!docs/**"
-      - ".github/workflows/test.yml"
+    paths-ignore: 
+      - "docs/**"
 
 jobs:
   unit:
@@ -51,6 +47,7 @@ jobs:
         coverageCommand: coverage xml
         debug: true
         coverageLocations: coverage.xml:coverage.py
+
   e2e:
     if: (github.event.pull_request.head.repo.full_name || github.push.repository.full_name) == github.repository
     runs-on: ubuntu-latest
