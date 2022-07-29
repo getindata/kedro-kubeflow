@@ -15,6 +15,9 @@
 # sys.path.insert(0, os.path.abspath('.'))
 import re
 
+from pip._vendor import pkg_resources
+
+from kedro_kubeflow import __name__ as _package_name
 from kedro_kubeflow import version as release
 
 # -- Project information -----------------------------------------------------
@@ -23,9 +26,60 @@ project = "Kedro Kubeflow Plugin"
 copyright = "2020, GetInData"
 author = "GetInData"
 
+myst_substitutions = {
+    "tested_kedro": "0.17.7",
+    "release": release,
+    "python_build_version": "",
+}
+
 # The full version, including alpha/beta/rc tags
 version = re.match(r"^([0-9]+\.[0-9]+).*", release).group(1)
+_package_name = _package_name.replace("_", "-")
+_package = pkg_resources.working_set.by_key[_package_name]
 
+# Extending keys for subsitutions with versions of package
+myst_substitutions.update(
+    {"req_" + p.name: str(p) for p in _package.requires()}
+)
+myst_substitutions.update(
+    {
+        "req_build_" + p.name: pkg_resources.get_distribution(p).version
+        for p in _package.requires()
+    }
+)
+myst_substitutions.update(
+    {
+        "req_upper_"
+        + p.name: "".join(
+            [
+                "".join(i)
+                for i in filter(
+                    lambda x: x[0] in ["<", "<=", "~=", "==", "==="], p.specs
+                )
+            ]
+        )
+        for p in _package.requires()
+    }
+)
+myst_substitutions.update(
+    {
+        "req_lower_"
+        + p.name: "".join(
+            [
+                "".join(i)
+                for i in filter(
+                    lambda x: x[0] in [">", ">=", "~=", "==", "==="], p.specs
+                )
+            ]
+        )
+        for p in _package.requires()
+    }
+)
+
+
+myst_substitutions.update(
+    {"req_build" + p.name: str(p) for p in _package.requires()}
+)
 
 # -- General configuration ---------------------------------------------------
 
@@ -45,6 +99,11 @@ extensions = [
     # "sphinx.ext.mathjax",
     "myst_parser",
     "sphinx_rtd_theme",
+]
+myst_enable_extensions = [
+    "replacements",
+    "strikethrough",
+    "substitution",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
