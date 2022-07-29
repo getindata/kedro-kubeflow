@@ -4,7 +4,9 @@ matrix:
     aspell:
       lang: en
     sources:
-    - docs/source/*/*.md
+    - "docs/**.md"
+    - "CONTRIBUTING.md"
+    - "README.md"
     default_encoding: utf-8
     pipeline:
     - pyspelling.filters.context:

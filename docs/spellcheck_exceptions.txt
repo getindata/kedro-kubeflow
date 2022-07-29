@@ -25,13 +25,17 @@ OpenID
 Pipelnes
 Posix
 PowerShellActivator
+PR
+PRs
 Preprequisites
 PythonActivator
+PyPI
 Quickstart
 ReadWriteMany
 ReadWriteOnce
 SDK
 TBD
+Templating
 UI
 VM
 XonshActivator
@@ -42,6 +46,7 @@ behaviour
 cls
 conf
 config
+changelog
 cpu
 cron
 datasets
@@ -52,10 +57,12 @@ faac
 getindata
 github
 gpu
+html
 http
 https
 init
 io
+jinja
 kedro
 kfp
 kfpclient
@@ -78,6 +85,7 @@ shm
 src
 storageclass
 templated
+templating
 tensorflow
 ttl
 txt
