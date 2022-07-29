@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Added templating capabilities to docs generator and used them in the docs for kedro versioning
 - Added pre-commit hook for pyspelling check
 - Changed sphinx markdown engine to myst
 - Added CI for spellchecking the documentation with configuration for myst
