@@ -27,7 +27,7 @@ jobs:
    
     - name: Initialize kedro spaceflights project
       run: |
-        pip install . 'kedro<0.18'
+        pip install . 'kedro>=0.18,<0.19'
         kedro new --starter spaceflights --config tests/e2e/starter-config.yml --verbose
 
     - name: Install project dependencies
