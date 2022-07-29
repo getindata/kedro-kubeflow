@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, Mock, patch
 from kedro.framework.session import KedroSession
 
 from kedro_kubeflow.config import PluginConfig
-
 from kedro_kubeflow.context_helper import (
     ContextHelper,
     ContextHelper16,
@@ -14,7 +13,6 @@ from kedro_kubeflow.context_helper import (
 )
 
 from .common import MinimalConfigMixin
-
 from .utils import environment
 
 
