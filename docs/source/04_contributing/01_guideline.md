@@ -7,11 +7,12 @@ There are few things that you should know about our workflow:
 - On release versions from develop branch are tagged and pulled to the master branch.
 - For commits we follow [angular commit messages guideline](https://github.com/angular/angular/blob/main/CONTRIBUTING.md#commit).
 
+(updating-the-documentation)=
 ## Updating the documentation
 
 For documentation updates we have `docs/Makefile` that runs `Sphinx` to update the `readthedocs`.
 
-There is automation using github actions that checks the spelling of the docs. [Links](), `inline blocks escaped with back ticks` \`...\` and 
+There is automation using github actions that checks the spelling of the docs. [Links](updating-the-documentation), `inline blocks escaped with back ticks` \`...\` and 
 ```
 triple backtick blocks
 ```
