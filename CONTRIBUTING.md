@@ -39,6 +39,12 @@ We have `jinja` available to be used in documentation. The variables are defined
  - `req_upper_<package>` - the specification of version package requirement upper bound in `setup.py`
  - `req_build_<package>` - the specification of version package with which it was built
 
+The templates do not work inside code fences or links. You can workaround that by putting whole code fence inside `jinja` and then use the formatting inside. See the [substitution documentation](https://myst-parser.readthedocs.io/en/latest/syntax/optional.html#substitutions-with-jinja2) for details.
+
+```{warning}
+The substitutions do not seem to be fully `jinja2` capable. While expressions `{{ }}` do work, the control statements `{% %}` do not.
+```
+
 ### Pre-commit and github hooks
 
 For linting and keeping code clean we use pre-commit package to join with github hooks. Use it by doing:
