@@ -25,15 +25,12 @@ $ source venv-demo/bin/activate
 
 Then, `kedro` must be present to enable cloning the starter project, along with the latest version of `kedro-kubeflow` plugin and `kedro-docker` (required to build docker images with the Kedro pipeline nodes):
 
-```console
-$ pip install 'kedro<0.18' kedro-kubeflow kedro-docker
+{{"```console\n $ pip install '{req_kedro}' kedro-kubeflow kedro-docker\n```".format(req_kedro=req_kedro)}}
+
+With the dependencies in place, let's create a new project (with the latest supported kedro version - {{tested_kedro}}):
+
+{{"```console\n$ kedro new --starter=spaceflights --checkout={version}\n".format(version=tested_kedro)}}
 ```
-
-With the dependencies in place, let's create a new project (with the latest supported kedro version - 0.17.7):
-
-```console
-$ kedro new --starter=spaceflights --checkout=0.17.7
-
 Project Name:
 =============
 Please enter a human readable name for your new project.

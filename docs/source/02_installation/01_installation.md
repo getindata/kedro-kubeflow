@@ -2,13 +2,9 @@
 
 ## Kedro setup
 
-First, you need to install base Kedro package in ``<17.0`` version
+First, you need to install base Kedro package in {{req_kedro}} version
 
-> Kedro 17.0 is supported by kedro-kubeflow, but [not by kedro-mlflow](https://github.com/Galileo-Galilei/kedro-mlflow/issues/144) yet, so the latest version from 0.16 family is recommended.
-
-```console
-$ pip install 'kedro<0.17'
-```
+{{"```console\n$ pip install '{kedro}'\n```".format(kedro=req_kedro)}}
 
 ## Plugin installation
 
