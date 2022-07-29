@@ -14,6 +14,7 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 import re
+from pprint import pprint
 
 from pip._vendor import pkg_resources
 
@@ -29,7 +30,6 @@ author = "GetInData"
 myst_substitutions = {
     "tested_kedro": "0.17.7",
     "release": release,
-    "python_build_version": "",
 }
 
 # The full version, including alpha/beta/rc tags
@@ -47,39 +47,24 @@ myst_substitutions.update(
         for p in _package.requires()
     }
 )
-myst_substitutions.update(
-    {
-        "req_upper_"
-        + p.name: "".join(
-            [
-                "".join(i)
-                for i in filter(
-                    lambda x: x[0] in ["<", "<=", "~=", "==", "==="], p.specs
-                )
-            ]
-        )
-        for p in _package.requires()
-    }
-)
-myst_substitutions.update(
-    {
-        "req_lower_"
-        + p.name: "".join(
-            [
-                "".join(i)
-                for i in filter(
-                    lambda x: x[0] in [">", ">=", "~=", "==", "==="], p.specs
-                )
-            ]
-        )
-        for p in _package.requires()
-    }
-)
 
+conditions = {
+    "upper": ["<", "<=", "~=", "==", "==="],
+    "lower": [">", ">=", "~=", "==", "==="],
+}
+for k, cond in conditions.items():
+    myst_substitutions.update(
+        {
+            f"req_{k}_"
+            + p.name: "".join(
+                ["".join(i) for i in filter(lambda x: x[0] in cond, p.specs)]
+            )
+            for p in _package.requires()
+        }
+    )
 
-myst_substitutions.update(
-    {"req_build" + p.name: str(p) for p in _package.requires()}
-)
+print("Available patterns for substituion:")
+pprint(myst_substitutions)
 
 # -- General configuration ---------------------------------------------------
 
