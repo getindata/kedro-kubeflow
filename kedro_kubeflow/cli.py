@@ -310,8 +310,7 @@ def init(ctx, kfp_url: str, with_github_actions: bool):
 )
 @click.pass_context
 def mlflow_start(ctx, kubeflow_run_id: str, output: str):
-    import mlflow
-    from kedro_mlflow.framework.context import get_mlflow_config
+    import mlflow  # NOQA
 
     token = AuthHandler().obtain_id_token()
     if token:
@@ -320,13 +319,9 @@ def mlflow_start(ctx, kubeflow_run_id: str, output: str):
 
     try:
         kedro_context = ctx.obj["context_helper"].context
-        mlflow_conf = get_mlflow_config(kedro_context)
-        mlflow_conf.setup(kedro_context)
+        mlflow_conf = kedro_context.mlflow
     except AttributeError:
-        kedro_session = ctx.obj["context_helper"].session
-        with kedro_session:
-            mlflow_conf = get_mlflow_config(kedro_session)
-            mlflow_conf.setup()
+        raise click.ClickException("Could not read MLFlow config")
 
     run = mlflow.start_run(
         experiment_id=mlflow_conf.experiment.experiment_id, nested=False
@@ -340,8 +335,7 @@ def mlflow_start(ctx, kubeflow_run_id: str, output: str):
 @kubeflow_group.command(hidden=True)
 @click.argument("pvc_name", type=str)
 def delete_pipeline_volume(pvc_name: str):
-    import kubernetes.client
-    import kubernetes.config
+    import kubernetes.config  # NOQA
 
     kubernetes.config.load_incluster_config()
     current_namespace = open(

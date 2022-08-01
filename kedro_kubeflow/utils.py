@@ -11,8 +11,8 @@ def clean_name(name: str) -> str:
 
 def is_mlflow_enabled() -> bool:
     try:
+        import kedro_mlflow  # NOQA
         import mlflow  # NOQA
-        from kedro_mlflow.framework.context import get_mlflow_config  # NOQA
 
         return True
     except ImportError:

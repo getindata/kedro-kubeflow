@@ -1,5 +1,6 @@
 import os
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 from kedro.framework.session import KedroSession
@@ -57,8 +58,10 @@ class TestContextHelper(unittest.TestCase, MinimalConfigMixin):
 class TestEnvTemplatedConfigLoader(unittest.TestCase):
     @staticmethod
     def get_config():
-        config_path = [os.path.dirname(os.path.abspath(__file__))]
-        loader = EnvTemplatedConfigLoader(config_path)
+        config_path = str(
+            Path(os.path.dirname(os.path.abspath(__file__))) / "conf"
+        )
+        loader = EnvTemplatedConfigLoader(config_path, default_run_env="base")
         return loader.get("test_config.yml")
 
     def test_loader_with_defaults(self):

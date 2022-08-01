@@ -7,6 +7,7 @@
 - Added e2e tests github action for pull requests with kubeflow setup in gcp
 - Added support for extra volumes per node 
 - Refactored configuration classes to Pydantic
+- Add support for `kedro>=0.18.1,<0.19`
 
 ## [0.6.4] - 2022-06-01
 

@@ -1,5 +1,6 @@
 import logging
 
+from kedro.framework.context import KedroContext
 from kfp import dsl
 
 from ..utils import clean_name
@@ -19,7 +20,7 @@ class OnePodPipelineGenerator(object):
 
     def __init__(self, config, project_name, context):
         self.project_name = project_name
-        self.context = context
+        self.context: KedroContext = context
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
         self.run_config = config.run_config
         self.catalog = context.config_loader.get("catalog*")
