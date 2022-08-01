@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 from kedro import __version__ as kedro_version
 from kedro.config import TemplatedConfigLoader
+from kedro.framework.session import KedroSession
 from semver import VersionInfo
 
 from .config import PluginConfig
@@ -63,8 +64,6 @@ class ContextHelper(object):
     @property
     @lru_cache()
     def session(self):
-        from kedro.framework.session import KedroSession
-
         return KedroSession.create(self._metadata.package_name, env=self._env)
 
     @property
