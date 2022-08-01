@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Merged e2e and unittest workflows. Now e2e runs only if unittests succeed.
 - Added --wait-for-completion and --timeout for `kedro kubeflow run-once` command
 - Added e2e tests github action for pull requests with kubeflow setup in gcp
 - Added support for extra volumes per node 
