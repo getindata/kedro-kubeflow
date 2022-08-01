@@ -4,8 +4,6 @@ import webbrowser
 from pathlib import Path
 
 import click
-import kubernetes.config
-import mlflow
 from click import ClickException
 
 from .auth import AuthHandler
@@ -313,6 +311,7 @@ def init(ctx, kfp_url: str, with_github_actions: bool):
 )
 @click.pass_context
 def mlflow_start(ctx, kubeflow_run_id: str, output: str):
+    import mlflow
 
     token = AuthHandler().obtain_id_token()
     if token:
@@ -337,6 +336,7 @@ def mlflow_start(ctx, kubeflow_run_id: str, output: str):
 @kubeflow_group.command(hidden=True)
 @click.argument("pvc_name", type=str)
 def delete_pipeline_volume(pvc_name: str):
+    import kubernetes.config
 
     kubernetes.config.load_incluster_config()
     current_namespace = open(
