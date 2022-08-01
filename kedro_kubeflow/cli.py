@@ -4,7 +4,6 @@ import webbrowser
 from pathlib import Path
 
 import click
-from click import ClickException
 
 from .auth import AuthHandler
 from .config import PluginConfig
@@ -322,7 +321,7 @@ def mlflow_start(ctx, kubeflow_run_id: str, output: str):
         kedro_context = ctx.obj["context_helper"].context
         mlflow_conf = kedro_context.mlflow
     except AttributeError:
-        raise ClickException("Could not read MLFlow config")
+        raise click.ClickException("Could not read MLFlow config")
 
     run = mlflow.start_run(
         experiment_id=mlflow_conf.experiment.experiment_id, nested=False
