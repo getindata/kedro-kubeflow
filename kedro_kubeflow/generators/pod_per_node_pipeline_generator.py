@@ -3,6 +3,7 @@ from typing import Dict, Set
 
 import kubernetes.client as k8s
 from kedro.framework.context import KedroContext
+from kedro.framework.project import pipelines
 from kedro.pipeline.node import Node
 from kfp import dsl
 
@@ -42,7 +43,6 @@ class PodPerNodePipelineGenerator(object):
         )
         @maybe_add_params(self.context.params)
         def convert_kedro_pipeline_to_kfp() -> None:
-            from kedro.framework.project import pipelines
 
             """Convert from a Kedro pipeline into a kfp container graph."""
             dsl.get_pipeline_conf().set_ttl_seconds_after_finished(

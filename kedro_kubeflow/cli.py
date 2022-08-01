@@ -313,8 +313,6 @@ def init(ctx, kfp_url: str, with_github_actions: bool):
 def mlflow_start(ctx, kubeflow_run_id: str, output: str):
     import mlflow
 
-    # from kedro_mlflow.framework.context import get_mlflow_config
-
     token = AuthHandler().obtain_id_token()
     if token:
         os.environ["MLFLOW_TRACKING_TOKEN"] = token
