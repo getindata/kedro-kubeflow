@@ -4,9 +4,6 @@ import re
 from urllib.parse import urlsplit, urlunsplit
 
 import requests
-from google.auth.exceptions import DefaultCredentialsError
-from google.auth.transport.requests import Request
-from google.oauth2 import id_token
 
 IAP_CLIENT_ID = "IAP_CLIENT_ID"
 DEX_USERNAME = "DEX_USERNAME"
@@ -18,6 +15,9 @@ class AuthHandler(object):
     log = logging.getLogger(__name__)
 
     def obtain_id_token(self):
+        from google.auth.exceptions import DefaultCredentialsError
+        from google.auth.transport.requests import Request
+        from google.oauth2 import id_token
 
         client_id = os.environ.get(IAP_CLIENT_ID, None)
 

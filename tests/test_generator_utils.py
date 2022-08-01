@@ -5,7 +5,7 @@ import unittest
 from kedro_kubeflow.generators.utils import is_local_fs
 
 
-def import_condition():
+def gcsfs_is_missing():
     try:
         import gcsfs  # NOQA
 
@@ -14,7 +14,7 @@ def import_condition():
         return True
 
 
-@unittest.skipIf(import_condition(), "Package gcsfs is not installed")
+@unittest.skipIf(gcsfs_is_missing(), "Package gcsfs is not installed")
 class TestGeneratorUtils(unittest.TestCase):
     def test_is_local(self):
         assert is_local_fs("data/test/file.txt") is True
