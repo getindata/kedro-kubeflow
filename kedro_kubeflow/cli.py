@@ -311,7 +311,7 @@ def init(ctx, kfp_url: str, with_github_actions: bool):
 )
 @click.pass_context
 def mlflow_start(ctx, kubeflow_run_id: str, output: str):
-    import mlflow
+    import mlflow  # NOQA
 
     token = AuthHandler().obtain_id_token()
     if token:
@@ -336,7 +336,7 @@ def mlflow_start(ctx, kubeflow_run_id: str, output: str):
 @kubeflow_group.command(hidden=True)
 @click.argument("pvc_name", type=str)
 def delete_pipeline_volume(pvc_name: str):
-    import kubernetes.config
+    import kubernetes.config  # NOQA
 
     kubernetes.config.load_incluster_config()
     current_namespace = open(

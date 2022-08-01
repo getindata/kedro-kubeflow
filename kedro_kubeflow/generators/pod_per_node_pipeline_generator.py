@@ -44,7 +44,7 @@ class PodPerNodePipelineGenerator(object):
         def convert_kedro_pipeline_to_kfp() -> None:
             """Convert from a Kedro pipeline into a kfp container graph."""
 
-            from kedro.framework.project import pipelines
+            from kedro.framework.project import pipelines  # NOQA
 
             dsl.get_pipeline_conf().set_ttl_seconds_after_finished(
                 self.run_config.ttl
