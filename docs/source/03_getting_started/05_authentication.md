@@ -12,7 +12,7 @@ Dex is the recommended authentication mechanism for on-premise Kubeflow clusters
 
 * [oidc-autheservice](https://github.com/arrikto/oidc-authservice) redirect unauthenticated users to Dex,
 * [Dex](https://github.com/dexidp/dex) authenticates user in remote system, like LDAP or OpenID and also acts as OpenID provider,
-* `oidc-autheservice` asks Dex for token and creates the session used across entire Kubeflow.
+* `oidc-autheservice` asks Dex for a token and creates the session used across entire Kubeflow.
 
 In order to use `kedro-kubeflow` behind Dex-secured clusters, use the following manual:
 
