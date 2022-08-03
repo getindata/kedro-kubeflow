@@ -37,31 +37,53 @@ version = re.match(r"^([0-9]+\.[0-9]+).*", release).group(1)
 _package_name = _package_name.replace("_", "-")
 _package = pkg_resources.working_set.by_key[_package_name]
 
-# Extending keys for subsitutions with versions of package
-myst_substitutions.update(
-    {"req_" + p.name: str(p) for p in _package.requires()}
-)
-myst_substitutions.update(
-    {
-        "req_build_" + p.name: pkg_resources.get_distribution(p).version
-        for p in _package.requires()
-    }
-)
 
-conditions = {
-    "upper": ["<", "<=", "~=", "==", "==="],
-    "lower": [">", ">=", "~=", "==", "==="],
+# Extending keys for subsitutions with versions of package
+def update_templates_with_requirements(packages_set, label):
+    """Local function for updating template labels with requirements"""
+    myst_substitutions.update({label + p.name: str(p) for p in packages_set})
+
+    built_packages = {}
+    for p in packages_set:
+        try:
+            req_label = label + "build_" + p.name
+            built_packages[req_label] = pkg_resources.get_distribution(
+                p
+            ).version
+        except pkg_resources.DistributionNotFound:
+            pass
+        myst_substitutions.update(built_packages)
+
+    conditions = {
+        "upper": ["<", "<=", "~=", "==", "==="],
+        "lower": [">", ">=", "~=", "==", "==="],
+    }
+    for k, cond in conditions.items():
+        myst_substitutions.update(
+            {
+                label
+                + k
+                + "_"
+                + p.name: "".join(
+                    [
+                        "".join(i)
+                        for i in filter(lambda x: x[0] in cond, p.specs)
+                    ]
+                )
+                for p in packages_set
+            }
+        )
+
+
+base_requirements = set(_package.requires())
+extra_requires = {
+    extra: set(_package.requires(extras=(extra,))) - base_requirements
+    for extra in _package.extras
 }
-for k, cond in conditions.items():
-    myst_substitutions.update(
-        {
-            f"req_{k}_"
-            + p.name: "".join(
-                ["".join(i) for i in filter(lambda x: x[0] in cond, p.specs)]
-            )
-            for p in _package.requires()
-        }
-    )
+update_templates_with_requirements(base_requirements, "req_")
+for extra, reqs in extra_requires.items():
+    update_templates_with_requirements(reqs, f"req_{extra}_")
+
 
 print("Available patterns for substituion:")
 pprint(myst_substitutions)
