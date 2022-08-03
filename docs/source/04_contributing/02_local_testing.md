@@ -3,11 +3,13 @@
 
 ## Unit tests
 
-The plugin has unit tests that can be run with `tox`:
+The plugin has unit tests that can be run with `tox`, for example for python 3.8:
 ```console
 $ pip install tox-pip-version
 $ tox -v -e py38
 ```
+
+List available python environments to test with using `tox -l`.
 
 You can also run them manually by executing `python -m unittest` in the root folder. They are also executed with github action on pull requests to test the stability of new changes. See `.github/workflows/python-package.yml`.
 
