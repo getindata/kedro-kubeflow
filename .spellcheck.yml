@@ -2,9 +2,10 @@ spellchecker: aspell
 matrix:
   - name: Check the english docs
     aspell:
+      ignore-case: ""
       lang: en
     sources:
-    - "docs/**.md"
+    - "docs/**/*.md"
     - "CONTRIBUTING.md"
     - "README.md"
     default_encoding: utf-8
@@ -27,6 +28,8 @@ matrix:
           close: '\]'
         - open: '\('
           close: '\)'
+        - open: '\{'
+          close: '\}'
     dictionary:
       wordlists:
       - docs/spellcheck_exceptions.txt
