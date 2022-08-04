@@ -8,7 +8,7 @@ with open("README.md") as f:
 INSTALL_REQUIRES = [
     "kedro>=0.18.1, <0.19.0",
     "click>=8.0.4",
-    "kfp>=1.8.12,<2.0",
+    "kfp>=1.8.12,<3.0",
     "tabulate>=0.8.7",
     "semver~=2.10",
     "google-auth<2.0dev",
