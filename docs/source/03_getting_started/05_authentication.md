@@ -6,13 +6,13 @@ Plugin supports 2 ways of authenticating to Kubeflow Pipelines API:
 
 It's already described in [GCP AI Platform support](02_gcp.md) chapter.
 
-## 2. KFP behind Dex+authservice
+## 2. KFP behind Dex with `authservice`
 
 Dex is the recommended authentication mechanism for on-premise Kubeflow clusters. The usual setup looks in a way that:
 
 * [oidc-autheservice](https://github.com/arrikto/oidc-authservice) redirect unauthenticated users to Dex,
 * [Dex](https://github.com/dexidp/dex) authenticates user in remote system, like LDAP or OpenID and also acts as OpenID provider,
-* oidc-autheservice asks Dex for token and creates the session used across entire Kubeflow.
+* `oidc-autheservice` asks Dex for a token and creates the session used across entire Kubeflow.
 
 In order to use `kedro-kubeflow` behind Dex-secured clusters, use the following manual:
 

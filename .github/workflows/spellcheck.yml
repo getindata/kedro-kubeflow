@@ -1,0 +1,20 @@
+# This is workflow for spell checking using PySpelling lib (https://pypi.org/project/pyspelling/)
+name: Spellcheck
+# Controls when the action will run.
+on:
+  # Triggers the workflow on pull request events only if docs files have changed
+  pull_request:
+    paths: "docs/**"
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  spellcheck:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Spellcheck
+      - uses: actions/checkout@v2
+      - uses: rojopolis/spellcheck-github-actions@0.25.0
+        name: Spellcheck

@@ -27,9 +27,9 @@ EXTRA_REQUIRE = {
         "responses>=0.13.4",
     ],
     "docs": [
-        "sphinx==5.0.2",
-        "recommonmark==0.7.1",
+        "sphinx~=5.0.2",
         "sphinx_rtd_theme==1.0.0",
+        "myst-parser==0.18.0",
     ],
     "gcp": [
         "google-auth<3",

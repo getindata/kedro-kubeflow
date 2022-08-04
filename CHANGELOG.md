@@ -1,6 +1,12 @@
 # Changelog
 
 ## [Unreleased]
+- Added templating capabilities to docs generator and used them in the docs for kedro versioning
+- Added pre-commit hook for pyspelling check
+- Changed sphinx markdown engine to myst_parser
+- Added CI for spellchecking the documentation with configuration for myst
+- Updated documentation quickstart to workaround known issues and make it work on local kind cluster
+- Updated documentation - added contributing guidelines and setup tips
 - Merged e2e and unittest workflows. Now e2e runs only if unittests succeed.
 - Changed default resource limits in `kubeflow.yaml` config
 - Added --wait-for-completion and --timeout for `kedro kubeflow run-once` command

@@ -1,8 +1,13 @@
 # Quickstart
 
-## Preprequisites
+(prerequisites-tag)=
+## Prerequisites
 
-The quickstart assumes user have access to Kubeflow Pipelines deployment. Pipelines can be dedployed on any Kubernetes cluster, including [local cluster](https://www.kubeflow.org/docs/pipelines/installation/localcluster-deployment/).
+The quickstart assumes user have access to Kubeflow Pipelines deployment. Pipelines can be deployed on any Kubernetes cluster, including [local cluster](https://www.kubeflow.org/docs/pipelines/installation/localcluster-deployment/).
+
+````{admonition} Local kubeflow cluster
+There is also an option to test locally with running [Kubernetes in docker](https://getindata.com/blog/kubeflow-pipelines-running-5-minutes/) (kind). After going through that guide you should have Kubeflow up and running available at `http://localhost:9000`.
+````
 
 ## Install the toy project with Kubeflow Pipelines support
 
@@ -18,17 +23,14 @@ created virtual environment CPython3.8.5.final.0-64 in 145ms
 $ source venv-demo/bin/activate
 ```
 
-Then, `kedro` must be present to enable cloning the starter project, along with the latest version of `kedro-kubeflow` plugina and kedro-docker (required to build docker images with the Kedro pipeline nodes):
+Then, `kedro` must be present to enable cloning the starter project, along with the latest version of `kedro-kubeflow` plugin and `kedro-docker` (required to build docker images with the Kedro pipeline nodes):
 
+{{"```console\n $ pip install '{req_kedro}' kedro-kubeflow kedro-docker\n```".format(req_kedro=req_kedro)}}
+
+With the dependencies in place, let's create a new project (with the latest supported kedro version - {{tested_kedro}}):
+
+{{"```console\n$ kedro new --starter=spaceflights --checkout={version}\n".format(version=tested_kedro)}}
 ```
-$ pip install 'kedro<0.18' kedro-kubeflow kedro-docker
-```
-
-With the dependencies in place, let's create a new project:
-
-```
-$ kedro new --starter=spaceflights
-
 Project Name:
 =============
 Please enter a human readable name for your new project.
@@ -54,11 +56,20 @@ Change directory to the project generated in /home/mario/kedro/kubeflow-plugin-d
 A best-practice setup includes initialising git and creating a virtual environment before running `kedro install` to install project-specific dependencies. Refer to the Kedro documentation: https://kedro.readthedocs.io/
 ```
 
-Finally, go the demo project directory and ensure that kedro-kubeflow plugin is activated:
-
+Next go the demo project directory:
 ```console
 $ cd kubeflow-plugin-demo/
-$ kedro install
+```
+
+Before installing the dependencies, add the `kedro-kubeflow` to `requirements.*` in src:
+```console
+$ echo kedro-kubeflow >> src/requirements*
+```
+
+Finally, ensure that kedro-kubeflow plugin is activated:
+
+```console
+$ pip install -r src/requirements.txt
 (...)
 Requirements installed!
 $ kedro kubeflow --help
@@ -85,64 +96,177 @@ Commands:
 
 First, initialize the project with `kedro-docker` configuration by running:
 
-```
+```console
 $ kedro docker init
 ```
 
-This command creates a several files, including `.dockerignore`. This file ensures that transient files are not included in the docker image and it requires small adjustment. Open it in your favourite text editor and extend the section `# except the following` by adding there:
+This command creates a several files, including `.dockerignore`. This file ensures that transient files are not included in the docker image and it requires small adjustment. Open it in your favorite text editor and extend the section `# except the following` by adding there:
 
 ```console
-!data/01_raw
+$ echo !data/01_raw >> .dockerignore
 ```
 
-This change enforces raw data existence in the image. Also, one of the limitations of running the Kedro pipeline on Kubeflow (and not on local environemt) is inability to use MemoryDataSets, as the pipeline nodes do not share memory, so every artifact should be stored as file. The `spaceflights` demo configures four datasets as in-memory, so let's change the behaviour by adding these lines to `conf/base/catalog.yml`:
+This change enforces raw data existence in the image. Also, one of the limitations of running the Kedro pipeline on Kubeflow (and not on local environemt) is inability to use `MemoryDataSets`, as the pipeline nodes do not share memory, so every artifact and intermediate data step should be stored as a file. The `spaceflights` demo configures four datasets as in-memory, so we need to change that. Replace the `conf/base/catalog.yml` with the following:
 
-```console
-X_train:
+```yaml
+companies:
+  type: pandas.CSVDataSet
+  filepath: data/01_raw/companies.csv
+  layer: raw
+
+reviews:
+  type: pandas.CSVDataSet
+  filepath: data/01_raw/reviews.csv
+  layer: raw
+
+shuttles:
+  type: pandas.ExcelDataSet
+  filepath: data/01_raw/shuttles.xlsx
+  layer: raw
+  load_args:
+    engine: openpyxl
+
+data_processing.preprocessed_companies:
+  type: pandas.ParquetDataSet
+  filepath: data/02_intermediate/preprocessed_companies.pq
+  layer: intermediate
+
+data_processing.preprocessed_shuttles:
+  type: pandas.ParquetDataSet
+  filepath: data/02_intermediate/preprocessed_shuttles.pq
+  layer: intermediate
+
+model_input_table:
+  type: pandas.ParquetDataSet
+  filepath: data/03_primary/model_input_table.pq
+  layer: primary
+
+data_science.active_modelling_pipeline.regressor:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/regressor_active.pickle
+  versioned: true
+  layer: models
+
+data_science.candidate_modelling_pipeline.regressor:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/regressor_candidate.pickle
+  versioned: true
+  layer: models
+
+data_science.active_modelling_pipeline.X_train:
   type: pickle.PickleDataSet
   filepath: data/05_model_input/X_train.pickle
   layer: model_input
 
-y_train:
+data_science.active_modelling_pipeline.y_train:
   type: pickle.PickleDataSet
   filepath: data/05_model_input/y_train.pickle
   layer: model_input
 
-X_test:
+data_science.active_modelling_pipeline.X_test:
   type: pickle.PickleDataSet
   filepath: data/05_model_input/X_test.pickle
   layer: model_input
 
-y_test:
+data_science.active_modelling_pipeline.y_test:
   type: pickle.PickleDataSet
   filepath: data/05_model_input/y_test.pickle
   layer: model_input
+
+data_science.active_modelling_pipeline.regressor:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/regressor.pickle
+  versioned: true
+  layer: models
+
+data_science.candidate_modelling_pipeline.X_train:
+  type: pickle.PickleDataSet
+  filepath: data/05_model_input/X_train.pickle
+  layer: model_input
+
+data_science.candidate_modelling_pipeline.y_train:
+  type: pickle.PickleDataSet
+  filepath: data/05_model_input/y_train.pickle
+  layer: model_input
+
+data_science.candidate_modelling_pipeline.X_test:
+  type: pickle.PickleDataSet
+  filepath: data/05_model_input/X_test.pickle
+  layer: model_input
+
+data_science.candidate_modelling_pipeline.y_test:
+  type: pickle.PickleDataSet
+  filepath: data/05_model_input/y_test.pickle
+  layer: model_input
+
+data_science.candidate_modelling_pipeline.regressor:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/regressor.pickle
+  versioned: true
+  layer: models
 ```
 
 Finally, build the image:
 
 ```console
-kedro docker build
+$ kedro docker build
 ```
 
 When execution finishes, your docker image is ready. If you don't use local cluster, you should push the image to the remote repository:
 
 ```console
-docker tag kubeflow_plugin_demo:latest remote.repo.url.com/kubeflow_plugin_demo:latest
-docker push remote.repo.url.com/kubeflow_plugin_demo:latest
+$ docker tag kubeflow-plugin-demo:latest remote.repo.url.com/kubeflow-plugin-demo:latest
+$ docker push remote.repo.url.com/kubeflow-plugin-demo:latest
 ```
+
+````{admonition} Local cluster testing
+The `kind` has its own docker registry that you need to upload the image to. However, since it does not have any connection to other registry we want to prevent it from trying to pull any image ([see the docs](https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster)). In order to do that, we need to tag the built docker image with any specific version. Let's use `demo` tag, as any tag other than `latest` will do.
+
+Locate your image name (it should be the same as kedro project name) with:
+```console
+$ docker images
+```
+
+Then tag your image with the following command:
+```console
+$ docker tag <image>:latest <image>:demo
+```
+
+Then you need to upload the image from local registry to the kind registry. Here `kfp` is the cluster name (the same as [in linked guide](prerequisites-tag). Default cluster name is `kind`.
+```console
+$ kind load docker-image <image>:demo --name kfp
+```
+````
 
 ## Run the pipeline on Kubeflow
 
 First, run `init` script to create the sample configuration. A parameter value should reflect the kubeflow base path **as seen from the system** (so no internal Kubernetes IP unless you run the local cluster):
 
 ```console
-kedro kubeflow init https://kubeflow.cluster.com
+$ kedro kubeflow init https://kubeflow.cluster.com
 (...)
-Configuration generated in /home/mario/kedro/kubeflow-plugin-demo/conf/base/kubeflow.yaml
+Configuration generated in /home/user/kedro/kubeflow-plugin-demo/conf/base/kubeflow.yaml
 ```
 
-Then, if needed, adjust the `conf/base/kubeflow.yaml`. For example, the `image:` key should point to the full image name (like `remote.repo.url.com/kubeflow_plugin_demo:latest` if you pushed the image at this name). Depending on the storage classes availability in Kubernetes cluster, you may want to modify `volume.storageclass` and `volume.access_modes` (please consult with Kubernetes admin what values should be there).
+````{admonition} Local cluster testing
+For local cluster the link is the following: `http://localhost:9000`
+````
+
+
+````{warning}
+Since kedro 0.17 there have been introduced name spaces to datasets which are not yet fully supported by this plugin as it causes issues within naming conventions of kfp artifacts. For now it's best to disable storage of kfp artifacts by adding/uncommenting the following line in `conf/base/kubeflow.yaml`:
+```yaml
+store_kedro_outputs_as_kfp_artifacts: False
+```
+````
+
+Then, if needed, adjust the `conf/base/kubeflow.yaml`. For example, the `image:` key should point to the full image name (like `remote.repo.url.com/kubeflow_plugin_demo:latest` if you've pushed the image at this name). Depending on the storage classes availability in Kubernetes cluster, you may want to modify `volume.storageclass` and `volume.access_modes` (please consult with Kubernetes admin what values should be there).
+
+
+````{admonition} Local cluster testing
+In this example you also need to update the tag of the `image:` part to also use `demo` instead latest.
+````
+
 
 Finally, everything is set to run the pipeline on Kubeflow. Run `upload-pipeline`:
 
@@ -165,6 +289,13 @@ The Kubeflow pipeline reflects the Kedro pipeline with two extra steps:
 By using `Create run` button you can start a run of the pipeline on the cluster. A run behaves like `kedro run` command, but the steps are executed on the remote cluster. The outputs are stored on the persistent volume, and passed as the inputs accordingly to how Kedro nodes need them.
 
 ![Pipeline run](pipeline_run.gif)
+
+````{tip}
+You can also schedule a single run by using 
+```console
+$ kedro kubeflow run-once
+```
+````
 
 From the UI you can access the logs of the execution. If everything seems fine, use `schedule to create a recurring run:
 
