@@ -11,7 +11,7 @@ INSTALL_REQUIRES = [
     "kfp>=1.8.12,<2.0",
     "tabulate>=0.8.7",
     "semver~=2.10",
-    "google-auth<2.0dev",
+    "google-auth<3.0",
     "fsspec<=2022.1,>=2021.4",
 ]
 
