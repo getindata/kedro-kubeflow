@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Added testing and support for python versions 3.9, 3.10
 - Added templating capabilities to docs generator and used them in the docs for kedro versioning
 - Added pre-commit hook for pyspelling check
 - Changed sphinx markdown engine to myst_parser
