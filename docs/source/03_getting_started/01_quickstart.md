@@ -267,21 +267,6 @@ Then, if needed, adjust the `conf/base/kubeflow.yaml`. For example, the `image:`
 In this example you also need to update the tag of the `image:` part to also use `demo` instead latest.
 ````
 
-````{warning}
-The default limits of resources for node execution are too small for this example. Increase the following:
-```yaml
-  resources:
-  (...)
-    __default__:
-      cpu: 200m
-      memory: 64Mi
-```
-like that
-```yaml
-      cpu: 1
-      memory: 1Gi
-```
-````
 
 Finally, everything is set to run the pipeline on Kubeflow. Run `upload-pipeline`:
 
