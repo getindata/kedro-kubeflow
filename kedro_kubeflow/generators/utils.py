@@ -7,6 +7,7 @@ from inspect import Parameter, signature
 
 import fsspec
 import kubernetes.client as k8s
+from fsspec.implementations.local import LocalFileSystem
 from kfp import dsl
 from kfp.compiler._k8s_helper import sanitize_k8s_name
 
@@ -153,7 +154,6 @@ def customize_op(op, image_pull_policy, run_config: RunConfig):
 
 
 def is_local_fs(filepath):
-    from fsspec.implementations.local import LocalFileSystem
 
     file_open = fsspec.open(filepath)
     return isinstance(file_open.fs, LocalFileSystem)

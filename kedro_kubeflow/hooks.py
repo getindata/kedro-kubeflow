@@ -5,13 +5,14 @@ from kedro.io import DataCatalog
 
 from kedro_kubeflow.utils import is_mlflow_enabled
 
+from .auth import AuthHandler
+
 
 class MlflowIapAuthHook:
     """Allows authentication trough IAP proxy the same way as kubeflow pipelines"""
 
     @hook_impl
     def after_catalog_created(self, catalog: DataCatalog, **kwargs) -> None:
-        from .auth import AuthHandler
 
         token = AuthHandler().obtain_id_token()
         if token:
