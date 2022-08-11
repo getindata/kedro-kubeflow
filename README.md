@@ -1,6 +1,6 @@
 # Kedro Kubeflow Plugin
 
-[![Python Version](https://img.shields.io/badge/python-3.8-blue.svg)](https://github.com/getindata/kedro-kubeflow)
+[![Python Version](https://img.shields.io/pypi/pyversions/kedro-kubeflow)](https://github.com/getindata/kedro-kubeflow)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) 
 [![SemVer](https://img.shields.io/badge/semver-2.0.0-green)](https://semver.org/)
 [![PyPI version](https://badge.fury.io/py/kedro-kubeflow.svg)](https://pypi.org/project/kedro-kubeflow/)
