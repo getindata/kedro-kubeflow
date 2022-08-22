@@ -1,20 +1,23 @@
 # Changelog
 
 ## [Unreleased]
-- Added testing and support for python versions 3.9, 3.10
-- Added templating capabilities to docs generator and used them in the docs for kedro versioning
-- Added pre-commit hook for pyspelling check
-- Changed sphinx markdown engine to myst_parser
-- Added CI for spellchecking the documentation with configuration for myst
-- Updated documentation quickstart to workaround known issues and make it work on local kind cluster
-- Updated documentation - added contributing guidelines and setup tips
-- Merged e2e and unittest workflows. Now e2e runs only if unittests succeed.
-- Changed default resource limits in `kubeflow.yaml` config
-- Added --wait-for-completion and --timeout for `kedro kubeflow run-once` command
-- Added e2e tests github action for pull requests with kubeflow setup in gcp
-- Added support for extra volumes per node 
-- Refactored configuration classes to Pydantic
-- Add support for `kedro>=0.18.1,<0.19`
+
+## [0.7.0] - 2022-08-22
+
+-   Added testing and support for python versions 3.9, 3.10
+-   Added templating capabilities to docs generator and used them in the docs for kedro versioning
+-   Added pre-commit hook for pyspelling check
+-   Changed sphinx markdown engine to myst_parser
+-   Added CI for spellchecking the documentation with configuration for myst
+-   Updated documentation quickstart to workaround known issues and make it work on local kind cluster
+-   Updated documentation - added contributing guidelines and setup tips
+-   Merged e2e and unittest workflows. Now e2e runs only if unittests succeed.
+-   Changed default resource limits in `kubeflow.yaml` config
+-   Added --wait-for-completion and --timeout for `kedro kubeflow run-once` command
+-   Added e2e tests github action for pull requests with kubeflow setup in gcp
+-   Added support for extra volumes per node 
+-   Refactored configuration classes to Pydantic
+-   Add support for `kedro>=0.18.1,<0.19`
 
 ## [0.6.4] - 2022-06-01
 
@@ -151,7 +154,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.6.4...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.7.0...HEAD
+
+[0.7.0]: https://github.com/getindata/kedro-kubeflow/compare/0.6.4...0.7.0
 
 [0.6.4]: https://github.com/getindata/kedro-kubeflow/compare/0.6.3...0.6.4
 
