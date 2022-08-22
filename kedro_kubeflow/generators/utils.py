@@ -5,11 +5,14 @@ import os
 from functools import wraps
 from inspect import Parameter, signature
 
+import fsspec
 import kubernetes.client as k8s
+from fsspec.implementations.local import LocalFileSystem
 from kfp import dsl
 from kfp.compiler._k8s_helper import sanitize_k8s_name
 
 from ..auth import IAP_CLIENT_ID
+from ..config import RunConfig
 
 
 def ensure_json_serializable(value):
@@ -121,23 +124,36 @@ def create_pipeline_exit_handler(
     )
 
 
-def customize_op(op, image_pull_policy, run_config):
+def customize_op(op, image_pull_policy, run_config: RunConfig):
     op.container.set_image_pull_policy(image_pull_policy)
     if run_config.volume and run_config.volume.owner is not None:
         op.container.set_security_context(
             k8s.V1SecurityContext(run_as_user=run_config.volume.owner)
         )
 
-    if run_config.resources.is_set_for(op.name):
-        op.container.resources = k8s.V1ResourceRequirements(
-            limits=run_config.resources.get_for(op.name),
-            requests=run_config.resources.get_for(op.name),
+    resources = run_config.resources[op.name].dict(exclude_none=True)
+    op.container.resources = k8s.V1ResourceRequirements(
+        limits=resources,
+        requests=resources,
+    )
+
+    if retry_policy := run_config.retry_policy[op.name]:
+        op.set_retry(policy="Always", **retry_policy.dict())
+
+    for toleration in run_config.tolerations[op.name]:
+        op.add_toleration(k8s.V1Toleration(**toleration.dict()))
+
+    if extra_volumes := run_config.extra_volumes[op.name]:
+        op.add_pvolumes(
+            {
+                ev.mount_path: dsl.PipelineVolume(volume=ev.as_v1volume())
+                for ev in extra_volumes
+            }
         )
-    if run_config.retry_policy.is_set_for(op.name):
-        op.set_retry(
-            policy="Always", **run_config.retry_policy.get_for(op.name)
-        )
-    if run_config.tolerations.is_set_for(op.name):
-        for toleration in run_config.tolerations.get_for(op.name):
-            op.add_toleration(k8s.V1Toleration(**toleration))
     return op
+
+
+def is_local_fs(filepath):
+
+    file_open = fsspec.open(filepath)
+    return isinstance(file_open.fs, LocalFileSystem)

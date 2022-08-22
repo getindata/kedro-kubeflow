@@ -1,6 +1,7 @@
 import logging
 import uuid
 from tempfile import NamedTemporaryFile
+from typing import Dict, Optional
 
 from kfp import Client
 from kfp.compiler import Compiler
@@ -14,16 +15,15 @@ from kedro_kubeflow.generators.pod_per_node_pipeline_generator import (
 )
 
 from .auth import AuthHandler
+from .config import NodeMergeStrategyEnum, PluginConfig
 from .utils import clean_name
-
-WAIT_TIMEOUT = 24 * 60 * 60
 
 
 class KubeflowClient(object):
 
     log = logging.getLogger(__name__)
 
-    def __init__(self, config, project_name, context):
+    def __init__(self, config: PluginConfig, project_name, context):
         client_params = {}
         token = AuthHandler().obtain_id_token()
         if token is not None:
@@ -40,17 +40,15 @@ class KubeflowClient(object):
 
         self.project_name = project_name
         self.pipeline_description = config.run_config.description
-        if config.run_config.node_merge_strategy == "none":
+        if config.run_config.node_merge_strategy == NodeMergeStrategyEnum.none:
             self.generator = PodPerNodePipelineGenerator(
                 config, project_name, context
             )
-        elif config.run_config.node_merge_strategy == "full":
+        elif (
+            config.run_config.node_merge_strategy == NodeMergeStrategyEnum.full
+        ):
             self.generator = OnePodPipelineGenerator(
                 config, project_name, context
-            )
-        else:
-            raise Exception(
-                f"Invalid `node_merge_strategy`: {config.run_config.node_merge_strategy}"
             )
 
     def list_pipelines(self):
@@ -67,9 +65,10 @@ class KubeflowClient(object):
         experiment_namespace,
         run_name,
         wait,
+        timeout,
         image_pull_policy="IfNotPresent",
         parameters={},
-    ) -> None:
+    ) -> Optional[Dict[str, str]]:
         run = self.client.create_run_from_pipeline_func(
             self.generator.generate_pipeline(
                 pipeline, image, image_pull_policy
@@ -81,7 +80,9 @@ class KubeflowClient(object):
         )
 
         if wait:
-            run.wait_for_run_completion(timeout=WAIT_TIMEOUT)
+            ret = run.wait_for_run_completion(timeout=timeout)
+            return {"status": ret.run.status, "error": ret.run.error}
+        return None
 
     def compile(
         self, pipeline, image, output, image_pull_policy="IfNotPresent"

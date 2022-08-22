@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Set
 
 import kubernetes.client as k8s
+from kedro.framework.context import KedroContext
 from kedro.pipeline.node import Node
 from kfp import dsl
 
@@ -12,6 +13,7 @@ from .utils import (
     create_container_environment,
     create_pipeline_exit_handler,
     customize_op,
+    is_local_fs,
     maybe_add_params,
 )
 
@@ -21,7 +23,7 @@ class PodPerNodePipelineGenerator(object):
 
     def __init__(self, config, project_name, context):
         self.project_name = project_name
-        self.context = context
+        self.context: KedroContext = context
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
         self.run_config = config.run_config
         self.catalog = context.config_loader.get("catalog*")
@@ -41,12 +43,13 @@ class PodPerNodePipelineGenerator(object):
         @maybe_add_params(self.context.params)
         def convert_kedro_pipeline_to_kfp() -> None:
             """Convert from a Kedro pipeline into a kfp container graph."""
+
+            from kedro.framework.project import pipelines  # NOQA
+
             dsl.get_pipeline_conf().set_ttl_seconds_after_finished(
                 self.run_config.ttl
             )
-            node_dependencies = self.context.pipelines.get(
-                pipeline
-            ).node_dependencies
+            node_dependencies = pipelines[pipeline].node_dependencies
             with create_pipeline_exit_handler(
                 pipeline,
                 image,
@@ -137,6 +140,7 @@ class PodPerNodePipelineGenerator(object):
                         for output in node.outputs
                         if output in self.catalog
                         and "filepath" in self.catalog[output]
+                        and is_local_fs(self.catalog[output]["filepath"])
                         and self.run_config.store_kedro_outputs_as_kfp_artifacts
                     },
                 ),

@@ -1,0 +1,41 @@
+
+# Base url of the Kubeflow Pipelines, should include the schema (http/https)
+host: ${kubeflow_hostname}
+
+# Configuration used to run the pipeline
+run_config:
+
+  # Name of the image to run as the pipeline steps
+  image: gcr.io/gid-ml-ops-sandbox/kedro-kubeflow-e2e:${commit_id|latest}
+
+  # Pull policy to be used for the steps. Use Always if you push the images
+  # on the same tag, or Never if you use only local images
+  image_pull_policy: IfNotPresent
+
+  # Name of the kubeflow experiment to be created
+  experiment_name: kedro-kubeflow-e2e
+
+  # Name of the run for run-once, templated with the run-once parameters
+  run_name: kedro-kubeflow-e2e
+
+  # Name of the scheduled run, templated with the schedule parameters
+  scheduled_run_name: kedro-kubeflow-e2e
+
+  # Optional pipeline description
+  #description: "Very Important Pipeline"
+
+  # Flag indicating if the run-once should wait for the pipeline to finish
+  wait_for_completion: True 
+
+  # How long to keep underlying Argo workflow (together with pods and data
+  # volume after pipeline finishes) [in seconds]. Default: 1 week
+  ttl: 604800
+
+  # Optional section allowing adjustment of the resources
+  # reservations and limits for the nodes
+  resources:
+
+    # Default settings for the nodes
+    __default__:
+      cpu: 0.4
+      memory: 2Gi

@@ -104,6 +104,18 @@ run_config:
       value: "gpu_workload"
       effect: "NoSchedule"
 
+  # Optional section to allow mounting additional volumes (such as EmptyDir)
+  # to specific nodes
+  extra_volumes:
+    tensorflow_step:
+    - mount_path: /dev/shm
+      volume:
+        name: shared_memory
+        empty_dir:
+          cls: V1EmptyDirVolumeSource
+          params:
+            medium: Memory
+            
   # Optional section allowing adjustment of the resources
   # reservations and limits for the nodes
   resources:
@@ -124,8 +136,8 @@ run_config:
 
     # Default settings for the nodes
     __default__:
-      cpu: 200m
-      memory: 64Mi
+      cpu: 1 
+      memory: 1Gi 
 
   # Optional section to provide retry policy for the steps
   # and default policy for steps with no policy specified
@@ -151,3 +163,32 @@ can later inject in configuration file using `${name}` syntax.
 
 There are two special variables `KEDRO_CONFIG_COMMIT_ID`, `KEDRO_CONFIG_BRANCH_NAME` with support specifying default when variable is not set, 
 e.g. `${commit_id|dirty}`   
+
+## Extra volumes
+You can mount additional volumes (such as `emptyDir`) to specific nodes by using `extra_volumes` config node.
+The syntax of the configuration allows to define k8s SDK compatible class hierarchy similar to the way you would define it in the KFP DSL, e.g:
+```python
+# KFP DSL
+volume = dsl.PipelineVolume(volume=k8s.client.V1Volume(
+    name="shared_memory",
+    empty_dir=k8s.client.V1EmptyDirVolumeSource(medium='Memory')))
+
+training_op.add_pvolumes({'/dev/shm': volume})
+```
+will translate to the following Kedro-Kubeflow config:
+```yaml
+extra_volumes:
+  training_op:
+  - mount_path: /dev/shm
+    volume:
+      name: shared_memory
+      empty_dir:
+        cls: V1EmptyDirVolumeSource
+        params:
+          medium: Memory
+```
+
+In general, the `volume` key accepts a dictionary with the keys being the named parameters for the [V1Volume](https://github.com/kubernetes-client/python/blob/be9a47e57358e3701ad079c98e223d3437ba1f46/kubernetes/docs/V1Volume.md) and values being one of:
+* dictionary with `cls` and `params` keys (to define nested objects) - see `kedro_kubeflow.config.ObjectKwargs`
+* list of values / list of dictionaries (`kedro_kubeflow.config.ObjectKwargs`) as described above
+* values (`str`, `int` etc.)

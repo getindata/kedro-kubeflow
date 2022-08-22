@@ -14,7 +14,11 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 import re
+from pprint import pprint
 
+from pip._vendor import pkg_resources
+
+from kedro_kubeflow import __name__ as _package_name
 from kedro_kubeflow import version as release
 
 # -- Project information -----------------------------------------------------
@@ -23,9 +27,66 @@ project = "Kedro Kubeflow Plugin"
 copyright = "2020, GetInData"
 author = "GetInData"
 
+myst_substitutions = {
+    "tested_kedro": "0.17.7",
+    "release": release,
+}
+
 # The full version, including alpha/beta/rc tags
 version = re.match(r"^([0-9]+\.[0-9]+).*", release).group(1)
+_package_name = _package_name.replace("_", "-")
+_package = pkg_resources.working_set.by_key[_package_name]
 
+
+# Extending keys for subsitutions with versions of package
+def update_templates_with_requirements(packages_set, label):
+    """Local function for updating template labels with requirements"""
+    myst_substitutions.update({label + p.name: str(p) for p in packages_set})
+
+    built_packages = {}
+    for p in packages_set:
+        try:
+            req_label = label + "build_" + p.name
+            built_packages[req_label] = pkg_resources.get_distribution(
+                p
+            ).version
+        except pkg_resources.DistributionNotFound:
+            pass
+        myst_substitutions.update(built_packages)
+
+    conditions = {
+        "upper": ["<", "<=", "~=", "==", "==="],
+        "lower": [">", ">=", "~=", "==", "==="],
+    }
+    for k, cond in conditions.items():
+        myst_substitutions.update(
+            {
+                label
+                + k
+                + "_"
+                + p.name: "".join(
+                    [
+                        "".join(i)
+                        for i in filter(lambda x: x[0] in cond, p.specs)
+                    ]
+                )
+                for p in packages_set
+            }
+        )
+
+
+base_requirements = set(_package.requires())
+extra_requires = {
+    extra: set(_package.requires(extras=(extra,))) - base_requirements
+    for extra in _package.extras
+}
+update_templates_with_requirements(base_requirements, "req_")
+for extra, reqs in extra_requires.items():
+    update_templates_with_requirements(reqs, f"req_{extra}_")
+
+
+print("Available patterns for substituion:")
+pprint(myst_substitutions)
 
 # -- General configuration ---------------------------------------------------
 
@@ -43,8 +104,13 @@ extensions = [
     # "sphinx.ext.ifconfig",
     # "sphinx.ext.viewcode",
     # "sphinx.ext.mathjax",
-    "recommonmark",
+    "myst_parser",
     "sphinx_rtd_theme",
+]
+myst_enable_extensions = [
+    "replacements",
+    "strikethrough",
+    "substitution",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -74,8 +140,8 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+# html_static_path = ["_static"]
 
-language = None
+language = "en"
 
 pygments_style = "sphinx"

@@ -1,10 +1,10 @@
 import os
 from functools import lru_cache
-from pathlib import Path
-from typing import Dict, Iterable
+from typing import Any, Dict
 
 from kedro import __version__ as kedro_version
 from kedro.config import TemplatedConfigLoader
+from kedro.framework.session import KedroSession
 from semver import VersionInfo
 
 from .config import PluginConfig
@@ -18,8 +18,23 @@ class EnvTemplatedConfigLoader(TemplatedConfigLoader):
     # defaults provided so default variables ${commit_id|dirty} work for some entries
     ENV_DEFAULTS = {"commit_id": None, "branch_name": None}
 
-    def __init__(self, conf_paths: Iterable[str]):
-        super().__init__(conf_paths, globals_dict=self.read_env())
+    def __init__(
+        self,
+        conf_source: str,
+        env: str = None,
+        runtime_params: Dict[str, Any] = None,
+        *,
+        base_env: str = "base",
+        default_run_env: str = "local"
+    ):
+        super().__init__(
+            conf_source,
+            env=env,
+            runtime_params=runtime_params,
+            globals_dict=self.read_env(),
+            base_env=base_env,
+            default_run_env=default_run_env,
+        )
 
     def read_env(self) -> Dict:
         config = EnvTemplatedConfigLoader.ENV_DEFAULTS.copy()
@@ -49,8 +64,6 @@ class ContextHelper(object):
     @property
     @lru_cache()
     def session(self):
-        from kedro.framework.session import KedroSession
-
         return KedroSession.create(self._metadata.package_name, env=self._env)
 
     @property
@@ -65,9 +78,9 @@ class ContextHelper(object):
     @lru_cache()
     def config(self) -> PluginConfig:
         raw = EnvTemplatedConfigLoader(
-            self.context.config_loader.conf_paths
+            self.context.config_loader.conf_source
         ).get(self.CONFIG_FILE_PATTERN)
-        return PluginConfig(raw)
+        return PluginConfig(**raw)
 
     @property
     @lru_cache()
@@ -98,6 +111,4 @@ class ContextHelper16(ContextHelper):
 
     @property
     def context(self):
-        from kedro.framework.context import load_context
-
-        return load_context(Path.cwd(), env=self._env)
+        return self.session.load_context()
