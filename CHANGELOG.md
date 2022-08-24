@@ -2,8 +2,7 @@
 
 ## [Unreleased]
 
--   Migrate project to poetry 
--   Improvements in build process
+-   Improvements in build process (migrated build tool to poetry, quality gate switched to sonarcloud)
 
 ## [0.7.0] - 2022-08-22
 
