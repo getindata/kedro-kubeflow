@@ -115,11 +115,7 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
         ]
         cfg = PluginConfig(
             **self.minimal_config(
-                {
-                    "run_config": {
-                        "tolerations": {"__default__": toleration_config}
-                    }
-                }
+                {"run_config": {"tolerations": {"__default__": toleration_config}}}
             )
         )
 

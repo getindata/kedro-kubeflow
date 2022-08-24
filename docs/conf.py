@@ -47,9 +47,7 @@ def update_templates_with_requirements(packages_set, label):
     for p in packages_set:
         try:
             req_label = label + "build_" + p.name
-            built_packages[req_label] = pkg_resources.get_distribution(
-                p
-            ).version
+            built_packages[req_label] = pkg_resources.get_distribution(p).version
         except pkg_resources.DistributionNotFound:
             pass
         myst_substitutions.update(built_packages)
@@ -65,10 +63,7 @@ def update_templates_with_requirements(packages_set, label):
                 + k
                 + "_"
                 + p.name: "".join(
-                    [
-                        "".join(i)
-                        for i in filter(lambda x: x[0] in cond, p.specs)
-                    ]
+                    ["".join(i) for i in filter(lambda x: x[0] in cond, p.specs)]
                 )
                 for p in packages_set
             }

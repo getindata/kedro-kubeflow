@@ -38,14 +38,8 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
 
             # then
             assert len(dsl_pipeline.ops) == 1
-            assert (
-                dsl_pipeline.ops["pipeline"].container.image
-                == "unittest-image"
-            )
-            assert (
-                dsl_pipeline.ops["pipeline"].container.image_pull_policy
-                == "Never"
-            )
+            assert dsl_pipeline.ops["pipeline"].container.image == "unittest-image"
+            assert dsl_pipeline.ops["pipeline"].container.image_pull_policy == "Never"
 
     def test_should_support_params_and_inject_them_to_the_node(self):
         # given
@@ -100,12 +94,8 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
 
             # then
             assert dsl_pipeline.ops["pipeline"].container.resources is not None
-            assert dsl_pipeline.ops["pipeline"].container.resources.limits[
-                "cpu"
-            ]
-            assert dsl_pipeline.ops["pipeline"].container.resources.limits[
-                "memory"
-            ]
+            assert dsl_pipeline.ops["pipeline"].container.resources.limits["cpu"]
+            assert dsl_pipeline.ops["pipeline"].container.resources.limits["memory"]
 
     def test_should_add_resources_spec(self):
         # given
@@ -280,8 +270,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
 
                 # then
                 env_values = {
-                    e.name: e.value
-                    for e in dsl_pipeline.ops["pipeline"].container.env
+                    e.name: e.value for e in dsl_pipeline.ops["pipeline"].container.env
                 }
                 assert "KEDRO_CONFIG_MY_KEY" in env_values
                 assert env_values["KEDRO_CONFIG_MY_KEY"] == "42"
@@ -307,8 +296,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
 
             # then
             env_values = {
-                e.name: e.value
-                for e in dsl_pipeline.ops["pipeline"].container.env
+                e.name: e.value for e in dsl_pipeline.ops["pipeline"].container.env
             }
             assert "KUBEFLOW_RUN_ID" in env_values
             assert env_values["KUBEFLOW_RUN_ID"] == "{{workflow.uid}}"
@@ -391,9 +379,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
         }
         self.generator_under_test = OnePodPipelineGenerator(
             config=PluginConfig(
-                **self.minimal_config(
-                    {"host": "http://unittest", "run_config": config}
-                )
+                **self.minimal_config({"host": "http://unittest", "run_config": config})
             ),
             project_name="my-awesome-project",
             context=context,

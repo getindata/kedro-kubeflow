@@ -27,9 +27,7 @@ class TestAuthHandler(unittest.TestCase):
         assert token is None
 
     @patch("google.oauth2.id_token.fetch_id_token")
-    def test_should_warn_if_trying_to_use_default_creds(
-        self, fetch_id_token_mock
-    ):
+    def test_should_warn_if_trying_to_use_default_creds(self, fetch_id_token_mock):
         # given
         os.environ["IAP_CLIENT_ID"] = "unittest-client-id"
         fetch_id_token_mock.side_effect = DefaultCredentialsError()

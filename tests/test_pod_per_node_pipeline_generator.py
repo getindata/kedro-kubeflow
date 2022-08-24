@@ -36,13 +36,8 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 pipeline()
 
             # then
-            assert (
-                dsl_pipeline.ops["node1"].container.image == "unittest-image"
-            )
-            assert (
-                dsl_pipeline.ops["node1"].container.image_pull_policy
-                == "Never"
-            )
+            assert dsl_pipeline.ops["node1"].container.image == "unittest-image"
+            assert dsl_pipeline.ops["node1"].container.image_pull_policy == "Never"
 
     def test_should_support_inter_steps_volume_with_defaults(self):
         # given
@@ -70,9 +65,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                     "{{workflow.name}}-pipeline-data-volume"
                 )
             )
-            volume_spec = dsl_pipeline.ops[
-                "data-volume-create"
-            ].k8s_resource.spec
+            volume_spec = dsl_pipeline.ops["data-volume-create"].k8s_resource.spec
             assert volume_spec.resources.requests["storage"] == "1Gi"
             assert volume_spec.access_modes == ["ReadWriteOnce"]
             assert volume_spec.storage_class_name is None
@@ -86,9 +79,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 assert len(volumes) == 1
                 assert volumes[0].name == "data-volume-create"
                 assert (
-                    dsl_pipeline.ops[
-                        node_name
-                    ].container.security_context.run_as_user
+                    dsl_pipeline.ops[node_name].container.security_context.run_as_user
                     == 0
                 )
 
@@ -174,9 +165,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             # then
             assert len(dsl_pipeline.ops) == 5
             assert "on-exit" in dsl_pipeline.ops
-            volume_spec = dsl_pipeline.ops[
-                "data-volume-create"
-            ].k8s_resource.spec
+            volume_spec = dsl_pipeline.ops["data-volume-create"].k8s_resource.spec
             assert volume_spec.resources.requests["storage"] == "1Mi"
             assert volume_spec.access_modes == ["ReadWriteOnce"]
             assert volume_spec.storage_class_name == "nfs"
@@ -210,9 +199,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             assert volume_init_spec.security_context.run_as_user == 47
             for node_name in ["data-volume-init", "node1", "node2"]:
                 assert (
-                    dsl_pipeline.ops[
-                        node_name
-                    ].container.security_context.run_as_user
+                    dsl_pipeline.ops[node_name].container.security_context.run_as_user
                     == 47
                 )
 
@@ -246,8 +233,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             assert "MLFLOW_RUN_ID" not in {e.name for e in init_step.env}
             for node_name in ["node1", "node2"]:
                 env = {
-                    e.name: e.value
-                    for e in dsl_pipeline.ops[node_name].container.env
+                    e.name: e.value for e in dsl_pipeline.ops[node_name].container.env
                 }
                 assert "MLFLOW_RUN_ID" in env
                 assert (
@@ -475,10 +461,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 pipeline()
 
             op1 = dsl_pipeline.ops["node1"]
-            assert (
-                op1.execution_options.caching_strategy.max_cache_staleness
-                == "P0D"
-            )
+            assert op1.execution_options.caching_strategy.max_cache_staleness == "P0D"
 
     def test_should_set_description(self):
         # given

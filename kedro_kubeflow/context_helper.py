@@ -77,9 +77,9 @@ class ContextHelper(object):
     @property
     @lru_cache()
     def config(self) -> PluginConfig:
-        raw = EnvTemplatedConfigLoader(
-            self.context.config_loader.conf_source
-        ).get(self.CONFIG_FILE_PATTERN)
+        raw = EnvTemplatedConfigLoader(self.context.config_loader.conf_source).get(
+            self.CONFIG_FILE_PATTERN
+        )
         return PluginConfig(**raw)
 
     @property
