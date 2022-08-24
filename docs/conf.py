@@ -71,13 +71,7 @@ def update_templates_with_requirements(packages_set, label):
 
 
 base_requirements = set(_package.requires())
-extra_requires = {
-    extra: set(_package.requires(extras=(extra,))) - base_requirements
-    for extra in _package.extras
-}
 update_templates_with_requirements(base_requirements, "req_")
-for extra, reqs in extra_requires.items():
-    update_templates_with_requirements(reqs, f"req_{extra}_")
 
 
 print("Available patterns for substituion:")
