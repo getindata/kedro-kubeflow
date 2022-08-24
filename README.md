@@ -1,13 +1,13 @@
 # Kedro Kubeflow Plugin
 
 [![Python Version](https://img.shields.io/pypi/pyversions/kedro-kubeflow)](https://github.com/getindata/kedro-kubeflow)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) 
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![SemVer](https://img.shields.io/badge/semver-2.0.0-green)](https://semver.org/)
 [![PyPI version](https://badge.fury.io/py/kedro-kubeflow.svg)](https://pypi.org/project/kedro-kubeflow/)
-[![Downloads](https://img.shields.io/pypi/dm/kedro-kubeflow)](https://img.shields.io/pypi/dm/kedro-kubeflow) 
+[![Downloads](https://pepy.tech/badge/kedro-kubeflow)](https://pepy.tech/project/kedro-kubeflow)
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/fff07cbd2e5012a045a3/maintainability)](https://codeclimate.com/github/getindata/kedro-kubeflow/maintainability) 
-[![Test Coverage](https://api.codeclimate.com/v1/badges/fff07cbd2e5012a045a3/test_coverage)](https://codeclimate.com/github/getindata/kedro-kubeflow/test_coverage)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=getindata_kedro-kubeflow&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=getindata_kedro-kubeflow)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=getindata_kedro-kubeflow&metric=coverage)](https://sonarcloud.io/summary/new_code?id=getindata_kedro-kubeflow)
 [![Documentation Status](https://readthedocs.org/projects/kedro-kubeflow/badge/?version=latest)](https://kedro-kubeflow.readthedocs.io/en/latest/?badge=latest)
 
 ## About
