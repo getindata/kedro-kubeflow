@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+-   Migrate project to poetry 
+-   Improvements in build process
+
 ## [0.7.0] - 2022-08-22
 
 -   Added testing and support for python versions 3.9, 3.10
