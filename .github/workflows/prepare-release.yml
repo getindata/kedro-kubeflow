@@ -26,11 +26,11 @@ jobs:
         run: |
           echo "INPUT_VERSION_PART: ${{ github.event.inputs.version_part }}"
           python -c "if '${{ github.event.inputs.version_part }}' not in ['patch', 'minor', 'major']:   raise ValueError(\"'${{ github.event.inputs.version_part }}' must be one of ['patch', 'minor', 'major'])\")"
-      - name: Bump the version number  # bump2version is a maintained fork of original bumpversion
+      - name: Bump the version number
         id: bump_version
         run: |
           pip install bump2version
-          bump2version ${{ github.event.inputs.version_part }}
+          bumpversion ${{ github.event.inputs.version_part }}
           echo "::set-output name=package_version::$(cat $PYTHON_PACKAGE/__init__.py | grep -Po  '\d+\.\d+\.\d+')"
       - name: Update the CHANGELOG according to 'Keep a Changelog' guidelines
         uses: thomaseizinger/keep-a-changelog-new-release@v1
@@ -51,7 +51,6 @@ jobs:
           PULL_REQUEST_FROM_BRANCH: release-${{ steps.bump_version.outputs.package_version }}
           PULL_REQUEST_TITLE: "Release ${{ steps.bump_version.outputs.package_version }}"
           PULL_REQUEST_BODY: "Bump version and CHANGELOG for next release."
-          PULL_REQUEST_ASSIGNEES: "em-pe"
       - name: Commit the changes
         run: |
           git commit -am "FIX #${{ steps.open_pr.outputs.pull_request_number }}  - Bump version and CHANGELOG for release ${{ steps.bump_version.outputs.package_version }}"

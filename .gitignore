@@ -1,3 +1,33 @@
+##########################
+# KEDRO PROJECT
+
+# ignore all local configuration
+conf/local/**
+!conf/local/.gitkeep
+.telemetry
+
+# ignore potentially sensitive credentials files
+conf/base/credentials.yml
+
+# ignore everything in the following folders
+data/**
+logs/**
+
+# except their sub-folders
+!data/**/
+!logs/**/
+
+# also keep all .gitkeep files
+!.gitkeep
+
+# also keep the test dataset and dataset schema
+!data/test/bq_ga4_test_data.csv
+!data/schema/dataset_schema.proto
+
+
+##########################
+# Common files
+
 # IntelliJ
 .idea/
 *.iml
@@ -21,6 +51,12 @@ out/
 /.emacs.desktop
 /.emacs.desktop.lock
 *.elc
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# C extensions
+*.so
 
 ### Python template
 # Byte-compiled / optimized / DLL files
@@ -104,12 +140,12 @@ target/
 # celery beat schedule file
 celerybeat-schedule
 
-
 # SageMath parsed files
 *.sage.py
 
 # Environments
 .env
+.envrc
 .venv
 env/
 venv/
@@ -123,9 +159,18 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# pyspelling
-dictionary.dic
+credentials.json
 
-docs/_build
+/mlruns/
+/ga4/
 
-spaceflights/
+# terraform
+terraform/terraform.tfstate.backup
+terraform/.terraform.lock.hcl
+terraform/.terraform/providers/registry.terraform.io/hashicorp/google-beta/4.21.0/darwin_amd64/terraform-provider-google-beta_v4.21.0_x5
+terraform/.terraform/providers/registry.terraform.io/hashicorp/google/4.21.0/darwin_amd64/terraform-provider-google_v4.21.0_x5
+terraform/terraform.tfstate
+
+.idea
+conf/azure/credentials.yml
+

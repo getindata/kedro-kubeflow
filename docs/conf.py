@@ -19,7 +19,7 @@ from pprint import pprint
 from pip._vendor import pkg_resources
 
 from kedro_kubeflow import __name__ as _package_name
-from kedro_kubeflow import version as release
+from kedro_kubeflow import __version__ as release
 
 # -- Project information -----------------------------------------------------
 
