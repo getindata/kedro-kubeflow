@@ -51,12 +51,16 @@ class AuthHandler(object):
 
     def obtain_dex_authservice_session(self, kfp_api):
         if DEX_USERNAME not in os.environ or DEX_PASSWORD not in os.environ:
-            self.log.debug("Skipping DEX authentication due to missing env variables")
+            self.log.debug(
+                "Skipping DEX authentication due to missing env variables"
+            )
             return None
 
         s = requests.Session()
         r = s.get(kfp_api)
-        form_relative_url = re.search('/dex/auth/local\\?req=([^"]*)', r.text).group(0)
+        form_relative_url = re.search(
+            '/dex/auth/local\\?req=([^"]*)', r.text
+        ).group(0)
 
         kfp_url_parts = urlsplit(kfp_api)
         form_absolute_url = urlunsplit(

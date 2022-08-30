@@ -171,7 +171,11 @@ class DefaultConfigDict(defaultdict):
     def __getitem__(self, key):
         defaults: BaseModel = super().__getitem__("__default__")
         this: BaseModel = super().__getitem__(key)
-        return defaults.copy(update=this.dict(exclude_none=True)) if defaults else this
+        return (
+            defaults.copy(update=this.dict(exclude_none=True))
+            if defaults
+            else this
+        )
 
 
 class ResourceConfig(BaseModel):
@@ -234,11 +238,15 @@ class ExtraVolumeConfig(BaseModel):
                 actual_cls := ExtraVolumeConfig._resolve_cls(value.cls)
             ) is not None, f"Cannot import class {value.cls}"
             return actual_cls(
-                **{k: ExtraVolumeConfig._construct(v) for k, v in value.params.items()}
+                **{
+                    k: ExtraVolumeConfig._construct(v)
+                    for k, v in value.params.items()
+                }
             )
         elif isinstance(value, list):
             return [
-                ExtraVolumeConfig._construct(ObjectKwargs.parse_obj(v)) for v in value
+                ExtraVolumeConfig._construct(ObjectKwargs.parse_obj(v))
+                for v in value
             ]
         else:
             return value

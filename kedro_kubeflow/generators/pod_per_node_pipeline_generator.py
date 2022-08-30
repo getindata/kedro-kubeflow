@@ -46,7 +46,9 @@ class PodPerNodePipelineGenerator(object):
 
             from kedro.framework.project import pipelines  # NOQA
 
-            dsl.get_pipeline_conf().set_ttl_seconds_after_finished(self.run_config.ttl)
+            dsl.get_pipeline_conf().set_ttl_seconds_after_finished(
+                self.run_config.ttl
+            )
             node_dependencies = pipelines[pipeline].node_dependencies
             with create_pipeline_exit_handler(
                 pipeline,
@@ -77,7 +79,9 @@ class PodPerNodePipelineGenerator(object):
         kfp_ops = {}
 
         node_volumes = (
-            self._setup_volumes(f"{pipeline}-data-volume", image, image_pull_policy)
+            self._setup_volumes(
+                f"{pipeline}-data-volume", image, image_pull_policy
+            )
             if self.run_config.volume is not None
             else {}
         )
@@ -131,7 +135,8 @@ class PodPerNodePipelineGenerator(object):
                     pvolumes=node_volumes,
                     container_kwargs={"env": nodes_env},
                     file_outputs={
-                        output: "/home/kedro/" + self.catalog[output]["filepath"]
+                        output: "/home/kedro/"
+                        + self.catalog[output]["filepath"]
                         for output in node.outputs
                         if output in self.catalog
                         and "filepath" in self.catalog[output]

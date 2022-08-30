@@ -41,9 +41,15 @@ class KubeflowClient(object):
         self.project_name = project_name
         self.pipeline_description = config.run_config.description
         if config.run_config.node_merge_strategy == NodeMergeStrategyEnum.none:
-            self.generator = PodPerNodePipelineGenerator(config, project_name, context)
-        elif config.run_config.node_merge_strategy == NodeMergeStrategyEnum.full:
-            self.generator = OnePodPipelineGenerator(config, project_name, context)
+            self.generator = PodPerNodePipelineGenerator(
+                config, project_name, context
+            )
+        elif (
+            config.run_config.node_merge_strategy == NodeMergeStrategyEnum.full
+        ):
+            self.generator = OnePodPipelineGenerator(
+                config, project_name, context
+            )
 
     def list_pipelines(self):
         pipelines = self.client.list_pipelines(page_size=30).pipelines
@@ -64,7 +70,9 @@ class KubeflowClient(object):
         parameters={},
     ) -> Optional[Dict[str, str]]:
         run = self.client.create_run_from_pipeline_func(
-            self.generator.generate_pipeline(pipeline, image, image_pull_policy),
+            self.generator.generate_pipeline(
+                pipeline, image, image_pull_policy
+            ),
             arguments=parameters,
             experiment_name=experiment_name,
             namespace=experiment_namespace,
@@ -76,9 +84,13 @@ class KubeflowClient(object):
             return {"status": ret.run.status, "error": ret.run.error}
         return None
 
-    def compile(self, pipeline, image, output, image_pull_policy="IfNotPresent"):
+    def compile(
+        self, pipeline, image, output, image_pull_policy="IfNotPresent"
+    ):
         Compiler().compile(
-            self.generator.generate_pipeline(pipeline, image, image_pull_policy),
+            self.generator.generate_pipeline(
+                pipeline, image, image_pull_policy
+            ),
             output,
         )
         self.log.info("Generated pipeline definition was saved to %s" % output)

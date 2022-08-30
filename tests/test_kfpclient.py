@@ -35,7 +35,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
             (object,),
             {
                 "pipelines": [
-                    type("obj", (object,), {"name": "somename", "id": "someid"})
+                    type(
+                        "obj", (object,), {"name": "somename", "id": "someid"}
+                    )
                 ]
             },
         )
@@ -60,7 +62,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
 
     def test_should_list_pipelines_tabularized(self):
         # given
-        self.kfp_client_mock.list_pipelines.return_value = self.create_pipelines_list()
+        self.kfp_client_mock.list_pipelines.return_value = (
+            self.create_pipelines_list()
+        )
 
         # when
         output = self.client_under_test.list_pipelines()
@@ -75,7 +79,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
     def test_should_run_pipeline_without_waiting(self):
         # given
         run_mock = unittest.mock.MagicMock()
-        self.kfp_client_mock.create_run_from_pipeline_func.return_value = run_mock
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
 
         # when
         self.client_under_test.run_once(
@@ -105,7 +111,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
     def test_should_run_pipeline_and_wait(self):
         # given
         run_mock = unittest.mock.MagicMock()
-        self.kfp_client_mock.create_run_from_pipeline_func.return_value = run_mock
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
 
         # when
         self.client_under_test.run_once(
@@ -125,7 +133,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
     def test_should_run_pipeline_adjusting_the_name(self):
         # given
         run_mock = unittest.mock.MagicMock()
-        self.kfp_client_mock.create_run_from_pipeline_func.return_value = run_mock
+        self.kfp_client_mock.create_run_from_pipeline_func.return_value = (
+            run_mock
+        )
 
         # when
         self.client_under_test.run_once(
@@ -172,7 +182,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
     ):
         # given
         os.environ["IAP_CLIENT_ID"] = "unittest-client-id"
-        auth_handler_mock.return_value.obtain_id_token.return_value = "unittest-token"
+        auth_handler_mock.return_value.obtain_id_token.return_value = (
+            "unittest-token"
+        )
         auth_handler_mock.return_value.obtain_dex_authservice_session.return_value = (
             None
         )
@@ -180,7 +192,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
         # when
         self.client_under_test = KubeflowClient(
             PluginConfig(
-                **self.minimal_config({"host": "http://unittest", "run_config": {}})
+                **self.minimal_config(
+                    {"host": "http://unittest", "run_config": {}}
+                )
             ),
             None,
             None,
@@ -206,7 +220,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
         # when
         self.client_under_test = KubeflowClient(
             PluginConfig(
-                **self.minimal_config({"host": "http://unittest", "run_config": {}})
+                **self.minimal_config(
+                    {"host": "http://unittest", "run_config": {}}
+                )
             ),
             None,
             None,
@@ -219,7 +235,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
 
     def test_should_schedule_pipeline(self):
         # given
-        self.kfp_client_mock.get_experiment.return_value = self.create_experiment()
+        self.kfp_client_mock.get_experiment.return_value = (
+            self.create_experiment()
+        )
         self.kfp_client_mock.get_pipeline_id.return_value = "someid"
 
         # when
@@ -249,7 +267,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
         self.kfp_client_mock.get_experiment.side_effect = ValueError(
             "No experiment is found with name ...."
         )
-        self.kfp_client_mock.create_experiment.return_value = self.create_experiment()
+        self.kfp_client_mock.create_experiment.return_value = (
+            self.create_experiment()
+        )
         self.kfp_client_mock.get_pipeline_id.return_value = "someid"
 
         # when
@@ -276,7 +296,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
 
     def test_should_disable_old_runs_before_schedule(self):
         # given
-        self.kfp_client_mock.get_experiment.return_value = self.create_experiment()
+        self.kfp_client_mock.get_experiment.return_value = (
+            self.create_experiment()
+        )
         self.kfp_client_mock.get_pipeline_id.return_value = "someid"
         self.kfp_client_mock.list_recurring_runs.return_value = (
             self.create_recurring_jobs_list("scheduled run for region ABC")
@@ -326,7 +348,8 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
             kwargs,
         ) = self.kfp_client_mock.pipeline_uploads.upload_pipeline.call_args
         assert (
-            kwargs["name"] == "[my-awesome-project] pipeline_name (env: kubeflow-env)"
+            kwargs["name"]
+            == "[my-awesome-project] pipeline_name (env: kubeflow-env)"
         )
         assert kwargs["description"] == "Very Important Pipeline"
 
@@ -389,7 +412,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
         self.kfp_client_mock.pipeline_uploads.upload_pipeline_version.assert_called()
 
     @patch("kedro_kubeflow.kfpclient.Client")
-    def test_should_raise_error_if_invalid_node_merge_strategy(self, kfp_client_mock):
+    def test_should_raise_error_if_invalid_node_merge_strategy(
+        self, kfp_client_mock
+    ):
         with self.assertRaises(ValueError) as raises:
             KubeflowClient(
                 PluginConfig(
@@ -411,7 +436,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
         project_name = "my-awesome-project"
         self.client_under_test = KubeflowClient(
             PluginConfig(
-                **self.minimal_config({"host": "http://unittest", "run_config": config})
+                **self.minimal_config(
+                    {"host": "http://unittest", "run_config": config}
+                )
             ),
             project_name,
             None,  # context,
@@ -423,7 +450,9 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
         def empty_pipeline():
             pass
 
-        self.client_under_test.generator.generate_pipeline.return_value = empty_pipeline
+        self.client_under_test.generator.generate_pipeline.return_value = (
+            empty_pipeline
+        )
 
     def mock_mlflow(self, enabled=False):
         def fakeimport(name, *args, **kw):

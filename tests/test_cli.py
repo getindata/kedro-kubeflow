@@ -182,7 +182,9 @@ class TestPluginCLI(unittest.TestCase):
         config = dict(context_helper=context_helper)
         runner = CliRunner()
 
-        result = runner.invoke(upload_pipeline, ["-p", "pipe", "-i", "img"], obj=config)
+        result = runner.invoke(
+            upload_pipeline, ["-p", "pipe", "-i", "img"], obj=config
+        )
 
         assert result.exit_code == 0
         context_helper.kfp_client.upload.assert_called_with(
@@ -267,7 +269,9 @@ class TestPluginCLI(unittest.TestCase):
             assert on_push_actions.exists()
             with open(on_push_actions, "r") as f:
                 assert "kedro kubeflow run-once" in f.read()
-            on_merge_actions = path / ".github" / "workflows" / "on-merge-to-master.yml"
+            on_merge_actions = (
+                path / ".github" / "workflows" / "on-merge-to-master.yml"
+            )
             assert on_merge_actions.exists()
             with open(on_merge_actions, "r") as f:
                 content = f.read()
@@ -302,7 +306,9 @@ class TestPluginCLI(unittest.TestCase):
     @patch("kubernetes.client")
     @patch("kubernetes.config")
     def test_delete_pipeline_volume(self, k8s_config_mock, k8s_client_mock):
-        with um.patch("builtins.open", um.mock_open(read_data="unittest-namespace")):
+        with um.patch(
+            "builtins.open", um.mock_open(read_data="unittest-namespace")
+        ):
             runner = CliRunner()
             result = runner.invoke(
                 delete_pipeline_volume,
@@ -337,5 +343,7 @@ class TestPluginCLI(unittest.TestCase):
                 cli = ["--env", cli] if cli else []
                 env = dict(KEDRO_ENV=env_var) if env_var else dict()
 
-                runner.invoke(kubeflow_group, cli + ["compile", "--help"], env=env)
+                runner.invoke(
+                    kubeflow_group, cli + ["compile", "--help"], env=env
+                )
                 context_helper_init.assert_called_with(None, expected)

@@ -20,7 +20,9 @@ volume:
     """.strip()
 
         volumes_dict = yaml.safe_load(StringIO(volumes_yaml))
-        volumes_cfg: ExtraVolumeConfig = ExtraVolumeConfig.parse_obj(volumes_dict)
+        volumes_cfg: ExtraVolumeConfig = ExtraVolumeConfig.parse_obj(
+            volumes_dict
+        )
         volume_def: V1Volume = volumes_cfg.as_v1volume()
         assert volumes_cfg is not None and volume_def is not None
         assert (

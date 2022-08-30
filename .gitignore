@@ -54,7 +54,7 @@ out/
 
 # JIRA plugin
 atlassian-ide-plugin.xml
-
+dictionary.dic
 # C extensions
 *.so
 

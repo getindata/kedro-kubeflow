@@ -58,7 +58,9 @@ class TestContextHelper(unittest.TestCase, MinimalConfigMixin):
 class TestEnvTemplatedConfigLoader(unittest.TestCase):
     @staticmethod
     def get_config():
-        config_path = str(Path(os.path.dirname(os.path.abspath(__file__))) / "conf")
+        config_path = str(
+            Path(os.path.dirname(os.path.abspath(__file__))) / "conf"
+        )
         loader = EnvTemplatedConfigLoader(config_path, default_run_env="base")
         return loader.get("test_config.yml")
 
