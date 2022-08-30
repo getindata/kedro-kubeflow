@@ -1,2 +1,66 @@
+[tool.poetry]
+name = "kedro-kubeflow"
+version = "0.7.0"
+description = "Kedro plugin with Kubeflow Pipelines support"
+readme = "README.md"
+authors = ['Mateusz Pytel <mateusz.pytel@getindata.com>', 'Mariusz Strzelecki <mariusz.strzelecki@getindata.com>']
+maintainers = ['GetInData MLOPS <mlops@getindata.com>']
+homepage = "https://github.com/getindata/kedro-kubeflow"
+repository = "https://github.com/getindata/kedro-kubeflow"
+documentation = "https://kedro-kubeflow.readthedocs.io/"
+keywords = ['kedro-plugin', 'kubeflow', 'machinelearning', 'mlops', 'kubeflow-pipelines', 'kedro']
+license = "Apache-2.0"
+classifiers = [
+    "Development Status :: 4 - Beta", # license and python versions added automatically
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.coverage.run]
+branch = true
+relative_files = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError"
+]
+
 [tool.black]
 line-length = 79
+
+[tool.isort]
+known_third_party = ["click", "google", "kedro", "kfp", "kubernetes", "tabulate", "pydantic","semver", "setuptools"]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.11"
+kedro = ">=0.18.1, <0.19.0"
+click = ">=8.0.4"
+kfp = ">=1.8.12,<2.0"
+tabulate = ">=0.8.7"
+semver = "~=2.10"
+fsspec = "<=2022.1,>=2021.4"
+google-auth = { version = "<3", optional = true}
+gcsfs = { version = "<=2022.1,>=2021.4", optional = true}
+kedro-mlflow = { version = "~=0.11.1", optional = true }
+
+[tool.poetry.extras]
+mlflow = ["kedro-mlflow"]
+gcp = ["google-auth", "gcsfs"]
+
+[tool.poetry.dev-dependencies]
+pytest = "<7"
+pytest-cov = ">=2.8.0, <4.0.0"
+tox = ">=3.25.1"
+pre-commit = "2.20.0"
+pytest-subtests = ">=0.5.0, <1.0.0"
+responses = ">=0.13.4"
+
+[tool.poetry.plugins] # Optional super table
+[tool.poetry.plugins."kedro.project_commands"]
+"kubeflow" = "kedro_kubeflow.cli:commands"
+
+[tool.poetry.plugins."kedro.hooks"]
+"kubeflow_mlflow_tags_hook" = "kedro_kubeflow.hooks:mlflow_tags_hook"

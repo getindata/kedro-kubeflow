@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Improvements in build process (migrated build tool to poetry, quality gate switched to sonarcloud)
+
 ## [0.7.0] - 2022-08-22
 
 -   Added testing and support for python versions 3.9, 3.10
