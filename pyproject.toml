@@ -44,7 +44,7 @@ semver = "~=2.10"
 fsspec = "<=2022.1,>=2021.4"
 google-auth = { version = "<3", optional = true}
 gcsfs = { version = "<=2022.1,>=2021.4", optional = true}
-kedro-mlflow = { version = "~=0.11.1", optional = true }
+kedro-mlflow = { version = "~=0.11.2", optional = true }
 
 [tool.poetry.extras]
 mlflow = ["kedro-mlflow"]
