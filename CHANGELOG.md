@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+-   Support latest changes in Dex login screens
 -   Improvements in build process (migrated build tool to poetry, quality gate switched to sonarcloud)
 
 ## [0.7.0] - 2022-08-22

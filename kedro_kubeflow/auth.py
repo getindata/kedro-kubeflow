@@ -1,3 +1,4 @@
+import html
 import logging
 import os
 import re
@@ -49,6 +50,12 @@ class AuthHandler(object):
         finally:
             return jwt_token
 
+    # DEX supports Resource Owner Password Credentials Grant only for LDAP connectors.
+    # And it doesn't work for Open ID Connect, e.g. Google (Moreover,
+    # Google doesn't support such a flow at all).
+    # Here is a hacky workaround - we imitate a web browser to navigate to the login page and
+    # proceed with 'Log in with Email'. It does work,
+    # but it is prone to errors if anything substantial changes in the way DEX handles login screens.
     def obtain_dex_authservice_session(self, kfp_api):
         if DEX_USERNAME not in os.environ or DEX_PASSWORD not in os.environ:
             self.log.debug(
@@ -57,21 +64,34 @@ class AuthHandler(object):
             return None
 
         s = requests.Session()
-        r = s.get(kfp_api)
-        form_relative_url = re.search(
-            '/dex/auth/local\\?req=([^"]*)', r.text
-        ).group(0)
-
         kfp_url_parts = urlsplit(kfp_api)
-        form_absolute_url = urlunsplit(
-            [
-                kfp_url_parts.scheme,
-                kfp_url_parts.netloc,
-                form_relative_url,
-                None,
-                None,
-            ]
-        )
+
+        def extract_url(regexp, response: str):
+            form_url = re.search(regexp, response)
+
+            if form_url:
+                return urlunsplit(
+                    [
+                        kfp_url_parts.scheme,
+                        kfp_url_parts.netloc,
+                        html.unescape(form_url.group(0)),
+                        None,
+                        None,
+                    ]
+                )
+            return None
+
+        r = s.get(kfp_api)
+
+        login_url = extract_url('/dex/auth/local\\?req=[^"]*', r.text)
+
+        if not login_url:
+
+            login_form_url = extract_url('/dex/auth/local\\?[^"]*', r.text)
+
+            r = s.get(login_form_url)
+
+            login_url = extract_url('/dex/auth/local/login\\?[^"]*', r.text)
 
         headers = {
             "Content-Type": "application/x-www-form-urlencoded",
@@ -81,5 +101,5 @@ class AuthHandler(object):
             "password": os.environ[DEX_PASSWORD],
         }
 
-        s.post(form_absolute_url, headers=headers, data=data)
+        s.post(login_url, headers=headers, data=data)
         return s.cookies.get_dict()["authservice_session"]
