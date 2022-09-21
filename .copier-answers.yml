@@ -1,0 +1,22 @@
+# Changes here will be overwritten by Copier
+_commit: v1.0.0
+_src_path: git@github.com:getindata/python-opensource-template.git
+authors:
+- Mateusz Pytel <mateusz.pytel@getindata.com>
+- Mariusz Strzelecki <mariusz.strzelecki@getindata.com>
+description: Kedro plugin with Kubeflow Pipelines support
+docs_url: https://kedro-kubeflow.readthedocs.io/
+full_name: Kedro Kubeflow Plugin
+github_url: https://github.com/getindata/kedro-kubeflow
+initial_version: 0.7.1
+keywords:
+- kedro-plugin
+- kubeflow
+- machinelearning
+- mlops
+- kubeflow-pipelines
+- kedro
+maintainers:
+- GetInData MLOPS <mlops@getindata.com>
+module_name: kedro_kubeflow
+short_name: kedro-kubeflow

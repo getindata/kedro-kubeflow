@@ -19,7 +19,7 @@ from pprint import pprint
 from pip._vendor import pkg_resources
 
 from kedro_kubeflow import __name__ as _package_name
-from kedro_kubeflow import version as release
+from kedro_kubeflow import __version__ as release
 
 # -- Project information -----------------------------------------------------
 
@@ -76,13 +76,7 @@ def update_templates_with_requirements(packages_set, label):
 
 
 base_requirements = set(_package.requires())
-extra_requires = {
-    extra: set(_package.requires(extras=(extra,))) - base_requirements
-    for extra in _package.extras
-}
 update_templates_with_requirements(base_requirements, "req_")
-for extra, reqs in extra_requires.items():
-    update_templates_with_requirements(reqs, f"req_{extra}_")
 
 
 print("Available patterns for substituion:")

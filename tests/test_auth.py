@@ -113,3 +113,37 @@ class TestAuthHandler(unittest.TestCase):
             responses.calls[1].request.body
             == "login=user%40example.com&password=pa%24%24"
         )
+
+    @responses.activate
+    def test_should_get_cookie_from_dex_secured_system_with_kubeflow_1_6(self):
+        # given
+        os.environ["DEX_USERNAME"] = "user@example.com"
+        os.environ["DEX_PASSWORD"] = "pa$$"
+        responses.add(
+            responses.GET,
+            "https://kubeflow.local/pipeline",
+            body='<a href="/dex/auth/local?client_id=kubeflow-oidc-authservice&amp;redirect_uri=%2Flogin%2Foidc&amp;response_type=code&amp;scope=profile&#43;email&#43;groups&#43;openid&amp;state=MTY2MzY3Njk0OHxFd3dBRUZVeGFtdEhaR2RPYVZsRE5XWmpTbkU9fNHbrYsoZfJQGtNhqLlcn_B7MiGljHAAOUoyvZD-53Bg" target="_self">',  # noqa: E501
+        )
+        responses.add(
+            responses.GET,
+            "https://kubeflow.local/dex/auth/local?client_id=kubeflow-oidc-authservice&redirect_uri=%2Flogin%2Foidc&response_type=code&scope=profile+email+groups+openid&state=MTY2MzY3Njk0OHxFd3dBRUZVeGFtdEhaR2RPYVZsRE5XWmpTbkU9fNHbrYsoZfJQGtNhqLlcn_B7MiGljHAAOUoyvZD-53Bg",  # noqa: E501
+            body='<a href="/dex/auth/local/login?back=%2Fdex%2Fauth%3Fclient_id%3Dkubeflow-oidc-authservice%26redirect_uri%3D%252Flogin%252Foidc%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bgroups%2Bopenid%26state%3DMTY2MzY3Njk0OHxFd3dBRUZVeGFtdEhaR2RPYVZsRE5XWmpTbkU9fNHbrYsoZfJQGtNhqLlcn_B7MiGljHAAOUoyvZD-53Bg&amp;state=o4odhdlneub2iczv2657sa2gv" target="_self">',  # noqa: E501
+        )
+
+        responses.add(
+            responses.POST,
+            "https://kubeflow.local/dex/auth/local/login?back=%2Fdex%2Fauth%3Fclient_id%3Dkubeflow-oidc-authservice%26redirect_uri%3D%252Flogin%252Foidc%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bgroups%2Bopenid%26state%3DMTY2MzY3Njk0OHxFd3dBRUZVeGFtdEhaR2RPYVZsRE5XWmpTbkU9fNHbrYsoZfJQGtNhqLlcn_B7MiGljHAAOUoyvZD-53Bg&state=o4odhdlneub2iczv2657sa2gv",  # noqa: E501
+            headers={"Set-cookie": "authservice_session=sessionID"},
+        )
+
+        # when
+        session = AuthHandler().obtain_dex_authservice_session(
+            "https://kubeflow.local/pipeline"
+        )
+
+        # then
+        assert session == "sessionID"
+        assert (
+            responses.calls[2].request.body
+            == "login=user%40example.com&password=pa%24%24"
+        )

@@ -5,7 +5,7 @@ repos:
   - id: isort
     args: ["--profile", "black", "--line-length=79"]
 - repo: https://github.com/psf/black
-  rev: 22.6.0
+  rev: 22.3.0
   hooks:
   - id: black
 - repo: https://github.com/pre-commit/pre-commit-hooks

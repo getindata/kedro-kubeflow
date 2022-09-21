@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.7.1] - 2022-09-21
+
+-   Support latest changes in Dex login screens
+-   Improvements in build process (migrated build tool to poetry, quality gate switched to sonarcloud)
+
 ## [0.7.0] - 2022-08-22
 
 -   Added testing and support for python versions 3.9, 3.10
@@ -154,7 +159,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.7.0...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.7.1...HEAD
+
+[0.7.1]: https://github.com/getindata/kedro-kubeflow/compare/0.7.0...0.7.1
 
 [0.7.0]: https://github.com/getindata/kedro-kubeflow/compare/0.6.4...0.7.0
 
