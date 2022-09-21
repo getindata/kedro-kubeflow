@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "kedro-kubeflow"
-version = "0.7.0"
+version = "0.7.1"
 description = "Kedro plugin with Kubeflow Pipelines support"
 readme = "README.md"
 authors = ['Mateusz Pytel <mateusz.pytel@getindata.com>', 'Mariusz Strzelecki <mariusz.strzelecki@getindata.com>']
