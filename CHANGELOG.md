@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Fixed compatibility with kedro-mlflow >= 0.8
+
 ## [0.7.1] - 2022-09-21
 
 -   Support latest changes in Dex login screens
