@@ -280,10 +280,16 @@ class TestPluginCLI(unittest.TestCase):
 
     @patch("mlflow.start_run")
     @patch("mlflow.set_tag")
-    def test_mlflow_start(self, set_tag_mock, start_run_mock):
+    @patch("mlflow.get_experiment_by_name")
+    def test_mlflow_start(
+        self, get_experiment_by_name_mock, set_tag_mock, start_run_mock
+    ):
         context_helper = MagicMock(ContextHelper)
         config = dict(context_helper=context_helper)
         runner = CliRunner()
+        get_experiment_by_name_mock.return_value = type(
+            "obj", (object,), {"experiment_id": 47}
+        )
         start_run_mock.return_value = namedtuple("InfoObject", "info")(
             namedtuple("RunIdObject", "run_id")("MLFLOW_RUN_ID")
         )
