@@ -324,7 +324,9 @@ def mlflow_start(ctx, kubeflow_run_id: str, output: str):
         raise click.ClickException("Could not read MLFlow config")
 
     run = mlflow.start_run(
-        experiment_id=mlflow_conf.tracking.experiment._experiment.experiment_id,
+        experiment_id=mlflow.get_experiment_by_name(
+            mlflow_conf.tracking.experiment.name
+        ).experiment_id,
         nested=False,
     )
     mlflow.set_tag("kubeflow_run_id", kubeflow_run_id)
