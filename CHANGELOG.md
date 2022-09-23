@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.7.3] - 2022-09-23
+
 -   Fixed plugin config provider so it respects environment provided by the user
 
 ## [0.7.2] - 2022-09-22
@@ -165,7 +167,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.7.2...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.7.3...HEAD
+
+[0.7.3]: https://github.com/getindata/kedro-kubeflow/compare/0.7.2...0.7.3
 
 [0.7.2]: https://github.com/getindata/kedro-kubeflow/compare/0.7.1...0.7.2
 
