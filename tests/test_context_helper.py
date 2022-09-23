@@ -53,6 +53,7 @@ class TestContextHelper(unittest.TestCase, MinimalConfigMixin):
             config_loader.return_value.get.return_value = self.minimal_config()
             helper = ContextHelper.init(metadata, "test")
             assert helper.config == PluginConfig(**self.minimal_config())
+            assert config_loader.call_args.kwargs["env"] == "test"
 
 
 class TestEnvTemplatedConfigLoader(unittest.TestCase):
@@ -61,7 +62,9 @@ class TestEnvTemplatedConfigLoader(unittest.TestCase):
         config_path = str(
             Path(os.path.dirname(os.path.abspath(__file__))) / "conf"
         )
-        loader = EnvTemplatedConfigLoader(config_path, default_run_env="base")
+        loader = EnvTemplatedConfigLoader(
+            config_path, env="unittests", default_run_env="base"
+        )
         return loader.get("test_config.yml")
 
     def test_loader_with_defaults(self):
