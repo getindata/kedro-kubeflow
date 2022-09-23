@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Fixed plugin config provider so it respects environment provided by the user
+
 ## [0.7.2] - 2022-09-22
 
 -   Fixed compatibility with kedro-mlflow >= 0.8
