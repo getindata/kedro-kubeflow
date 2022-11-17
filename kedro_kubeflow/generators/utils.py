@@ -131,7 +131,9 @@ def customize_op(op, image_pull_policy, run_config: RunConfig):
             k8s.V1SecurityContext(run_as_user=run_config.volume.owner)
         )
 
-    resources = run_config.resources[op.name].dict(exclude_none=True)
+    import IPython
+    IPython.embed()
+    resources = run_config.resources[op.name]#.dict(exclude_none=True)
     op.container.resources = k8s.V1ResourceRequirements(
         limits=resources,
         requests=resources,
