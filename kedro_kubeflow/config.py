@@ -178,9 +178,9 @@ class DefaultConfigDict(defaultdict):
         )
 
 
-# class ResourceConfig(BaseModel):
-#     cpu: Optional[str]
-#     memory: Optional[str]
+class ResourceConfig(BaseModel):
+    cpu: Optional[str]
+    memory: Optional[str]
 
 
 class TolerationConfig(BaseModel):
@@ -284,9 +284,11 @@ class RunConfig(BaseModel):
         default_value = (value := value or {}).get("__default__", default)
         return dict_cls(lambda: default_value, value)
 
-    # @validator("resources", always=True)
+    @validator("resources", always=True)
     def _validate_resources(cls, value):
-        return {"cpu":"500m", "memory":"1024Mi"}.update(value)
+        return RunConfig._create_default_dict_with(
+            value, ResourceConfig(cpu="500m", memory="1024Mi")
+        )
 
     @validator("retry_policy", always=True)
     def _validate_retry_policy(cls, value):
@@ -307,7 +309,7 @@ class RunConfig(BaseModel):
     run_name: str
     scheduled_run_name: Optional[str]
     description: Optional[str] = None
-    resources: Optional[Dict[str, Dict[str,str]]]
+    resources: Optional[Dict[str, ResourceConfig]]
     tolerations: Optional[Dict[str, List[TolerationConfig]]]
     retry_policy: Optional[Dict[str, Optional[RetryPolicyConfig]]]
     volume: Optional[VolumeConfig] = None
