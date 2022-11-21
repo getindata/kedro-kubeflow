@@ -28,27 +28,28 @@ run_config:
 class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
     def test_plugin_config(self):
         cfg = PluginConfig(**yaml.safe_load(CONFIG_YAML))
-        assert cfg.host == "https://example.com"
-        assert cfg.run_config.image == "gcr.io/project-image/test"
-        assert cfg.run_config.image_pull_policy == "Always"
-        assert cfg.run_config.experiment_name == "Test Experiment"
-        assert cfg.run_config.run_name == "test run"
-        assert cfg.run_config.scheduled_run_name == "scheduled run"
-        assert cfg.run_config.wait_for_completion
-        assert cfg.run_config.volume.storageclass == "default"
-        assert cfg.run_config.volume.size == "3Gi"
-        assert cfg.run_config.volume.keep is True
-        assert cfg.run_config.volume.access_modes == ["ReadWriteOnce"]
-        assert cfg.run_config.resources["node1"] is not None
-        assert cfg.run_config.description == "My awesome pipeline"
-        assert cfg.run_config.ttl == 300
+        self.assertEqual(cfg.host, "https://example.com")
+        self.assertEqual(cfg.run_config.image, "gcr.io/project-image/test")
+        self.assertEqual(cfg.run_config.image_pull_policy, "Always")
+        self.assertEqual(cfg.run_config.experiment_name, "Test Experiment")
+        self.assertEqual(cfg.run_config.run_name, "test run")
+        self.assertEqual(cfg.run_config.scheduled_run_name, "scheduled run")
+        self.assertTrue(cfg.run_config.wait_for_completion)
+        self.assertEqual(cfg.run_config.volume.storageclass, "default")
+        self.assertEqual(cfg.run_config.volume.size, "3Gi")
+        self.assertTrue(cfg.run_config.volume.keep)
+        self.assertEqual(cfg.run_config.volume.access_modes, ["ReadWriteOnce"])
+        self.assertIsNotNone(cfg.run_config.resources["node1"])
+        self.assertIsNotNone(cfg.run_config.resources["__default__"])
+        self.assertEqual(cfg.run_config.description, "My awesome pipeline")
+        self.assertEqual(cfg.run_config.ttl, 300)
 
     def test_defaults(self):
         cfg = PluginConfig(**self.minimal_config())
-        assert cfg.run_config.image_pull_policy == "IfNotPresent"
+        self.assertEqual(cfg.run_config.image_pull_policy, "IfNotPresent")
         assert cfg.run_config.description is None
         SECONDS_IN_ONE_WEEK = 3600 * 24 * 7
-        assert cfg.run_config.ttl == SECONDS_IN_ONE_WEEK
+        self.assertEqual(cfg.run_config.ttl, SECONDS_IN_ONE_WEEK)
         assert cfg.run_config.volume is None
 
     def test_missing_required_config(self):
@@ -61,8 +62,8 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
                 {"run_config": {"resources": {"__default__": {"cpu": "100m"}}}}
             )
         )
-        assert cfg.run_config.resources["node2"].cpu == "100m"
-        assert cfg.run_config.resources["node3"].cpu == "100m"
+        self.assertEqual(cfg.run_config.resources["node2"]["cpu"], "100m")
+        self.assertEqual(cfg.run_config.resources["node3"]["cpu"], "100m")
 
     def test_resources_no_default(self):
         cfg = PluginConfig(
@@ -70,10 +71,10 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
                 {"run_config": {"resources": {"node2": {"cpu": "100m"}}}}
             )
         )
-        assert cfg.run_config.resources["node2"].cpu == "100m"
+        self.assertEqual(cfg.run_config.resources["node2"]["cpu"], "100m")
         self.assertDictEqual(
-            cfg.run_config.resources["node3"].dict(),
-            cfg.run_config.resources["__default__"].dict(),
+            cfg.run_config.resources["node3"],
+            cfg.run_config.resources["__default__"],
         )
 
     def test_resources_default_and_node_specific(self):
@@ -90,14 +91,14 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
             )
         )
         self.assertDictEqual(
-            cfg.run_config.resources["node2"].dict(),
+            cfg.run_config.resources["node2"],
             {
                 "cpu": "100m",
                 "memory": "64Mi",
             },
         )
         self.assertDictEqual(
-            cfg.run_config.resources["node3"].dict(),
+            cfg.run_config.resources["node3"],
             {
                 "cpu": "200m",
                 "memory": "64Mi",
@@ -149,13 +150,15 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
             cfg.run_config.tolerations["node2"][0].dict(), toleration_config[0]
         )
 
-        assert (
+        self.assertEqual(
             isinstance(cfg.run_config.tolerations["node2"], list)
-            and len(cfg.run_config.tolerations["node2"]) == 1
+            and len(cfg.run_config.tolerations["node2"]),
+            1,
         )
-        assert (
+        self.assertEqual(
             isinstance(cfg.run_config.tolerations["node3"], list)
-            and len(cfg.run_config.tolerations["node3"]) == 0
+            and len(cfg.run_config.tolerations["node3"]),
+            0,
         )
 
     def test_tolerations_default_and_node_specific(self):
@@ -206,8 +209,8 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
         cfg = PluginConfig(
             **self.minimal_config({"run_config": {"run_name": "some run"}})
         )
-        assert cfg.run_config.run_name == "some run"
-        assert cfg.run_config.scheduled_run_name == "some run"
+        self.assertEqual(cfg.run_config.run_name, "some run")
+        self.assertEqual(cfg.run_config.scheduled_run_name, "some run")
 
     def test_retry_policy_default_and_node_specific(self):
         cfg = PluginConfig(
@@ -275,4 +278,4 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
             },
         )
 
-        assert cfg.run_config.retry_policy["node2"] is None
+        self.assertIsNone(cfg.run_config.retry_policy["node2"])
