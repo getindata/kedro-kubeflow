@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-  Removed field validation from resources configuration field - now it can take any custom parameters such as "nvidia.com/gpu":1
+
 ## [0.7.3] - 2022-09-23
 
 -   Fixed plugin config provider so it respects environment provided by the user
