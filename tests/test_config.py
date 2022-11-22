@@ -65,6 +65,29 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
         self.assertEqual(cfg.run_config.resources["node2"]["cpu"], "100m")
         self.assertEqual(cfg.run_config.resources["node3"]["cpu"], "100m")
 
+    def test_resources_gpu_label(self):
+        cfg = PluginConfig(
+            **self.minimal_config(
+                {
+                    "run_config": {
+                        "resources": {
+                            "__default__": {
+                                "cpu": "100m",
+                                "nvidia.com/gpu": "1",
+                                "nvidia.com/tpu": "1",
+                            }
+                        }
+                    }
+                }
+            )
+        )
+        self.assertEqual(
+            cfg.run_config.resources["__default__"]["nvidia.com/gpu"], "1"
+        )
+        self.assertEqual(
+            cfg.run_config.resources["node3"]["nvidia.com/tpu"], "1"
+        )
+
     def test_resources_no_default(self):
         cfg = PluginConfig(
             **self.minimal_config(
