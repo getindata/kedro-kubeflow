@@ -297,6 +297,7 @@ class RunConfig(BaseModel):
             default.update(value)
         elif value is not None:
             logger.error(f"Unknown type for resource config {type(value)}")
+            raise TypeError(f"Unknown type for resource config {type(value)}")
         return default
 
     @validator("retry_policy", always=True)
