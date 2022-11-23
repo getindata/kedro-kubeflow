@@ -180,7 +180,7 @@ class DefaultConfigDict(defaultdict):
 
 class ResourceConfig(dict):
     def __getitem__(self, key):
-        defaults: dict = super().__getitem__("__default__")
+        defaults: dict = super().get("__default__")
         this: dict = super().get(key, {})
         updated_defaults = defaults.copy()
         updated_defaults.update(this)
@@ -295,9 +295,8 @@ class RunConfig(BaseModel):
         )
         if isinstance(value, dict):
             default.update(value)
-        # else:
-        #     # throw some error?
-        #     logger.error(value, "Unknown type")
+        elif value is not None:
+            logger.error(f"Unknown type for resource config {type(value)}")
         return default
 
     @validator("retry_policy", always=True)
