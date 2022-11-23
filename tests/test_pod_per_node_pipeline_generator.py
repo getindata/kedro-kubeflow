@@ -36,8 +36,8 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 pipeline()
 
             # then
-            assert (
-                dsl_pipeline.ops["node1"].container.image == "unittest-image"
+            self.assertEqual(
+                dsl_pipeline.ops["node1"].container.image, "unittest-image"
             )
             assert (
                 dsl_pipeline.ops["node1"].container.image_pull_policy
@@ -60,7 +60,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 pipeline()
 
             # then
-            assert len(dsl_pipeline.ops) == 5
+            self.assertEqual(len(dsl_pipeline.ops), 6)
             assert "on-exit" in dsl_pipeline.ops
             assert (
                 dsl_pipeline.ops["on-exit"]
@@ -73,18 +73,20 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             volume_spec = dsl_pipeline.ops[
                 "data-volume-create"
             ].k8s_resource.spec
-            assert volume_spec.resources.requests["storage"] == "1Gi"
-            assert volume_spec.access_modes == ["ReadWriteOnce"]
+            self.assertEqual(volume_spec.resources.requests["storage"], "1Gi")
+            self.assertEqual(volume_spec.access_modes, ["ReadWriteOnce"])
             assert volume_spec.storage_class_name is None
             volume_init_spec = dsl_pipeline.ops["data-volume-init"].container
-            assert volume_init_spec.image == "unittest-image"
-            assert volume_init_spec.image_pull_policy == "IfNotPresent"
-            assert volume_init_spec.security_context.run_as_user == 0
+            self.assertEqual(volume_init_spec.image, "unittest-image")
+            self.assertEqual(
+                volume_init_spec.image_pull_policy, "IfNotPresent"
+            )
+            self.assertEqual(volume_init_spec.security_context.run_as_user, 0)
             assert volume_init_spec.args[0].startswith("cp --verbose -r")
             for node_name in ["data-volume-init", "node1", "node2"]:
                 volumes = dsl_pipeline.ops[node_name].container.volume_mounts
-                assert len(volumes) == 1
-                assert volumes[0].name == "data-volume-create"
+                self.assertEqual(len(volumes), 1)
+                self.assertEqual(volumes[0].name, "data-volume-create")
                 assert (
                     dsl_pipeline.ops[
                         node_name
@@ -172,14 +174,14 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 pipeline()
 
             # then
-            assert len(dsl_pipeline.ops) == 5
+            self.assertEqual(len(dsl_pipeline.ops), 6)
             assert "on-exit" in dsl_pipeline.ops
             volume_spec = dsl_pipeline.ops[
                 "data-volume-create"
             ].k8s_resource.spec
-            assert volume_spec.resources.requests["storage"] == "1Mi"
-            assert volume_spec.access_modes == ["ReadWriteOnce"]
-            assert volume_spec.storage_class_name == "nfs"
+            self.assertEqual(volume_spec.resources.requests["storage"], "1Mi")
+            self.assertEqual(volume_spec.access_modes, ["ReadWriteOnce"])
+            self.assertEqual(volume_spec.storage_class_name, "nfs")
 
     def test_should_change_effective_user_if_to_volume_owner(self):
         # given
@@ -207,7 +209,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
 
             # then
             volume_init_spec = dsl_pipeline.ops["data-volume-init"].container
-            assert volume_init_spec.security_context.run_as_user == 47
+            self.assertEqual(volume_init_spec.security_context.run_as_user, 47)
             for node_name in ["data-volume-init", "node1", "node2"]:
                 assert (
                     dsl_pipeline.ops[
@@ -233,16 +235,19 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 pipeline()
 
             # then
-            assert len(dsl_pipeline.ops) == 3
+            self.assertEqual(len(dsl_pipeline.ops), 4)
             init_step = dsl_pipeline.ops["mlflow-start-run"].container
-            assert init_step.image == "unittest-image"
-            assert init_step.args == [
-                "kubeflow",
-                "--env",
-                "unittests",
-                "mlflow-start",
-                "{{workflow.uid}}",
-            ]
+            self.assertEqual(init_step.image, "unittest-image")
+            self.assertEqual(
+                init_step.args,
+                [
+                    "kubeflow",
+                    "--env",
+                    "unittests",
+                    "mlflow-start",
+                    "{{workflow.uid}}",
+                ],
+            )
             assert "MLFLOW_RUN_ID" not in {e.name for e in init_step.env}
             for node_name in ["node1", "node2"]:
                 env = {
@@ -271,14 +276,14 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 pipeline()
 
             # then
-            assert len(dsl_pipeline.ops) == 4
+            self.assertEqual(len(dsl_pipeline.ops), 5)
             assert "data-volume-create" in dsl_pipeline.ops
             assert "on-exit" in dsl_pipeline.ops
             assert "data-volume-init" not in dsl_pipeline.ops
             for node_name in ["node1", "node2"]:
                 volumes = dsl_pipeline.ops[node_name].container.volume_mounts
-                assert len(volumes) == 1
-                assert volumes[0].name == "data-volume-create"
+                self.assertEqual(len(volumes), 1)
+                self.assertEqual(volumes[0].name, "data-volume-create")
 
     def test_should_support_params_and_inject_them_to_the_nodes(self):
         # given
@@ -297,18 +302,21 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 pipeline()
 
             # then
-            assert len(default_params) == 2
-            assert default_params["param1"].default == 0.3
-            assert default_params["param2"].default == 42
+            self.assertEqual(len(default_params), 2)
+            self.assertEqual(default_params["param1"].default, 0.3)
+            self.assertEqual(default_params["param2"].default, 42)
             for node_name in ["node1", "node2"]:
                 args = dsl_pipeline.ops[node_name].container.args
-                assert args == [
-                    "_",
-                    "param1",
-                    "{{pipelineparam:op=;name=param1}}",
-                    "param2",
-                    "{{pipelineparam:op=;name=param2}}",
-                ]
+                self.assertEqual(
+                    args,
+                    [
+                        "_",
+                        "param1",
+                        "{{pipelineparam:op=;name=param1}}",
+                        "param2",
+                        "{{pipelineparam:op=;name=param2}}",
+                    ],
+                )
 
     def test_should_fallbackto_default_resources_spec_if_not_requested(self):
         # given
@@ -337,6 +345,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 "resources": {
                     "__default__": {"cpu": "100m"},
                     "node1": {"cpu": "400m", "memory": "64Gi"},
+                    "node3": {"memory": "32Gi", "nvidia.com/gpu": "1"},
                 }
             }
         )
@@ -355,10 +364,21 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             # then
             node1_spec = dsl_pipeline.ops["node1"].container.resources
             node2_spec = dsl_pipeline.ops["node2"].container.resources
-            assert node1_spec.limits == {"cpu": "400m", "memory": "64Gi"}
-            assert node1_spec.requests == {"cpu": "400m", "memory": "64Gi"}
-            assert node2_spec.limits == {"cpu": "100m"}
-            assert node2_spec.requests == {"cpu": "100m"}
+            node3_spec = dsl_pipeline.ops["node3"].container.resources
+            for spec, result in zip(
+                (node1_spec, node2_spec, node3_spec),
+                (
+                    {"cpu": "400m", "memory": "64Gi"},
+                    {"cpu": "100m"},
+                    {"cpu": "100m", "memory": "32Gi", "nvidia.com/gpu": "1"},
+                ),
+            ):
+                for precise_spec in (spec.limits, spec.requests):
+                    self.assertDictEqual(precise_spec, result)
+            # self.assertEqual(node1_spec.limits , {"cpu": "400m", "memory": "64Gi"})
+            # self.assertEqual(node1_spec.requests , {"cpu": "400m", "memory": "64Gi"})
+            # self.assertEqual(node2_spec.limits , {"cpu": "100m"})
+            # self.assertEqual(node2_spec.requests , {"cpu": "100m"})
 
     def test_can_add_extra_volumes(self):
         self.create_generator(
@@ -391,7 +411,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 pipeline()
 
             volume_mounts = dsl_pipeline.ops["node1"].container.volume_mounts
-            assert len(volume_mounts) == 1
+            self.assertEqual(len(volume_mounts), 1)
 
     def test_should_not_add_retry_policy_if_not_requested(self):
         # given
@@ -411,7 +431,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             # then
             for node_name in ["node1", "node2"]:
                 op = dsl_pipeline.ops[node_name]
-                assert op.num_retries == 0
+                self.assertEqual(op.num_retries, 0)
                 assert op.retry_policy is None
                 assert op.backoff_factor is None
                 assert op.backoff_duration is None
@@ -449,16 +469,16 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
 
             # then
             op1 = dsl_pipeline.ops["node1"]
-            assert op1.num_retries == 100
-            assert op1.retry_policy == "Always"
-            assert op1.backoff_factor == 1
-            assert op1.backoff_duration == "5m"
+            self.assertEqual(op1.num_retries, 100)
+            self.assertEqual(op1.retry_policy, "Always")
+            self.assertEqual(op1.backoff_factor, 1)
+            self.assertEqual(op1.backoff_duration, "5m")
             assert op1.backoff_max_duration is None
             op2 = dsl_pipeline.ops["node2"]
-            assert op2.num_retries == 4
-            assert op2.retry_policy == "Always"
-            assert op2.backoff_factor == 2
-            assert op2.backoff_duration == "60s"
+            self.assertEqual(op2.num_retries, 4)
+            self.assertEqual(op2.retry_policy, "Always")
+            self.assertEqual(op2.backoff_factor, 2)
+            self.assertEqual(op2.backoff_duration, "60s")
             assert op2.backoff_max_duration is None
 
     def test_should_add_max_cache_staleness(self):
@@ -494,7 +514,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             )
 
             # then
-            assert pipeline._component_description == "DESC"
+            self.assertEqual(pipeline._component_description, "DESC")
 
     def test_artifact_registration(self):
         # given
@@ -520,11 +540,15 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
 
             # then
             outputs1 = dsl_pipeline.ops["node1"].file_outputs
-            assert len(outputs1) == 1
+            self.assertEqual(len(outputs1), 1)
             assert "B" in outputs1
-            assert outputs1["B"] == "/home/kedro/data/02_intermediate/b.csv"
+            self.assertEqual(
+                outputs1["B"], "/home/kedro/data/02_intermediate/b.csv"
+            )
             outputs2 = dsl_pipeline.ops["node2"].file_outputs
-            assert len(outputs2) == 0  # output "C" is missing in the catalog
+            self.assertEqual(
+                len(outputs2), 0
+            )  # output "C" is missing in the catalog)
 
     def test_should_skip_artifact_registration_if_requested(self):
         # given
@@ -551,7 +575,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
 
             # then
             outputs1 = dsl_pipeline.ops["node1"].file_outputs
-            assert len(outputs1) == 0
+            self.assertEqual(len(outputs1), 0)
 
     def test_should_skip_volume_removal_if_requested(self):
         # given
@@ -596,7 +620,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                         for e in dsl_pipeline.ops[node_name].container.env
                     }
                     assert "KEDRO_CONFIG_MY_KEY" in env_values
-                    assert env_values["KEDRO_CONFIG_MY_KEY"] == "42"
+                    self.assertEqual(env_values["KEDRO_CONFIG_MY_KEY"], "42")
                     assert "SOME_VALUE" not in env_values
         finally:
             del os.environ["KEDRO_CONFIG_MY_KEY"]
@@ -620,6 +644,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 [
                     node(identity, "A", "B", name="node1"),
                     node(identity, "B", "C", name="node2"),
+                    node(identity, "B", "D", name="node3"),
                 ]
             )
         }

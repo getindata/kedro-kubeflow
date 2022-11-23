@@ -178,9 +178,13 @@ class DefaultConfigDict(defaultdict):
         )
 
 
-class ResourceConfig(BaseModel):
-    cpu: Optional[str]
-    memory: Optional[str]
+class ResourceConfig(dict):
+    def __getitem__(self, key):
+        defaults: dict = super().get("__default__")
+        this: dict = super().get(key, {})
+        updated_defaults = defaults.copy()
+        updated_defaults.update(this)
+        return updated_defaults
 
 
 class TolerationConfig(BaseModel):
@@ -286,9 +290,15 @@ class RunConfig(BaseModel):
 
     @validator("resources", always=True)
     def _validate_resources(cls, value):
-        return RunConfig._create_default_dict_with(
-            value, ResourceConfig(cpu="500m", memory="1024Mi")
+        default = ResourceConfig(
+            {"__default__": {"cpu": "500m", "memory": "1024Mi"}}
         )
+        if isinstance(value, dict):
+            default.update(value)
+        elif value is not None:
+            logger.error(f"Unknown type for resource config {type(value)}")
+            raise TypeError(f"Unknown type for resource config {type(value)}")
+        return default
 
     @validator("retry_policy", always=True)
     def _validate_retry_policy(cls, value):
