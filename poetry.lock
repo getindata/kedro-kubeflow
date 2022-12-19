@@ -24,7 +24,7 @@ multidict = ">=4.5,<7.0"
 yarl = ">=1.0,<2.0"
 
 [package.extras]
-speedups = ["aiodns", "brotli", "cchardet"]
+speedups = ["Brotli", "aiodns", "cchardet"]
 
 [[package]]
 name = "aiosignal"
@@ -62,11 +62,14 @@ category = "main"
 optional = false
 python-versions = "*"
 
+[package.dependencies]
+setuptools = "*"
+
 [package.extras]
 devel = ["coveralls", "flake8 (<3.5.0)", "mock", "nose", "pycodestyle (<2.4.0)", "pylint"]
 query = ["jmespath"]
 schema = ["jsonschema"]
-template = ["jinja2"]
+template = ["Jinja2"]
 toml = ["toml"]
 yaml = ["pyyaml"]
 
@@ -109,7 +112,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 dev = ["cloudpickle", "coverage[toml] (>=5.0.2)", "furo", "hypothesis", "mypy", "pre-commit", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six", "sphinx", "sphinx-notfound-page", "zope.interface"]
 docs = ["furo", "sphinx", "sphinx-notfound-page", "zope.interface"]
 tests = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six", "zope.interface"]
-tests_no_zope = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six"]
+tests-no-zope = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six"]
 
 [[package]]
 name = "binaryornot"
@@ -183,7 +186,7 @@ optional = false
 python-versions = ">=3.6.0"
 
 [package.extras]
-unicode_backport = ["unicodedata2"]
+unicode-backport = ["unicodedata2"]
 
 [[package]]
 name = "click"
@@ -290,7 +293,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 wrapt = ">=1.10,<2"
 
 [package.extras]
-dev = ["PyTest (<5)", "PyTest-Cov (<2.6)", "bump2version (<1)", "configparser (<5)", "importlib-metadata (<3)", "importlib-resources (<4)", "pytest", "pytest-cov", "sphinx (<2)", "sphinxcontrib-websupport (<2)", "tox", "zipp (<2)"]
+dev = ["PyTest", "PyTest (<5)", "PyTest-Cov", "PyTest-Cov (<2.6)", "bump2version (<1)", "configparser (<5)", "importlib-metadata (<3)", "importlib-resources (<4)", "sphinx (<2)", "sphinxcontrib-websupport (<2)", "tox", "zipp (<2)"]
 
 [[package]]
 name = "distlib"
@@ -520,6 +523,7 @@ python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*"
 cachetools = ">=2.0.0,<5.0"
 pyasn1-modules = ">=0.2.1"
 rsa = {version = ">=3.1.4,<5", markers = "python_version >= \"3.6\""}
+setuptools = ">=40.3.0"
 six = ">=1.9.0"
 
 [package.extras]
@@ -636,7 +640,7 @@ optional = true
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*"
 
 [package.extras]
-docs = ["sphinx"]
+docs = ["Sphinx"]
 
 [[package]]
 name = "gunicorn"
@@ -645,6 +649,9 @@ description = "WSGI HTTP Server for UNIX"
 category = "main"
 optional = true
 python-versions = ">=3.5"
+
+[package.dependencies]
+setuptools = ">=3.0"
 
 [package.extras]
 eventlet = ["eventlet (>=0.24.1)"]
@@ -774,11 +781,12 @@ python-versions = "*"
 [package.dependencies]
 attrs = ">=17.4.0"
 pyrsistent = ">=0.14.0"
+setuptools = "*"
 six = ">=1.11.0"
 
 [package.extras]
 format = ["idna", "jsonpointer (>1.13)", "rfc3987", "strict-rfc3339", "webcolors"]
-format_nongpl = ["idna", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3986-validator (>0.1.0)", "webcolors"]
+format-nongpl = ["idna", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3986-validator (>0.1.0)", "webcolors"]
 
 [[package]]
 name = "kedro"
@@ -805,58 +813,59 @@ python-json-logger = ">=2.0,<3.0"
 PyYAML = ">=4.2,<7.0"
 rich = ">=12.0,<13.0"
 rope = ">=0.21.0,<0.22.0"
+setuptools = ">=38.0"
 toml = ">=0.10,<1.0"
 toposort = ">=1.5,<2.0"
 
 [package.extras]
 all = ["Pillow (>=9.0,<10.0)", "PyYAML (>=4.2,<7.0)", "SQLAlchemy (>=1.2,<2.0)", "biopython (>=1.73,<2.0)", "dask[complete] (>=2021.10,<2022.0)", "delta-spark (>=1.0,<2.0)", "docutils (==0.16)", "geopandas (>=0.6.0,<1.0)", "hdfs (>=2.5.8,<3.0)", "holoviews (>=1.13.0,<1.14.0)", "ipykernel (>=5.3,<7.0)", "lxml (>=4.6,<5.0)", "matplotlib (>=3.0.3,<4.0)", "myst-parser (>=0.17.2,<0.18.0)", "nbsphinx (==0.8.1)", "nbstripout (>=0.4,<1.0)", "networkx (>=2.4,<3.0)", "openpyxl (>=3.0.6,<4.0)", "pandas (>=1.3,<2.0)", "pandas-gbq (>=0.12.0,<1.0)", "plotly (>=4.8.0,<6.0)", "pyarrow (>=1.0,<7.0)", "pyproj (>=3.0,<4.0)", "pyspark (>=2.2,<4.0)", "redis (>=4.1,<5.0)", "requests (>=2.20,<3.0)", "s3fs (>=0.3.0,<0.5)", "sphinx (>=3.4.3,<3.5.0)", "sphinx-autodoc-typehints (==1.11.1)", "sphinx-copybutton (==0.3.1)", "sphinx-rtd-theme (==0.4.1)", "sphinxcontrib-mermaid (>=0.7.1,<0.8.0)", "tables (>=3.6,<4.0)", "tables (>=3.6.0,<3.7.0)", "tensorflow (>=2.0,<3.0)"]
 api = ["requests (>=2.20,<3.0)"]
-"api.apidataset" = ["requests (>=2.20,<3.0)"]
+api-apidataset = ["requests (>=2.20,<3.0)"]
 biosequence = ["biopython (>=1.73,<2.0)"]
-"biosequence.biosequencedataset" = ["biopython (>=1.73,<2.0)"]
+biosequence-biosequencedataset = ["biopython (>=1.73,<2.0)"]
 dask = ["dask[complete] (>=2021.10,<2022.0)"]
-"dask.parquetdataset" = ["dask[complete] (>=2021.10,<2022.0)"]
+dask-parquetdataset = ["dask[complete] (>=2021.10,<2022.0)"]
 docs = ["docutils (==0.16)", "ipykernel (>=5.3,<7.0)", "myst-parser (>=0.17.2,<0.18.0)", "nbsphinx (==0.8.1)", "nbstripout (>=0.4,<1.0)", "sphinx (>=3.4.3,<3.5.0)", "sphinx-autodoc-typehints (==1.11.1)", "sphinx-copybutton (==0.3.1)", "sphinx-rtd-theme (==0.4.1)", "sphinxcontrib-mermaid (>=0.7.1,<0.8.0)"]
 geopandas = ["geopandas (>=0.6.0,<1.0)", "pyproj (>=3.0,<4.0)"]
-"geopandas.geojsondataset" = ["geopandas (>=0.6.0,<1.0)", "pyproj (>=3.0,<4.0)"]
+geopandas-geojsondataset = ["geopandas (>=0.6.0,<1.0)", "pyproj (>=3.0,<4.0)"]
 holoviews = ["holoviews (>=1.13.0,<1.14.0)"]
-"holoviews.holoviewswriter" = ["holoviews (>=1.13.0,<1.14.0)"]
+holoviews-holoviewswriter = ["holoviews (>=1.13.0,<1.14.0)"]
 matplotlib = ["matplotlib (>=3.0.3,<4.0)"]
-"matplotlib.matplotlibwriter" = ["matplotlib (>=3.0.3,<4.0)"]
+matplotlib-matplotlibwriter = ["matplotlib (>=3.0.3,<4.0)"]
 networkx = ["networkx (>=2.4,<3.0)"]
-"networkx.networkxdataset" = ["networkx (>=2.4,<3.0)"]
+networkx-networkxdataset = ["networkx (>=2.4,<3.0)"]
 pandas = ["SQLAlchemy (>=1.2,<2.0)", "lxml (>=4.6,<5.0)", "openpyxl (>=3.0.6,<4.0)", "pandas (>=1.3,<2.0)", "pandas-gbq (>=0.12.0,<1.0)", "pyarrow (>=1.0,<7.0)", "tables (>=3.6,<4.0)", "tables (>=3.6.0,<3.7.0)"]
-"pandas.csvdataset" = ["pandas (>=1.3,<2.0)"]
-"pandas.exceldataset" = ["openpyxl (>=3.0.6,<4.0)", "pandas (>=1.3,<2.0)"]
-"pandas.featherdataset" = ["pandas (>=1.3,<2.0)"]
-"pandas.gbqquerydataset" = ["pandas (>=1.3,<2.0)", "pandas-gbq (>=0.12.0,<1.0)"]
-"pandas.gbqtabledataset" = ["pandas (>=1.3,<2.0)", "pandas-gbq (>=0.12.0,<1.0)"]
-"pandas.genericdataset" = ["pandas (>=1.3,<2.0)"]
-"pandas.hdfdataset" = ["pandas (>=1.3,<2.0)", "tables (>=3.6,<4.0)", "tables (>=3.6.0,<3.7.0)"]
-"pandas.jsondataset" = ["pandas (>=1.3,<2.0)"]
-"pandas.parquetdataset" = ["pandas (>=1.3,<2.0)", "pyarrow (>=1.0,<7.0)"]
-"pandas.sqlquerydataset" = ["SQLAlchemy (>=1.2,<2.0)", "pandas (>=1.3,<2.0)"]
-"pandas.sqltabledataset" = ["SQLAlchemy (>=1.2,<2.0)", "pandas (>=1.3,<2.0)"]
-"pandas.xmldataset" = ["lxml (>=4.6,<5.0)", "pandas (>=1.3,<2.0)"]
+pandas-csvdataset = ["pandas (>=1.3,<2.0)"]
+pandas-exceldataset = ["openpyxl (>=3.0.6,<4.0)", "pandas (>=1.3,<2.0)"]
+pandas-featherdataset = ["pandas (>=1.3,<2.0)"]
+pandas-gbqquerydataset = ["pandas (>=1.3,<2.0)", "pandas-gbq (>=0.12.0,<1.0)"]
+pandas-gbqtabledataset = ["pandas (>=1.3,<2.0)", "pandas-gbq (>=0.12.0,<1.0)"]
+pandas-genericdataset = ["pandas (>=1.3,<2.0)"]
+pandas-hdfdataset = ["pandas (>=1.3,<2.0)", "tables (>=3.6,<4.0)", "tables (>=3.6.0,<3.7.0)"]
+pandas-jsondataset = ["pandas (>=1.3,<2.0)"]
+pandas-parquetdataset = ["pandas (>=1.3,<2.0)", "pyarrow (>=1.0,<7.0)"]
+pandas-sqlquerydataset = ["SQLAlchemy (>=1.2,<2.0)", "pandas (>=1.3,<2.0)"]
+pandas-sqltabledataset = ["SQLAlchemy (>=1.2,<2.0)", "pandas (>=1.3,<2.0)"]
+pandas-xmldataset = ["lxml (>=4.6,<5.0)", "pandas (>=1.3,<2.0)"]
 pillow = ["Pillow (>=9.0,<10.0)"]
-"pillow.imagedataset" = ["Pillow (>=9.0,<10.0)"]
+pillow-imagedataset = ["Pillow (>=9.0,<10.0)"]
 plotly = ["pandas (>=1.3,<2.0)", "plotly (>=4.8.0,<6.0)"]
-"plotly.jsondataset" = ["plotly (>=4.8.0,<6.0)"]
-"plotly.plotlydataset" = ["pandas (>=1.3,<2.0)", "plotly (>=4.8.0,<6.0)"]
+plotly-jsondataset = ["plotly (>=4.8.0,<6.0)"]
+plotly-plotlydataset = ["pandas (>=1.3,<2.0)", "plotly (>=4.8.0,<6.0)"]
 redis = ["redis (>=4.1,<5.0)"]
 spark = ["delta-spark (>=1.0,<2.0)", "hdfs (>=2.5.8,<3.0)", "pyspark (>=2.2,<4.0)", "s3fs (>=0.3.0,<0.5)"]
-"spark.deltatabledataset" = ["delta-spark (>=1.0,<2.0)", "hdfs (>=2.5.8,<3.0)", "pyspark (>=2.2,<4.0)", "s3fs (>=0.3.0,<0.5)"]
-"spark.sparkdataset" = ["hdfs (>=2.5.8,<3.0)", "pyspark (>=2.2,<4.0)", "s3fs (>=0.3.0,<0.5)"]
-"spark.sparkhivedataset" = ["hdfs (>=2.5.8,<3.0)", "pyspark (>=2.2,<4.0)", "s3fs (>=0.3.0,<0.5)"]
-"spark.sparkjdbcdataset" = ["hdfs (>=2.5.8,<3.0)", "pyspark (>=2.2,<4.0)", "s3fs (>=0.3.0,<0.5)"]
+spark-deltatabledataset = ["delta-spark (>=1.0,<2.0)", "hdfs (>=2.5.8,<3.0)", "pyspark (>=2.2,<4.0)", "s3fs (>=0.3.0,<0.5)"]
+spark-sparkdataset = ["hdfs (>=2.5.8,<3.0)", "pyspark (>=2.2,<4.0)", "s3fs (>=0.3.0,<0.5)"]
+spark-sparkhivedataset = ["hdfs (>=2.5.8,<3.0)", "pyspark (>=2.2,<4.0)", "s3fs (>=0.3.0,<0.5)"]
+spark-sparkjdbcdataset = ["hdfs (>=2.5.8,<3.0)", "pyspark (>=2.2,<4.0)", "s3fs (>=0.3.0,<0.5)"]
 tensorflow = ["tensorflow (>=2.0,<3.0)"]
-"tensorflow.tensorflowmodeldataset" = ["tensorflow (>=2.0,<3.0)"]
+tensorflow-tensorflowmodeldataset = ["tensorflow (>=2.0,<3.0)"]
 yaml = ["PyYAML (>=4.2,<7.0)", "pandas (>=1.3,<2.0)"]
-"yaml.yamldataset" = ["PyYAML (>=4.2,<7.0)", "pandas (>=1.3,<2.0)"]
+yaml-yamldataset = ["PyYAML (>=4.2,<7.0)", "pandas (>=1.3,<2.0)"]
 
 [[package]]
 name = "kedro-mlflow"
-version = "0.11.1"
+version = "0.11.5"
 description = "A kedro-plugin to use mlflow in your kedro projects"
 category = "main"
 optional = true
@@ -869,9 +878,8 @@ pydantic = ">=1.0.0,<2.0.0"
 
 [package.extras]
 dev = ["jupyter (>=1.0.0,<2.0.0)", "pre-commit (>=2.0.0,<3.0.0)"]
-doc = ["myst-parser (>=0.17.2,<0.19.0)", "sphinx (>=4.5.0,<6.0.0)", "sphinx-click (>=3.1,<4.4)", "sphinx-markdown-tables (>=0.0.15,<0.1.0)", "sphinx_copybutton (>=0.5.0,<0.6.0)", "sphinx_rtd_theme (>=1.0.0,<1.1.0)"]
-extras = ["notebook (>=6.0.0)"]
-test = ["black (==22.6.0)", "flake8 (==4.0.1)", "isort (==5.10.1)", "pytest (>=5.4.0,<8.0.0)", "pytest-cov (>=2.8.0,<4.0.0)", "pytest-lazy-fixture (>=0.6.0,<1.0.0)", "pytest-mock (>=3.1.0,<4.0.0)", "scikit-learn (>=0.23.0,<1.2.0)"]
+doc = ["myst-parser (>=0.17.2,<0.19.0)", "sphinx (>=4.5.0,<6.0.0)", "sphinx-click (>=3.1,<4.5)", "sphinx-markdown-tables (>=0.0.15,<0.1.0)", "sphinx_copybutton (>=0.5.0,<0.6.0)", "sphinx_rtd_theme (>=1.0,<1.2)"]
+test = ["black (==22.12.0)", "flake8 (==5.0.4)", "isort (==5.11.1)", "pytest (>=5.4.0,<8.0.0)", "pytest-cov (>=2.8.0,<5.0.0)", "pytest-lazy-fixture (>=0.6.0,<1.0.0)", "pytest-mock (>=3.1.0,<4.0.0)", "scikit-learn (>=0.23.0,<1.3.0)"]
 
 [[package]]
 name = "kfp"
@@ -949,6 +957,7 @@ python-dateutil = ">=2.5.3"
 pyyaml = ">=5.4.1"
 requests = "*"
 requests-oauthlib = "*"
+setuptools = ">=21.0.0"
 six = ">=1.9.0"
 urllib3 = ">=1.24.2"
 websocket-client = ">=0.32.0,<0.40.0 || >0.40.0,<0.41.0 || >=0.43.0"
@@ -968,7 +977,7 @@ python-versions = ">=3.7"
 MarkupSafe = ">=0.9.2"
 
 [package.extras]
-babel = ["babel"]
+babel = ["Babel"]
 lingua = ["lingua"]
 testing = ["pytest"]
 
@@ -1035,6 +1044,9 @@ category = "dev"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*"
 
+[package.dependencies]
+setuptools = "*"
+
 [[package]]
 name = "numpy"
 version = "1.23.2"
@@ -1100,6 +1112,14 @@ python-versions = ">=3.6"
 tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
 
 [[package]]
+name = "pip"
+version = "22.3.1"
+description = "The PyPA recommended tool for installing Python packages."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[[package]]
 name = "pip-tools"
 version = "6.8.0"
 description = "pip-tools keeps your pinned dependencies fresh."
@@ -1110,6 +1130,9 @@ python-versions = ">=3.7"
 [package.dependencies]
 build = "*"
 click = ">=7"
+pip = ">=21.2"
+setuptools = "*"
+wheel = "*"
 
 [package.extras]
 coverage = ["pytest-cov"]
@@ -1403,7 +1426,7 @@ urllib3 = ">=1.21.1,<1.27"
 
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)"]
-use_chardet_on_py3 = ["chardet (>=3.0.2,<6)"]
+use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "requests-oauthlib"
@@ -1504,6 +1527,19 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
+name = "setuptools"
+version = "65.6.3"
+description = "Easily download, build, install, upgrade, and uninstall Python packages"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+docs = ["furo", "jaraco.packaging (>=9)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-hoverxref (<2)", "sphinx-inline-tabs", "sphinx-notfound-page (==0.8.3)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
+testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8 (<5)", "flake8-2020", "ini2toml[lite] (>=0.9)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pip (>=19.1)", "pip-run (>=8.8)", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.3)", "pytest-flake8", "pytest-mypy (>=0.9.1)", "pytest-perf", "pytest-timeout", "pytest-xdist", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
+testing-integration = ["build[virtualenv]", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -1535,21 +1571,21 @@ aiomysql = ["aiomysql", "greenlet (!=0.4.17)"]
 aiosqlite = ["aiosqlite", "greenlet (!=0.4.17)", "typing_extensions (!=3.10.0.1)"]
 asyncio = ["greenlet (!=0.4.17)"]
 asyncmy = ["asyncmy (>=0.2.3,!=0.2.4)", "greenlet (!=0.4.17)"]
-mariadb_connector = ["mariadb (>=1.0.1,!=1.1.2)"]
+mariadb-connector = ["mariadb (>=1.0.1,!=1.1.2)"]
 mssql = ["pyodbc"]
-mssql_pymssql = ["pymssql"]
-mssql_pyodbc = ["pyodbc"]
+mssql-pymssql = ["pymssql"]
+mssql-pyodbc = ["pyodbc"]
 mypy = ["mypy (>=0.910)", "sqlalchemy2-stubs"]
 mysql = ["mysqlclient (>=1.4.0)", "mysqlclient (>=1.4.0,<2)"]
-mysql_connector = ["mysql-connector-python"]
+mysql-connector = ["mysql-connector-python"]
 oracle = ["cx_oracle (>=7)", "cx_oracle (>=7,<8)"]
 postgresql = ["psycopg2 (>=2.7)"]
-postgresql_asyncpg = ["asyncpg", "greenlet (!=0.4.17)"]
-postgresql_pg8000 = ["pg8000 (>=1.16.6,!=1.29.0)"]
-postgresql_psycopg2binary = ["psycopg2-binary"]
-postgresql_psycopg2cffi = ["psycopg2cffi"]
+postgresql-asyncpg = ["asyncpg", "greenlet (!=0.4.17)"]
+postgresql-pg8000 = ["pg8000 (>=1.16.6,!=1.29.0)"]
+postgresql-psycopg2binary = ["psycopg2-binary"]
+postgresql-psycopg2cffi = ["psycopg2cffi"]
 pymysql = ["pymysql", "pymysql (<1)"]
-sqlcipher = ["sqlcipher3-binary"]
+sqlcipher = ["sqlcipher3_binary"]
 
 [[package]]
 name = "sqlparse"
@@ -1566,6 +1602,9 @@ description = "Function and command-line program to strip Python type hints."
 category = "main"
 optional = false
 python-versions = "*"
+
+[package.dependencies]
+wheel = "*"
 
 [[package]]
 name = "tabulate"
@@ -1741,6 +1780,17 @@ MarkupSafe = ">=2.1.1"
 
 [package.extras]
 watchdog = ["watchdog"]
+
+[[package]]
+name = "wheel"
+version = "0.38.4"
+description = "A built-package format for Python"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+test = ["pytest (>=3.0.0)"]
 
 [[package]]
 name = "wrapt"
@@ -2300,7 +2350,7 @@ kedro = [
     {file = "kedro-0.18.2.tar.gz", hash = "sha256:39e90563a5d589a067e8be73798af60bd5c4b6ab8e7880e809d9dd13cf64fb65"},
 ]
 kedro-mlflow = [
-    {file = "kedro_mlflow-0.11.1.tar.gz", hash = "sha256:e1e764230fa770dc4e3a82feabc1a57ed9e98a53cc35edf4de310dca704dddc5"},
+    {file = "kedro_mlflow-0.11.5.tar.gz", hash = "sha256:ff2ba8d6741a2b48252d395184352269564d165c0ff2bbf3f72ad7308a910af0"},
 ]
 kfp = [
     {file = "kfp-1.8.13.tar.gz", hash = "sha256:98e7603cfb9906c8fd15b5b98660de91ad0c6e03991dca50cdfab23056809c97"},
@@ -2495,6 +2545,10 @@ pep517 = [
     {file = "pep517-0.13.0-py3-none-any.whl", hash = "sha256:4ba4446d80aed5b5eac6509ade100bff3e7943a8489de249654a5ae9b33ee35b"},
     {file = "pep517-0.13.0.tar.gz", hash = "sha256:ae69927c5c172be1add9203726d4b84cf3ebad1edcd5f71fcdc746e66e829f59"},
 ]
+pip = [
+    {file = "pip-22.3.1-py3-none-any.whl", hash = "sha256:908c78e6bc29b676ede1c4d57981d490cb892eb45cd8c214ab6298125119e077"},
+    {file = "pip-22.3.1.tar.gz", hash = "sha256:65fd48317359f3af8e593943e6ae1506b66325085ea64b706a998c6e83eeaf38"},
+]
 pip-tools = [
     {file = "pip-tools-6.8.0.tar.gz", hash = "sha256:39e8aee465446e02278d80dbebd4325d1dd8633248f43213c73a25f58e7d8a55"},
     {file = "pip_tools-6.8.0-py3-none-any.whl", hash = "sha256:3e5cd4acbf383d19bdfdeab04738b6313ebf4ad22ce49bf529c729061eabfab8"},
@@ -2550,34 +2604,12 @@ py = [
     {file = "py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719"},
 ]
 pyasn1 = [
-    {file = "pyasn1-0.4.8-py2.4.egg", hash = "sha256:fec3e9d8e36808a28efb59b489e4528c10ad0f480e57dcc32b4de5c9d8c9fdf3"},
-    {file = "pyasn1-0.4.8-py2.5.egg", hash = "sha256:0458773cfe65b153891ac249bcf1b5f8f320b7c2ce462151f8fa74de8934becf"},
-    {file = "pyasn1-0.4.8-py2.6.egg", hash = "sha256:5c9414dcfede6e441f7e8f81b43b34e834731003427e5b09e4e00e3172a10f00"},
-    {file = "pyasn1-0.4.8-py2.7.egg", hash = "sha256:6e7545f1a61025a4e58bb336952c5061697da694db1cae97b116e9c46abcf7c8"},
     {file = "pyasn1-0.4.8-py2.py3-none-any.whl", hash = "sha256:39c7e2ec30515947ff4e87fb6f456dfc6e84857d34be479c9d4a4ba4bf46aa5d"},
-    {file = "pyasn1-0.4.8-py3.1.egg", hash = "sha256:78fa6da68ed2727915c4767bb386ab32cdba863caa7dbe473eaae45f9959da86"},
-    {file = "pyasn1-0.4.8-py3.2.egg", hash = "sha256:08c3c53b75eaa48d71cf8c710312316392ed40899cb34710d092e96745a358b7"},
-    {file = "pyasn1-0.4.8-py3.3.egg", hash = "sha256:03840c999ba71680a131cfaee6fab142e1ed9bbd9c693e285cc6aca0d555e576"},
-    {file = "pyasn1-0.4.8-py3.4.egg", hash = "sha256:7ab8a544af125fb704feadb008c99a88805126fb525280b2270bb25cc1d78a12"},
-    {file = "pyasn1-0.4.8-py3.5.egg", hash = "sha256:e89bf84b5437b532b0803ba5c9a5e054d21fec423a89952a74f87fa2c9b7bce2"},
-    {file = "pyasn1-0.4.8-py3.6.egg", hash = "sha256:014c0e9976956a08139dc0712ae195324a75e142284d5f87f1a87ee1b068a359"},
-    {file = "pyasn1-0.4.8-py3.7.egg", hash = "sha256:99fcc3c8d804d1bc6d9a099921e39d827026409a58f2a720dcdb89374ea0c776"},
     {file = "pyasn1-0.4.8.tar.gz", hash = "sha256:aef77c9fb94a3ac588e87841208bdec464471d9871bd5050a287cc9a475cd0ba"},
 ]
 pyasn1-modules = [
     {file = "pyasn1-modules-0.2.8.tar.gz", hash = "sha256:905f84c712230b2c592c19470d3ca8d552de726050d1d1716282a1f6146be65e"},
-    {file = "pyasn1_modules-0.2.8-py2.4.egg", hash = "sha256:0fe1b68d1e486a1ed5473f1302bd991c1611d319bba158e98b106ff86e1d7199"},
-    {file = "pyasn1_modules-0.2.8-py2.5.egg", hash = "sha256:fe0644d9ab041506b62782e92b06b8c68cca799e1a9636ec398675459e031405"},
-    {file = "pyasn1_modules-0.2.8-py2.6.egg", hash = "sha256:a99324196732f53093a84c4369c996713eb8c89d360a496b599fb1a9c47fc3eb"},
-    {file = "pyasn1_modules-0.2.8-py2.7.egg", hash = "sha256:0845a5582f6a02bb3e1bde9ecfc4bfcae6ec3210dd270522fee602365430c3f8"},
     {file = "pyasn1_modules-0.2.8-py2.py3-none-any.whl", hash = "sha256:a50b808ffeb97cb3601dd25981f6b016cbb3d31fbf57a8b8a87428e6158d0c74"},
-    {file = "pyasn1_modules-0.2.8-py3.1.egg", hash = "sha256:f39edd8c4ecaa4556e989147ebf219227e2cd2e8a43c7e7fcb1f1c18c5fd6a3d"},
-    {file = "pyasn1_modules-0.2.8-py3.2.egg", hash = "sha256:b80486a6c77252ea3a3e9b1e360bc9cf28eaac41263d173c032581ad2f20fe45"},
-    {file = "pyasn1_modules-0.2.8-py3.3.egg", hash = "sha256:65cebbaffc913f4fe9e4808735c95ea22d7a7775646ab690518c056784bc21b4"},
-    {file = "pyasn1_modules-0.2.8-py3.4.egg", hash = "sha256:15b7c67fabc7fc240d87fb9aabf999cf82311a6d6fb2c70d00d3d0604878c811"},
-    {file = "pyasn1_modules-0.2.8-py3.5.egg", hash = "sha256:426edb7a5e8879f1ec54a1864f16b882c2837bfd06eee62f2c982315ee2473ed"},
-    {file = "pyasn1_modules-0.2.8-py3.6.egg", hash = "sha256:cbac4bc38d117f2a49aeedec4407d23e8866ea4ac27ff2cf7fb3e5b570df19e0"},
-    {file = "pyasn1_modules-0.2.8-py3.7.egg", hash = "sha256:c29a5e5cc7a3f05926aff34e097e84f8589cd790ce0ed41b67aed6857b26aafd"},
 ]
 pydantic = [
     {file = "pydantic-1.9.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:9c9e04a6cdb7a363d7cb3ccf0efea51e0abb48e180c0d31dca8d247967d85c6e"},
@@ -2785,6 +2817,10 @@ semver = [
     {file = "semver-2.13.0-py2.py3-none-any.whl", hash = "sha256:ced8b23dceb22134307c1b8abfa523da14198793d9787ac838e70e29e77458d4"},
     {file = "semver-2.13.0.tar.gz", hash = "sha256:fa0fe2722ee1c3f57eac478820c3a5ae2f624af8264cbdf9000c980ff7f75e3f"},
 ]
+setuptools = [
+    {file = "setuptools-65.6.3-py3-none-any.whl", hash = "sha256:57f6f22bde4e042978bcd50176fdb381d7c21a9efa4041202288d3737a0c6a54"},
+    {file = "setuptools-65.6.3.tar.gz", hash = "sha256:a7620757bf984b58deaf32fc8a4577a9bbc0850cf92c20e1ce41c38c19e5fb75"},
+]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
@@ -2840,7 +2876,6 @@ strip-hints = [
 ]
 tabulate = [
     {file = "tabulate-0.8.10-py3-none-any.whl", hash = "sha256:0ba055423dbaa164b9e456abe7920c5e8ed33fcc16f6d1b2f2d152c8e1e8b4fc"},
-    {file = "tabulate-0.8.10-py3.8.egg", hash = "sha256:436f1c768b424654fce8597290d2764def1eea6a77cfa5c33be00b1bc0f4f63d"},
     {file = "tabulate-0.8.10.tar.gz", hash = "sha256:6c57f3f3dd7ac2782770155f3adb2db0b1a269637e42f27599925e64b114f519"},
 ]
 termcolor = [
@@ -2897,6 +2932,10 @@ websocket-client = [
 werkzeug = [
     {file = "Werkzeug-2.2.2-py3-none-any.whl", hash = "sha256:f979ab81f58d7318e064e99c4506445d60135ac5cd2e177a2de0089bfd4c9bd5"},
     {file = "Werkzeug-2.2.2.tar.gz", hash = "sha256:7ea2d48322cc7c0f8b3a215ed73eabd7b5d75d0b50e31ab006286ccff9e00b8f"},
+]
+wheel = [
+    {file = "wheel-0.38.4-py3-none-any.whl", hash = "sha256:b60533f3f5d530e971d6737ca6d58681ee434818fab630c83a734bb10c083ce8"},
+    {file = "wheel-0.38.4.tar.gz", hash = "sha256:965f5259b566725405b05e7cf774052044b1ed30119b5d586b2703aafe8719ac"},
 ]
 wrapt = [
     {file = "wrapt-1.14.1-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:1b376b3f4896e7930f1f772ac4b064ac12598d1c38d04907e696cc4d794b43d3"},
