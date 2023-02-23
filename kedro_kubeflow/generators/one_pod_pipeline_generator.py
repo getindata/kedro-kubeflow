@@ -25,13 +25,12 @@ class OnePodPipelineGenerator(object):
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
         self.run_config = config.run_config
         self.catalog = context.config_loader.get("catalog*")
-        self.merged_params = merge_namespaced_params_to_dict(
-            self.context.params
-        )
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
+        merged_params = merge_namespaced_params_to_dict(self.context.params)
+
         @dsl.pipeline(self.project_name, self.run_config.description)
-        @maybe_add_params(self.merged_params)
+        @maybe_add_params(merged_params)
         def convert_kedro_pipeline_to_kfp() -> None:
             dsl.get_pipeline_conf().set_ttl_seconds_after_finished(
                 self.run_config.ttl
@@ -43,13 +42,16 @@ class OnePodPipelineGenerator(object):
                 self.run_config,
                 self.context,
             ):
-                self._build_kfp_op(pipeline, image, image_pull_policy)
+                self._build_kfp_op(
+                    pipeline, merged_params, image, image_pull_policy
+                )
 
         return convert_kedro_pipeline_to_kfp
 
     def _build_kfp_op(
         self,
         pipeline,
+        params,
         image,
         image_pull_policy,
     ) -> dsl.ContainerOp:
@@ -63,9 +65,7 @@ class OnePodPipelineGenerator(object):
                 f"--pipeline {pipeline} "
                 f"--config config.yaml"
             ),
-            arguments=create_arguments_from_parameters(
-                self.merged_params.keys()
-            ),
+            arguments=create_arguments_from_parameters(params.keys()),
             container_kwargs={"env": create_container_environment()},
             file_outputs={
                 output: f"/home/kedro/{self.catalog[output]['filepath']}"
