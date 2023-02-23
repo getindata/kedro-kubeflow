@@ -12,6 +12,7 @@ from .utils import (
     customize_op,
     is_local_fs,
     maybe_add_params,
+    merge_namespaced_params_to_dict,
 )
 
 
@@ -24,10 +25,13 @@ class OnePodPipelineGenerator(object):
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
         self.run_config = config.run_config
         self.catalog = context.config_loader.get("catalog*")
+        self.merged_params = merge_namespaced_params_to_dict(
+            self.context.params
+        )
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
         @dsl.pipeline(self.project_name, self.run_config.description)
-        @maybe_add_params(self.context.params)
+        @maybe_add_params(self.merged_params)
         def convert_kedro_pipeline_to_kfp() -> None:
             dsl.get_pipeline_conf().set_ttl_seconds_after_finished(
                 self.run_config.ttl
@@ -60,7 +64,7 @@ class OnePodPipelineGenerator(object):
                 f"--config config.yaml"
             ),
             arguments=create_arguments_from_parameters(
-                self.context.params.keys()
+                self.merged_params.keys()
             ),
             container_kwargs={"env": create_container_environment()},
             file_outputs={

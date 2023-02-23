@@ -15,6 +15,7 @@ from .utils import (
     customize_op,
     is_local_fs,
     maybe_add_params,
+    merge_namespaced_params_to_dict,
 )
 
 
@@ -27,6 +28,9 @@ class PodPerNodePipelineGenerator(object):
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
         self.run_config = config.run_config
         self.catalog = context.config_loader.get("catalog*")
+        self.merged_params = merge_namespaced_params_to_dict(
+            self.context.params
+        )
 
     def configure_max_cache_staleness(self, kfp_ops):
         if self.run_config.max_cache_staleness not in [None, ""]:
@@ -40,7 +44,7 @@ class PodPerNodePipelineGenerator(object):
             name=self.project_name,
             description=self.run_config.description,
         )
-        @maybe_add_params(self.context.params)
+        @maybe_add_params(self.merged_params)
         def convert_kedro_pipeline_to_kfp() -> None:
             """Convert from a Kedro pipeline into a kfp container graph."""
 
@@ -130,7 +134,7 @@ class PodPerNodePipelineGenerator(object):
                         f"--config config.yaml"
                     ),
                     arguments=create_arguments_from_parameters(
-                        self.context.params.keys()
+                        self.merged_params.keys()
                     ),
                     pvolumes=node_volumes,
                     container_kwargs={"env": nodes_env},
