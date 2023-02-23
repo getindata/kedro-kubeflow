@@ -83,6 +83,92 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 "{{pipelineparam:op=;name=param3}}",
             ]
 
+    def test_should_support_nested_params_and_inject_them_to_the_node(self):
+        # given
+        self.create_generator(
+            params={
+                "param1": {"nested1": {"nested2": 1, "nested3": 2}},
+                "param2": 42,
+                "param3": datetime.date(2022, 2, 24),
+            }
+        )
+
+        # when
+        with patch(
+            "kedro.framework.project.pipelines",
+            new=self.pipelines_under_test,
+        ):
+            with kfp.dsl.Pipeline(None) as dsl_pipeline:
+                pipeline = self.generator_under_test.generate_pipeline(
+                    "pipeline", "unittest-image", "Always"
+                )
+                default_params = signature(pipeline).parameters
+                pipeline()
+
+            # then
+            assert len(default_params) == 3
+            assert default_params["param1"].default == {
+                "nested1": {"nested2": 1, "nested3": 2}
+            }
+            assert default_params["param2"].default == 42
+            assert default_params["param3"].default == "2022-02-24"
+            assert dsl_pipeline.ops["pipeline"].container.args[1:] == [
+                "param1",
+                "{{pipelineparam:op=;name=param1}}",
+                "param2",
+                "{{pipelineparam:op=;name=param2}}",
+                "param3",
+                "{{pipelineparam:op=;name=param3}}",
+            ]
+
+    def test_should_support_namespaced_params_and_inject_them_to_the_node(
+        self,
+    ):
+        # given
+        self.create_generator(
+            params={
+                "outer_namespace.inner_namespace1.param1": "outer_namespace.inner_namespace1.param1_v",
+                "outer_namespace.inner_namespace1.param2": "outer_namespace.inner_namespace1.param2_v",
+                "outer_namespace.inner_namespace2.param1": "outer_namespace.inner_namespace2.param1_v",
+                "outer_namespace.inner_namespace2.param2": "outer_namespace.inner_namespace2.param2_v",
+                "outer_namespace.param": "outer_namespace.param",
+                "param1": 42,
+            }
+        )
+
+        # when
+        with patch(
+            "kedro.framework.project.pipelines",
+            new=self.pipelines_under_test,
+        ):
+            with kfp.dsl.Pipeline(None) as dsl_pipeline:
+                pipeline = self.generator_under_test.generate_pipeline(
+                    "pipeline", "unittest-image", "Always"
+                )
+                default_params = signature(pipeline).parameters
+                pipeline()
+
+            # then
+            assert len(default_params) == 2
+            assert default_params["outer_namespace"].default == {
+                "inner_namespace1": {
+                    "param1": "outer_namespace.inner_namespace1.param1_v",
+                    "param2": "outer_namespace.inner_namespace1.param2_v",
+                },
+                "inner_namespace2": {
+                    "param1": "outer_namespace.inner_namespace2.param1_v",
+                    "param2": "outer_namespace.inner_namespace2.param2_v",
+                },
+                "param": "outer_namespace.param",
+            }
+            assert default_params["param1"].default == 42
+            assert dsl_pipeline.ops["pipeline"].container.args[1:] == [
+                "outer_namespace",
+                "{{pipelineparam:op=;name=outer_namespace}}",
+                "param1",
+                "{{pipelineparam:op=;name=param1}}",
+            ]
+
     def test_should_use_default_resources_spec_if_not_requested(self):
         # given
         self.create_generator(config={})

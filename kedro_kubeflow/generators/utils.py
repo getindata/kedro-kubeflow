@@ -2,7 +2,7 @@ import contextlib
 import itertools
 import json
 import os
-from functools import wraps
+from functools import reduce, wraps
 from inspect import Parameter, signature
 
 import fsspec
@@ -38,6 +38,49 @@ def maybe_add_params(kedro_parameters):
         return wrapper
 
     return decorator
+
+
+def merge_namespaced_params_to_dict(kedro_parameters):
+    def dict_merge(dct, merge_dct):
+        """Recursive dict merge. Inspired by :meth:``dict.update()``, instead of
+        updating only top-level keys, dict_merge recurses down into dicts nested
+        to an arbitrary depth, updating keys. The ``merge_dct`` is merged into
+        ``dct``.
+        :param dct: dict onto which the merge is executed
+        :param merge_dct: dct merged into dct
+        :return: None
+        """
+        for k, v in merge_dct.items():
+            if (
+                k in dct
+                and isinstance(dct[k], dict)
+                and isinstance(merge_dct[k], dict)
+            ):  # noqa
+                dict_merge(dct[k], merge_dct[k])
+            else:
+                dct[k] = merge_dct[k]
+
+        return dct
+
+    normalized_params = []
+    for key, param in kedro_parameters.items():
+        if "." in key:
+            nested_keys = key.split(".")
+            top_key = nested_keys.pop(0)
+            bottom_key = nested_keys.pop()
+            inner_dict = {bottom_key: param}
+            for nested_key in nested_keys[-1:]:
+                inner_dict = {nested_key: inner_dict}
+
+            inner_dict = {top_key: inner_dict}
+            normalized_params.append(inner_dict)
+        else:
+            normalized_params.append({key: param})
+
+    if normalized_params:
+        return reduce(dict_merge, normalized_params)
+    else:
+        return dict()
 
 
 def create_container_environment():
