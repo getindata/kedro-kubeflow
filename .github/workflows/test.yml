@@ -40,7 +40,7 @@ jobs:
 
     - name: Test with tox
       run: |
-        pip install tox-pip-version tox-gh-actions
+        pip install tox-pip-version tox-gh-actions "tox<4.0.0"
         tox -v
 
     - name: Store coverage reports

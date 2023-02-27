@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.7.4] - 2023-02-27
+
+-   Removed field validation from resources configuration field - now it can take any custom parameters such as "nvidia.com/gpu":1
+-   Added support for kedro namespaces for parameters
+
 ## [0.7.3] - 2022-09-23
 
 -   Fixed plugin config provider so it respects environment provided by the user
@@ -167,7 +172,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.7.3...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.7.4...HEAD
+
+[0.7.4]: https://github.com/getindata/kedro-kubeflow/compare/0.7.3...0.7.4
 
 [0.7.3]: https://github.com/getindata/kedro-kubeflow/compare/0.7.2...0.7.3
 
