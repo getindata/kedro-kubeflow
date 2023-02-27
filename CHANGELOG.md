@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 -  Removed field validation from resources configuration field - now it can take any custom parameters such as "nvidia.com/gpu":1
+-  Added support for kedro namespaces for parameters
 
 ## [0.7.3] - 2022-09-23
 

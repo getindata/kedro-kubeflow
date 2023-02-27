@@ -15,6 +15,7 @@ from .utils import (
     customize_op,
     is_local_fs,
     maybe_add_params,
+    merge_namespaced_params_to_dict,
 )
 
 
@@ -36,11 +37,13 @@ class PodPerNodePipelineGenerator(object):
                 )
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
+        merged_params = merge_namespaced_params_to_dict(self.context.params)
+
         @dsl.pipeline(
             name=self.project_name,
             description=self.run_config.description,
         )
-        @maybe_add_params(self.context.params)
+        @maybe_add_params(merged_params)
         def convert_kedro_pipeline_to_kfp() -> None:
             """Convert from a Kedro pipeline into a kfp container graph."""
 
@@ -58,7 +61,11 @@ class PodPerNodePipelineGenerator(object):
                 self.context,
             ):
                 kfp_ops = self._build_kfp_ops(
-                    pipeline, node_dependencies, image, image_pull_policy
+                    pipeline,
+                    merged_params,
+                    node_dependencies,
+                    image,
+                    image_pull_policy,
                 )
 
                 self.configure_max_cache_staleness(kfp_ops)
@@ -71,6 +78,7 @@ class PodPerNodePipelineGenerator(object):
     def _build_kfp_ops(
         self,
         pipeline,
+        params,
         node_dependencies: Dict[Node, Set[Node]],
         image,
         image_pull_policy,
@@ -129,9 +137,7 @@ class PodPerNodePipelineGenerator(object):
                         f"--node {node.name} "
                         f"--config config.yaml"
                     ),
-                    arguments=create_arguments_from_parameters(
-                        self.context.params.keys()
-                    ),
+                    arguments=create_arguments_from_parameters(params.keys()),
                     pvolumes=node_volumes,
                     container_kwargs={"env": nodes_env},
                     file_outputs={
