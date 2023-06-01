@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Updated dependencies, bumped kedro to 0.18.9, mlflow to 2.3.2
+
 ## [0.7.4] - 2023-02-27
 
 -   Removed field validation from resources configuration field - now it can take any custom parameters such as "nvidia.com/gpu":1
