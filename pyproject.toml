@@ -36,24 +36,24 @@ known_third_party = ["click", "google", "kedro", "kfp", "kubernetes", "tabulate"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
-kedro = ">=0.18.1, <0.19.0"
+kedro = ">0.18.1, <0.19.0"
 click = ">=8.0.4"
 kfp = ">=1.8.12,<2.0"
 tabulate = ">=0.8.7"
 semver = "~=2.10"
-fsspec = "<=2022.1,>=2021.4"
+fsspec = ">=2021.4"
 google-auth = { version = "<3", optional = true}
-gcsfs = { version = "<=2022.1,>=2021.4", optional = true}
-kedro-mlflow = { version = "~=0.11.1", optional = true }
+gcsfs = { version = ">=2021.4", optional = true}
+kedro-mlflow = { version = ">=0.11.0", optional = true }
 
 [tool.poetry.extras]
 mlflow = ["kedro-mlflow"]
 gcp = ["google-auth", "gcsfs"]
 
 [tool.poetry.dev-dependencies]
-pytest = "<7"
+pytest = "<8"
 pytest-cov = ">=2.8.0, <4.0.0"
-tox = ">=3.25.1"
+tox = ">=3.25.1, <4.0.0"
 pre-commit = "2.20.0"
 pytest-subtests = ">=0.5.0, <1.0.0"
 responses = ">=0.13.4"
