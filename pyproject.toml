@@ -54,7 +54,7 @@ gcp = ["google-auth", "gcsfs"]
 pytest = "<8"
 pytest-cov = ">=2.8.0, <4.0.0"
 tox = ">=3.25.1, <4.0.0"
-pre-commit = "2.20.0"
+pre-commit = "3.3.3"
 pytest-subtests = ">=0.5.0, <1.0.0"
 responses = ">=0.13.4"
 
