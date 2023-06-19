@@ -40,7 +40,7 @@ kedro = ">0.18.1, <0.19.0"
 click = ">=8.0.4"
 kfp = ">=1.8.12,<2.0"
 tabulate = ">=0.8.7"
-semver = "~=2.10"
+semver = ">=2.10,<4.0"
 fsspec = ">=2021.4"
 google-auth = { version = "<3", optional = true}
 gcsfs = { version = ">=2021.4", optional = true}
