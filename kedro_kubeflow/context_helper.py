@@ -3,14 +3,15 @@ from functools import lru_cache
 from typing import Any, Dict
 
 from kedro import __version__ as kedro_version
-from kedro.config import TemplatedConfigLoader
+from kedro.config import OmegaConfigLoader
 from kedro.framework.session import KedroSession
+from omegaconf.resolvers import oc
 from semver import VersionInfo
 
 from .config import PluginConfig
 
 
-class EnvTemplatedConfigLoader(TemplatedConfigLoader):
+class EnvTemplatedConfigLoader(OmegaConfigLoader):
     """Config loader that can substitute $(commit_id) and $(branch_name)
     placeholders with information taken from env variables."""
 
@@ -23,20 +24,25 @@ class EnvTemplatedConfigLoader(TemplatedConfigLoader):
         conf_source: str,
         env: str = None,
         runtime_params: Dict[str, Any] = None,
+        config_patterns: Dict[str, Any] = None,
         *,
         base_env: str = "base",
         default_run_env: str = "local"
     ):
+        self.read_env()
+
         super().__init__(
             conf_source,
             env=env,
             runtime_params=runtime_params,
-            globals_dict=self.read_env(),
+            config_patterns=config_patterns,
             base_env=base_env,
             default_run_env=default_run_env,
+            custom_resolvers={"oc.env": oc.env},
         )
 
-    def read_env(self) -> Dict:
+    @staticmethod
+    def read_env():
         config = EnvTemplatedConfigLoader.ENV_DEFAULTS.copy()
         overrides = dict(
             [
@@ -46,7 +52,7 @@ class EnvTemplatedConfigLoader(TemplatedConfigLoader):
             ]
         )
         config.update(**overrides)
-        return config
+        os.environ.update({k: v for k, v in config.items() if v is not None})
 
 
 class ContextHelper(object):
@@ -59,7 +65,7 @@ class ContextHelper(object):
 
     @property
     def project_name(self):
-        return self._metadata.project_name
+        return self._metadata.project_path.name
 
     @property
     @lru_cache()
@@ -108,7 +114,7 @@ class ContextHelper16(ContextHelper):
 
     @property
     def project_name(self):
-        return self.context.project_name
+        return self.context.project_path.name
 
     @property
     def context(self):

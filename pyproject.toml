@@ -36,7 +36,7 @@ known_third_party = ["click", "google", "kedro", "kfp", "kubernetes", "tabulate"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
-kedro = ">0.18.1, <0.19.0"
+kedro = ">0.18.4, <=0.19.6"
 click = ">=8.0.4"
 kfp = ">=1.8.12,<2.0"
 tabulate = ">=0.8.7"

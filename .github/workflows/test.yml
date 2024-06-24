@@ -118,7 +118,7 @@ jobs:
       - name: Initialize kedro spaceflights project
         run: |
           pip install .
-          kedro new --starter spaceflights --config tests/e2e/starter-config.yml --verbose
+          kedro new --starter spaceflights-pandas --config tests/e2e/starter-config.yml --verbose
 
       - name: Install project dependencies
         working-directory: ./spaceflights
