@@ -1,12 +1,12 @@
 
 # Base url of the Kubeflow Pipelines, should include the schema (http/https)
-host: ${kubeflow_hostname}
+host: ${oc.env:KEDRO_CONFIG_KUBEFLOW_HOSTNAME}
 
 # Configuration used to run the pipeline
 run_config:
 
   # Name of the image to run as the pipeline steps
-  image: gcr.io/gid-ml-ops-sandbox/kedro-kubeflow-e2e:${commit_id|latest}
+  image: gcr.io/gid-ml-ops-sandbox/kedro-kubeflow-e2e:${oc.env:KEDRO_CONFIG_COMMIT_ID, latest}
 
   # Pull policy to be used for the steps. Use Always if you push the images
   # on the same tag, or Never if you use only local images
@@ -19,7 +19,7 @@ run_config:
   run_name: kedro-kubeflow-e2e
 
   # Name of the scheduled run, templated with the schedule parameters
-  scheduled_run_name: kedro-kubeflow-e2e
+  scheduled_run_name: kedro-kubeflow-e2e-${oc.env:KEDRO_CONFIG_RUN_ID,unknown}
 
   # Optional pipeline description
   #description: "Very Important Pipeline"

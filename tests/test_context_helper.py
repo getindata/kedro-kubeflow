@@ -1,12 +1,11 @@
+import json
 import os
 import unittest
 from pathlib import Path
-
-# from tempfile import TemporaryDirectory
-# import yaml
-# from kedro_kubeflow.config import RunConfig
+from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock, Mock, patch
 
+import yaml
 from kedro.framework.session import KedroSession
 
 from kedro_kubeflow.config import PluginConfig
@@ -71,28 +70,31 @@ class TestContextHelper(unittest.TestCase, MinimalConfigMixin):
             assert helper.config == cfg
 
     # TODO debug and fix omegaconf test
-    # def test_config_with_omegaconf(self):
-    #     from kedro.config import OmegaConfigLoader
+    def test_config_with_omegaconf(self):
+        from kedro.config import OmegaConfigLoader
 
-    #     with TemporaryDirectory() as tmp_dir_raw:
-    #         tmp_dir = Path(tmp_dir_raw)
-    #         (tmp_dir / "conf" / "base").mkdir(parents=True, exist_ok=False)
-    #         (conf_dir := tmp_dir / "conf" / "local").mkdir(parents=True, exist_ok=False)
-    #         cfg = PluginConfig.parse_obj(self.minimal_config())
-    #         (conf_dir / "kubeflow.yml").write_text(yaml.dump(cfg.dict()))
+        with TemporaryDirectory() as tmp_dir_raw:
+            tmp_dir = Path(tmp_dir_raw)
+            (tmp_dir / "conf" / "base").mkdir(parents=True, exist_ok=False)
+            (conf_dir := tmp_dir / "conf" / "local").mkdir(parents=True, exist_ok=False)
+            cfg = PluginConfig.parse_obj(self.minimal_config())
+            (conf_dir / "kubeflow.yml").write_text(
+                yaml.dump(json.loads(json.dumps(cfg.dict()))), None
+            )  # because enums are not
 
-    #         metadata = Mock()
-    #         metadata.package_name = "test_package"
-    #         for config_pattern in [{"kubeflow": ["kubeflow*"]}]:
-    #             session = MagicMock()
-    #             session.load_context().config_loader = OmegaConfigLoader(
-    #                 str(tmp_dir / "conf"),
-    #                 config_patterns=config_pattern,
-    #                 default_run_env="local",
-    #             )
-    #             with patch.object(KedroSession, "create", return_value=session):
-    #                 helper = ContextHelper.init(metadata, "test")
-    #                 assert helper.config == cfg
+            metadata = Mock()
+            metadata.package_name = "test_package"
+            for config_pattern in [{"kubeflow": ["kubeflow*"]}]:
+                session = MagicMock()
+                session.load_context().config_loader = OmegaConfigLoader(
+                    str(tmp_dir / "conf"),
+                    config_patterns=config_pattern,
+                    default_run_env="local",
+                    base_env="local",
+                )
+                with patch.object(KedroSession, "create", return_value=session):
+                    helper = ContextHelper.init(metadata, "test")
+                    assert helper.config == cfg
 
 
 class TestEnvTemplatedConfigLoader(unittest.TestCase):
