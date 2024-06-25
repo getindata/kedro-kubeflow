@@ -1,6 +1,6 @@
 
 # Base url of the Kubeflow Pipelines, should include the schema (http/https)
-host: ${oc.env:KEDRO_CONFIG_KUBEFLOW_HOSTNAME}
+host: ${oc.env:KEDRO_CONFIG_KUBEFLOW_HOSTNAME,http://localhost:9000}
 
 # Configuration used to run the pipeline
 run_config:
