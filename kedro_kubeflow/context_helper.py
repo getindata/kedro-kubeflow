@@ -82,7 +82,7 @@ class ContextHelper(object):
     @property
     @lru_cache()
     def session(self):
-        return KedroSession.create(self._metadata.package_name, env=self._env)
+        return KedroSession.create(self._metadata.project_path, env=self._env)
 
     @property
     def env(self):
