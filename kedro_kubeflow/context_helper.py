@@ -105,7 +105,7 @@ class ContextHelper(object):
                         ]
                     }
                 )
-            kubeflow_config = self._ensure_obj_is_dict(self.context.config_loader.get(self.CONFIG_KEY))
+            kubeflow_config = self._ensure_obj_is_dict(cl.get(self.CONFIG_KEY))
         except MissingConfigException:
             if not isinstance(cl, OmegaConfigLoader):
                 raise ValueError(
