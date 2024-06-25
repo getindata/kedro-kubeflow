@@ -39,14 +39,13 @@ known_third_party = ["click", "google", "kedro", "kfp", "kubernetes", "tabulate"
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
 kedro = ">0.18.4, <=0.19.6"
-kedro-viz = { version = "<8", optional = true} # because of pydantic conflict
+# kedro-viz = { version = "<8", optional = true} # because of pydantic conflict
 click = ">=8.0.4"
-kfp = ">=1.8.12,<2.0"
+kfp = ">=1.8.12,<2.0" # blocking pydantic upgrade
 tabulate = ">=0.8.7"
 semver = "~=2.10"
 fsspec = ">=2021.4"
 pyyaml = ">=6.0,<7.0"
-pydantic = "<3.0"
 google-auth = { version = "<3", optional = true}
 gcsfs = { version = ">=2021.4", optional = true}
 kedro-mlflow = { version = ">=0.11.0", optional = true }
