@@ -28,9 +28,7 @@ class MlflowTagsHook:
             import mlflow
 
             if os.getenv("KUBEFLOW_RUN_ID"):
-                mlflow.set_tag(
-                    "kubeflow_run_id", os.environ["KUBEFLOW_RUN_ID"]
-                )
+                mlflow.set_tag("kubeflow_run_id", os.environ["KUBEFLOW_RUN_ID"])
 
 
 mlflow_iap_hook = MlflowIapAuthHook()

@@ -25,9 +25,7 @@ class AuthHandler(object):
         jwt_token = None
 
         if not client_id:
-            self.log.debug(
-                "No IAP_CLIENT_ID provided, skipping custom IAP authentication"
-            )
+            self.log.debug("No IAP_CLIENT_ID provided, skipping custom IAP authentication")
             return jwt_token
 
         try:
@@ -58,9 +56,7 @@ class AuthHandler(object):
     # but it is prone to errors if anything substantial changes in the way DEX handles login screens.
     def obtain_dex_authservice_session(self, kfp_api):
         if DEX_USERNAME not in os.environ or DEX_PASSWORD not in os.environ:
-            self.log.debug(
-                "Skipping DEX authentication due to missing env variables"
-            )
+            self.log.debug("Skipping DEX authentication due to missing env variables")
             return None
 
         s = requests.Session()

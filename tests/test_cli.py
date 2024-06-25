@@ -163,9 +163,7 @@ class TestPluginCLI(unittest.TestCase):
         config = dict(context_helper=context_helper)
         runner = CliRunner()
 
-        result = runner.invoke(
-            compile, ["-p", "pipe", "-i", "img", "-o", "output"], obj=config
-        )
+        result = runner.invoke(compile, ["-p", "pipe", "-i", "img", "-o", "output"], obj=config)
 
         assert result.exit_code == 0
         context_helper.kfp_client.compile.assert_called_with(
@@ -182,9 +180,7 @@ class TestPluginCLI(unittest.TestCase):
         config = dict(context_helper=context_helper)
         runner = CliRunner()
 
-        result = runner.invoke(
-            upload_pipeline, ["-p", "pipe", "-i", "img"], obj=config
-        )
+        result = runner.invoke(upload_pipeline, ["-p", "pipe", "-i", "img"], obj=config)
 
         assert result.exit_code == 0
         context_helper.kfp_client.upload.assert_called_with(
@@ -260,18 +256,14 @@ class TestPluginCLI(unittest.TestCase):
             path = Path(temp_dir)
             cwd.return_value = path
             os.makedirs(path.joinpath("conf/base"))
-            result = runner.invoke(
-                init, ["--with-github-actions", "http://kubeflow"], obj=config
-            )
+            result = runner.invoke(init, ["--with-github-actions", "http://kubeflow"], obj=config)
 
             assert result.exit_code == 0
             on_push_actions = path / ".github" / "workflows" / "on-push.yml"
             assert on_push_actions.exists()
             with open(on_push_actions, "r") as f:
                 assert "kedro kubeflow run-once" in f.read()
-            on_merge_actions = (
-                path / ".github" / "workflows" / "on-merge-to-master.yml"
-            )
+            on_merge_actions = path / ".github" / "workflows" / "on-merge-to-master.yml"
             assert on_merge_actions.exists()
             with open(on_merge_actions, "r") as f:
                 content = f.read()
@@ -281,15 +273,11 @@ class TestPluginCLI(unittest.TestCase):
     @patch("mlflow.start_run")
     @patch("mlflow.set_tag")
     @patch("mlflow.get_experiment_by_name")
-    def test_mlflow_start(
-        self, get_experiment_by_name_mock, set_tag_mock, start_run_mock
-    ):
+    def test_mlflow_start(self, get_experiment_by_name_mock, set_tag_mock, start_run_mock):
         context_helper = MagicMock(ContextHelper)
         config = dict(context_helper=context_helper)
         runner = CliRunner()
-        get_experiment_by_name_mock.return_value = type(
-            "obj", (object,), {"experiment_id": 47}
-        )
+        get_experiment_by_name_mock.return_value = type("obj", (object,), {"experiment_id": 47})
         start_run_mock.return_value = namedtuple("InfoObject", "info")(
             namedtuple("RunIdObject", "run_id")("MLFLOW_RUN_ID")
         )
@@ -312,9 +300,7 @@ class TestPluginCLI(unittest.TestCase):
     @patch("kubernetes.client")
     @patch("kubernetes.config")
     def test_delete_pipeline_volume(self, k8s_config_mock, k8s_client_mock):
-        with um.patch(
-            "builtins.open", um.mock_open(read_data="unittest-namespace")
-        ):
+        with um.patch("builtins.open", um.mock_open(read_data="unittest-namespace")):
             runner = CliRunner()
             result = runner.invoke(
                 delete_pipeline_volume,
@@ -322,9 +308,7 @@ class TestPluginCLI(unittest.TestCase):
             )
             assert result.exit_code == 0
             core_api = k8s_client_mock.CoreV1Api()
-            core_api.delete_namespaced_persistent_volume_claim.assert_called_with(
-                "workflow-name", "unittest-namespace"
-            )
+            core_api.delete_namespaced_persistent_volume_claim.assert_called_with("workflow-name", "unittest-namespace")
 
     @patch.object(ContextHelper, "init")
     def test_handle_env_arguments(self, context_helper_init):
@@ -349,7 +333,5 @@ class TestPluginCLI(unittest.TestCase):
                 cli = ["--env", cli] if cli else []
                 env = dict(KEDRO_ENV=env_var) if env_var else dict()
 
-                runner.invoke(
-                    kubeflow_group, cli + ["compile", "--help"], env=env
-                )
+                runner.invoke(kubeflow_group, cli + ["compile", "--help"], env=env)
                 context_helper_init.assert_called_with(None, expected)

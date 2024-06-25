@@ -51,11 +51,7 @@ def merge_namespaced_params_to_dict(kedro_parameters):
         :return: None
         """
         for k, v in merge_dct.items():
-            if (
-                k in dct
-                and isinstance(dct[k], dict)
-                and isinstance(merge_dct[k], dict)
-            ):  # noqa
+            if k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], dict):  # noqa
                 dict_merge(dct[k], merge_dct[k])
             else:
                 dct[k] = merge_dct[k]
@@ -85,9 +81,7 @@ def merge_namespaced_params_to_dict(kedro_parameters):
 
 def create_container_environment():
     env_vars = [
-        k8s.V1EnvVar(
-            name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")
-        ),
+        k8s.V1EnvVar(name=IAP_CLIENT_ID, value=os.environ.get(IAP_CLIENT_ID, "")),
         k8s.V1EnvVar(name="KUBEFLOW_RUN_ID", value=dsl.RUN_ID_PLACEHOLDER),
     ]
     for key in os.environ.keys():
@@ -110,19 +104,11 @@ def create_command_using_params_dumper(command):
 
 
 def create_arguments_from_parameters(paramter_names):
-    return ["_"] + list(
-        itertools.chain(
-            *[[param, dsl.PipelineParam(param)] for param in paramter_names]
-        )
-    )
+    return ["_"] + list(itertools.chain(*[[param, dsl.PipelineParam(param)] for param in paramter_names]))
 
 
-def create_pipeline_exit_handler(
-    pipeline, image, image_pull_policy, run_config, context
-):
-    enable_volume_cleaning = (
-        run_config.volume is not None and not run_config.volume.keep
-    )
+def create_pipeline_exit_handler(pipeline, image, image_pull_policy, run_config, context):
+    enable_volume_cleaning = run_config.volume is not None and not run_config.volume.keep
 
     if not enable_volume_cleaning and not run_config.on_exit_pipeline:
         return contextlib.nullcontext()
@@ -131,16 +117,12 @@ def create_pipeline_exit_handler(
 
     if enable_volume_cleaning:
         commands.append(
-            "kedro kubeflow delete-pipeline-volume "
-            "{{workflow.name}}-" + sanitize_k8s_name(f"{pipeline}-data-volume")
+            "kedro kubeflow delete-pipeline-volume " "{{workflow.name}}-" + sanitize_k8s_name(f"{pipeline}-data-volume")
         )
 
     if run_config.on_exit_pipeline:
         commands.append(
-            "kedro run "
-            "--config config.yaml "
-            f"--env {context.env} "
-            f"--pipeline {run_config.on_exit_pipeline}"
+            "kedro run " "--config config.yaml " f"--env {context.env} " f"--pipeline {run_config.on_exit_pipeline}"
         )
 
     exit_container_op = dsl.ContainerOp(
@@ -158,21 +140,15 @@ def create_pipeline_exit_handler(
     )
 
     if run_config.max_cache_staleness not in [None, ""]:
-        exit_container_op.execution_options.caching_strategy.max_cache_staleness = (
-            run_config.max_cache_staleness
-        )
+        exit_container_op.execution_options.caching_strategy.max_cache_staleness = run_config.max_cache_staleness
 
-    return dsl.ExitHandler(
-        customize_op(exit_container_op, image_pull_policy, run_config)
-    )
+    return dsl.ExitHandler(customize_op(exit_container_op, image_pull_policy, run_config))
 
 
 def customize_op(op, image_pull_policy, run_config: RunConfig):
     op.container.set_image_pull_policy(image_pull_policy)
     if run_config.volume and run_config.volume.owner is not None:
-        op.container.set_security_context(
-            k8s.V1SecurityContext(run_as_user=run_config.volume.owner)
-        )
+        op.container.set_security_context(k8s.V1SecurityContext(run_as_user=run_config.volume.owner))
 
     resources = run_config.resources[op.name]
     op.container.resources = k8s.V1ResourceRequirements(
@@ -187,12 +163,7 @@ def customize_op(op, image_pull_policy, run_config: RunConfig):
         op.add_toleration(k8s.V1Toleration(**toleration.dict()))
 
     if extra_volumes := run_config.extra_volumes[op.name]:
-        op.add_pvolumes(
-            {
-                ev.mount_path: dsl.PipelineVolume(volume=ev.as_v1volume())
-                for ev in extra_volumes
-            }
-        )
+        op.add_pvolumes({ev.mount_path: dsl.PipelineVolume(volume=ev.as_v1volume()) for ev in extra_volumes})
     return op
 
 

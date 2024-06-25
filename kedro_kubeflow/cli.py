@@ -23,9 +23,7 @@ def commands():
     pass
 
 
-@commands.group(
-    name="kubeflow", context_settings=dict(help_option_names=["-h", "--help"])
-)
+@commands.group(name="kubeflow", context_settings=dict(help_option_names=["-h", "--help"]))
 @click.option(
     "-e",
     "--env",
@@ -284,9 +282,7 @@ def init(ctx, kfp_url: str, with_github_actions: bool):
         image = project_name
         run_name = project_name
 
-    sample_config = PluginConfig.sample_config(
-        url=kfp_url, image=image, project=project_name, run_name=run_name
-    )
+    sample_config = PluginConfig.sample_config(url=kfp_url, image=image, project=project_name, run_name=run_name)
     config_path = Path.cwd().joinpath("conf/base/kubeflow.yaml")
     with open(config_path, "w") as f:
         f.write(sample_config)
@@ -324,9 +320,7 @@ def mlflow_start(ctx, kubeflow_run_id: str, output: str):
         raise click.ClickException("Could not read MLFlow config")
 
     run = mlflow.start_run(
-        experiment_id=mlflow.get_experiment_by_name(
-            mlflow_conf.tracking.experiment.name
-        ).experiment_id,
+        experiment_id=mlflow.get_experiment_by_name(mlflow_conf.tracking.experiment.name).experiment_id,
         nested=False,
     )
     mlflow.set_tag("kubeflow_run_id", kubeflow_run_id)
@@ -341,9 +335,7 @@ def delete_pipeline_volume(pvc_name: str):
     import kubernetes.config  # NOQA
 
     kubernetes.config.load_incluster_config()
-    current_namespace = open(
-        "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
-    ).read()
+    current_namespace = open("/var/run/secrets/kubernetes.io/serviceaccount/namespace").read()
 
     kubernetes.client.CoreV1Api().delete_namespaced_persistent_volume_claim(
         pvc_name,

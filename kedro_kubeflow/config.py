@@ -171,11 +171,7 @@ class DefaultConfigDict(defaultdict):
     def __getitem__(self, key):
         defaults: BaseModel = super().__getitem__("__default__")
         this: BaseModel = super().__getitem__(key)
-        return (
-            defaults.copy(update=this.dict(exclude_none=True))
-            if defaults
-            else this
-        )
+        return defaults.copy(update=this.dict(exclude_none=True)) if defaults else this
 
 
 class ResourceConfig(dict):
@@ -241,25 +237,15 @@ class ExtraVolumeConfig(BaseModel):
             assert (
                 actual_cls := ExtraVolumeConfig._resolve_cls(value.cls)
             ) is not None, f"Cannot import class {value.cls}"
-            return actual_cls(
-                **{
-                    k: ExtraVolumeConfig._construct(v)
-                    for k, v in value.params.items()
-                }
-            )
+            return actual_cls(**{k: ExtraVolumeConfig._construct(v) for k, v in value.params.items()})
         elif isinstance(value, list):
-            return [
-                ExtraVolumeConfig._construct(ObjectKwargs.parse_obj(v))
-                for v in value
-            ]
+            return [ExtraVolumeConfig._construct(ObjectKwargs.parse_obj(v)) for v in value]
         else:
             return value
 
     @classmethod
     def _construct_v1_volume(cls, value: dict):
-        return V1Volume(
-            **{k: ExtraVolumeConfig._construct(v) for k, v in value.items()}
-        )
+        return V1Volume(**{k: ExtraVolumeConfig._construct(v) for k, v in value.items()})
 
     @validator("volume")
     def volume_validator(cls, value):
@@ -267,8 +253,7 @@ class ExtraVolumeConfig(BaseModel):
             cls._construct_v1_volume(value)
         except Exception as ex:
             logger.exception(
-                "Cannot construct kubernetes.client.models.v1_volume.V1Volume "
-                "from the passed `volume` field",
+                "Cannot construct kubernetes.client.models.v1_volume.V1Volume " "from the passed `volume` field",
             )
             raise ex
         return value
@@ -282,17 +267,13 @@ class RunConfig(BaseModel):
             self.scheduled_run_name = kwargs["run_name"]
 
     @staticmethod
-    def _create_default_dict_with(
-        value: dict, default, dict_cls: Type = DefaultConfigDict
-    ):
+    def _create_default_dict_with(value: dict, default, dict_cls: Type = DefaultConfigDict):
         default_value = (value := value or {}).get("__default__", default)
         return dict_cls(lambda: default_value, value)
 
     @validator("resources", always=True)
     def _validate_resources(cls, value):
-        default = ResourceConfig(
-            {"__default__": {"cpu": "500m", "memory": "1024Mi"}}
-        )
+        default = ResourceConfig({"__default__": {"cpu": "500m", "memory": "1024Mi"}})
         if isinstance(value, dict):
             default.update(value)
         elif value is not None:
