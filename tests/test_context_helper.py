@@ -35,7 +35,7 @@ class TestContextHelper(unittest.TestCase, MinimalConfigMixin):
 
     def test_context(self):
         metadata = Mock()
-        metadata.package_name = "test_package"
+        metadata.project_path = "test_package"
         kedro_session = MagicMock(KedroSession)
         kedro_session.load_context.return_value = "sample_context"
 
