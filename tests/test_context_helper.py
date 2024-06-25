@@ -25,7 +25,7 @@ class TestContextHelper(unittest.TestCase, MinimalConfigMixin):
 
     def test_project_name(self):
         metadata = Mock()
-        metadata.project_name = "test_project"
+        metadata.project_path = Path("test_project")
 
         helper = ContextHelper.init(metadata, "test")
         assert helper.project_name == "test_project"
@@ -63,9 +63,12 @@ class TestEnvTemplatedConfigLoader(unittest.TestCase):
             Path(os.path.dirname(os.path.abspath(__file__))) / "conf"
         )
         loader = EnvTemplatedConfigLoader(
-            config_path, env="unittests", default_run_env="base"
+            config_path,
+            env="unittests",
+            default_run_env="base",
+            config_patterns={"test_config": ["test_config.yml"]},
         )
-        return loader.get("test_config.yml")
+        return loader.get("test_config")
 
     def test_loader_with_defaults(self):
         config = self.get_config()

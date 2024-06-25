@@ -1,6 +1,6 @@
 run_config:
-  image: "gcr.io/project-image/${commit_id|dirty}"
-  experiment_name: "[Test] ${branch_name|local}"
-  run_name: "${xyz123|dirty}"
+  image: "gcr.io/project-image/${oc.env:commit_id,dirty}"
+  experiment_name: "[Test] ${oc.env:branch_name,local}"
+  run_name: "${oc.env:xyz123,dirty}"
   host: http://localhost:1234
 
