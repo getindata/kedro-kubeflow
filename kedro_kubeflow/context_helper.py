@@ -29,6 +29,12 @@ class EnvTemplatedConfigLoader(OmegaConfigLoader):
         base_env: str = "base",
         default_run_env: str = "local"
     ):
+        import warnings  # TODO remove this class
+
+        warnings.warn(
+            "EnvTemplatedConfigLoader is deprecated and will be removed next release,"
+            " please use OmegaConfigLoader with oc.env resolver"
+        )
         self.read_env()
 
         super().__init__(

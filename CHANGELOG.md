@@ -2,7 +2,9 @@
 
 ## [Unreleased]
 
-- Updated dependencies, bumped kedro to 0.18.9, mlflow to 2.3.2
+- Added support for python 3.11, 3.12 is still blocked by kedro-mlflow 
+- Deprecated EnvTemplatedConfigLoader, use OmegaConfigLoader with oc.env resolver
+- Updated dependencies updated mlflow to 2.3.2
 - Add support for `kedro>0.18.4,<=0.19.6`
 
 ## [0.7.4] - 2023-02-27

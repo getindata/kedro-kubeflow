@@ -13,10 +13,10 @@ repos:
   hooks:
   - id: flake8
     args: ['--ignore=E203,W503'] # see https://github.com/psf/black/issues/315 https://github.com/psf/black/issues/52
-- repo: https://github.com/getindata/py-pre-commit-hooks
-  rev: v0.2.0
-  hooks:
-  - id: pyspelling-docker
+# - repo: https://github.com/getindata/py-pre-commit-hooks # removing from pre-commit, left in github actions due to support issues
+#   rev: v0.2.0
+#   hooks:
+#   - id: pyspelling-docker
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v3.2.0
   hooks:
