@@ -51,12 +51,12 @@ run_config:
   # This sets the caching option for pipeline using
   # execution_options.caching_strategy.max_cache_staleness
   # See https://en.wikipedia.org/wiki/ISO_8601 in section 'Duration'
-  #max_cache_staleness: P0D
+  # max_cache_staleness: P0D
 
   # Set to false to disable kfp artifacts exposal
   # This setting can be useful if you don't want to store
   # intermediate results in the MLMD
-  #store_kedro_outputs_as_kfp_artifacts: True
+  # store_kedro_outputs_as_kfp_artifacts: True
 
   # Strategy used to generate Kubeflow pipeline nodes from Kedro nodes
   # Available strategies:
@@ -70,14 +70,14 @@ run_config:
   #           This strategy mitigate potential performance issues with `none` strategy
   #           but at the cost of degraded user experience within Kubeflow UI: a graph
   #           is collapsed to one node.
-  #node_merge_strategy: none
+  # node_merge_strategy: none
 
   # Optional volume specification
   volume:
 
     # Storage class - use null (or no value) to use the default storage
     # class deployed on the Kubernetes cluster
-    storageclass: # default
+    storageclass: null # default
 
     # The size of the volume that is created. Applicable for some storage
     # classes
@@ -86,7 +86,7 @@ run_config:
     # Access mode of the volume used to exchange data. ReadWriteMany is
     # preferred, but it is not supported on some environements (like GKE)
     # Default value: ReadWriteOnce
-    #access_modes: [ReadWriteMany]
+    # access_modes: [ReadWriteMany]
 
     # Flag indicating if the data-volume-init step (copying raw data to the
     # fresh volume) should be skipped

@@ -173,4 +173,4 @@ terraform/terraform.tfstate
 
 .idea
 conf/azure/credentials.yml
-
+.vscode

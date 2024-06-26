@@ -1,10 +1,15 @@
 import os
-from functools import lru_cache
+from functools import cached_property, lru_cache
 from typing import Any, Dict
 
 from kedro import __version__ as kedro_version
-from kedro.config import OmegaConfigLoader
+from kedro.config import (
+    AbstractConfigLoader,
+    MissingConfigException,
+    OmegaConfigLoader,
+)
 from kedro.framework.session import KedroSession
+from omegaconf import DictConfig, OmegaConf
 from omegaconf.resolvers import oc
 from semver import VersionInfo
 
@@ -27,7 +32,7 @@ class EnvTemplatedConfigLoader(OmegaConfigLoader):
         config_patterns: Dict[str, Any] = None,
         *,
         base_env: str = "base",
-        default_run_env: str = "local"
+        default_run_env: str = "local",
     ):
         import warnings  # TODO remove this class
 
@@ -64,6 +69,7 @@ class EnvTemplatedConfigLoader(OmegaConfigLoader):
 class ContextHelper(object):
 
     CONFIG_FILE_PATTERN = "kubeflow*"
+    CONFIG_KEY = "kubeflow"
 
     def __init__(self, metadata, env):
         self._metadata = metadata
@@ -76,7 +82,7 @@ class ContextHelper(object):
     @property
     @lru_cache()
     def session(self):
-        return KedroSession.create(self._metadata.package_name, env=self._env)
+        return KedroSession.create(self._metadata.project_path, env=self._env)
 
     @property
     def env(self):
@@ -86,14 +92,46 @@ class ContextHelper(object):
     def context(self):
         return self.session.load_context()
 
-    @property
-    @lru_cache()
+    @cached_property
     def config(self) -> PluginConfig:
-        raw = EnvTemplatedConfigLoader(
-            self.context.config_loader.conf_source,
-            env=self._env,
-        ).get(self.CONFIG_FILE_PATTERN)
-        return PluginConfig(**raw)
+        cl: AbstractConfigLoader = self.context.config_loader
+        try:
+            if self.CONFIG_KEY not in cl.config_patterns.keys():
+                cl.config_patterns.update(
+                    {
+                        self.CONFIG_KEY: [
+                            self.CONFIG_FILE_PATTERN,
+                            f"{self.CONFIG_FILE_PATTERN}/**",
+                        ]
+                    }
+                )
+            kubeflow_config = self._ensure_obj_is_dict(cl.get(self.CONFIG_KEY))
+        except MissingConfigException:
+            if not isinstance(cl, OmegaConfigLoader):
+                raise ValueError(
+                    f"You're using a custom config loader: {cl.__class__.__qualname__}{os.linesep}"
+                    f"you need to add the {self.CONFIG_KEY} config to it.{os.linesep}"
+                    f"Make sure you add {self.CONFIG_FILE_PATTERN} to config_pattern in CONFIG_LOADER_ARGS "
+                    f"in the settings.py file.{os.linesep}"
+                    """Example:
+CONFIG_LOADER_ARGS = {
+    # other args
+    "config_patterns": {"kubeflow": ["kubeflow*"]}
+}
+                    """.strip()
+                )
+            else:
+                raise ValueError(
+                    "Missing kubeflow.yml files in configuration. " "Make sure that you configure your project first"
+                )
+        return PluginConfig.parse_obj(kubeflow_config)
+
+    def _ensure_obj_is_dict(self, obj):
+        if isinstance(obj, DictConfig):
+            obj = OmegaConf.to_container(obj)
+        elif isinstance(obj, dict) and any(isinstance(v, DictConfig) for v in obj.values()):
+            obj = {k: (OmegaConf.to_container(v) if isinstance(v, DictConfig) else v) for k, v in obj.items()}
+        return obj
 
     @property
     @lru_cache()

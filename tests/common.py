@@ -8,6 +8,7 @@ class MinimalConfigMixin:
                 "image": "asd",
                 "experiment_name": "exp",
                 "run_name": "unit tests",
+                "node_merge_strategy": "none",
             },
             "host": "localhost:8080",
         }

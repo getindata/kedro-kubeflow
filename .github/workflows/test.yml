@@ -132,12 +132,14 @@ jobs:
       - name: Init and update configuration
         working-directory: ./spaceflights
         run: |
+          sed -i "s/\(CONFIG_LOADER_ARGS.*\)$/from omegaconf.resolvers import oc\n\1\n      \"custom_resolvers\": { \"oc.env\": oc.env },/g" src/spaceflights/settings.py
           kedro docker init
           kedro kubeflow init http://localhost:9000
           echo "!data/01_raw" >> .dockerignore
-          mv ../tests/e2e/catalog.yml conf/base/catalog.yml
+          cp ../tests/e2e/catalog.yml conf/base/catalog.yml
           rm -f conf/base/kubeflow.y*
-          mv ../tests/e2e/kubeflow.yml conf/base/kubeflow.yml
+          cp ../tests/e2e/kubeflow.yml conf/base/kubeflow.yml
+          
 
       - name: Prepare docker env
         uses: docker/setup-buildx-action@v1
