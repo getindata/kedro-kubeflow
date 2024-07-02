@@ -16,6 +16,6 @@ it can be started on any Kubernetes cluster. The code to execute is stored insid
 docker images that cover not only the source itself, but also all the libraries and 
 entire execution environment. Portability is also one of the key Kedro qualities, as 
 the pipelines must be versionable and packageable. Kedro, with 
-[Kedro-docker](https://github.com/quantumblacklabs/kedro-docker) plugin does a fantastic 
+[Kedro-Docker](https://github.com/kedro-org/kedro-plugins/tree/main/kedro-docker) plugin does a fantastic 
 job to achieve this and Kubeflow looks like a nice add-on to run the pipelines 
 on powerful remote Kubernetes clusters.
