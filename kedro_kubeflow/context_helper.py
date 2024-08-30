@@ -77,7 +77,7 @@ class ContextHelper(object):
 
     @property
     def project_name(self):
-        return self._metadata.project_path.name
+        return self._metadata.project_name
 
     @property
     @lru_cache()
