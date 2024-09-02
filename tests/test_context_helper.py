@@ -28,7 +28,7 @@ class TestContextHelper(unittest.TestCase, MinimalConfigMixin):
 
     def test_project_name(self):
         metadata = Mock()
-        metadata.project_path = Path("test_project")
+        metadata.project_name = "test_project"
 
         helper = ContextHelper.init(metadata, "test")
         assert helper.project_name == "test_project"

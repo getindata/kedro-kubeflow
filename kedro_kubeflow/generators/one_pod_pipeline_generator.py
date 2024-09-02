@@ -24,7 +24,7 @@ class OnePodPipelineGenerator(object):
         self.context: KedroContext = context
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
         self.run_config = config.run_config
-        self.catalog = context.config_loader.get("catalog*")
+        self.catalog = context.config_loader.get("catalog")
 
     def generate_pipeline(self, pipeline, image, image_pull_policy):
         merged_params = merge_namespaced_params_to_dict(self.context.params)

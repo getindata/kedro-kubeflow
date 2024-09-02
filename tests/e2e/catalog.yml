@@ -1,57 +1,46 @@
 companies:
   type: pandas.CSVDataSet
   filepath: data/01_raw/companies.csv
-  layer: raw
 
 reviews:
   type: pandas.CSVDataSet
   filepath: data/01_raw/reviews.csv
-  layer: raw
 
 shuttles:
   type: pandas.ExcelDataSet
   filepath: data/01_raw/shuttles.xlsx
-  layer: raw
   load_args:
     engine: openpyxl
 
 model_input_table:
   type: pandas.CSVDataSet
-  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/03_primary/model_input_table.csv
-  layer: primary
+  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${oc.env:KEDRO_CONFIG_RUN_ID,unknown}/03_primary/model_input_table.csv
 
 preprocessed_companies:
   type: pandas.CSVDataSet
-  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/02_intermediate/preprocessed_companies.csv
-  layer: intermediate
+  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${oc.env:KEDRO_CONFIG_RUN_ID,unknown}/02_intermediate/preprocessed_companies.csv
 
 preprocessed_shuttles:
   type: pandas.CSVDataSet
-  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/02_intermediate/preprocessed_shuttles.csv
-  layer: intermediate
+  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${oc.env:KEDRO_CONFIG_RUN_ID,unknown}/02_intermediate/preprocessed_shuttles.csv
 
 X_train:
   type: pickle.PickleDataSet
-  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/05_model_input/X_train.pickle
-  layer: model_input
+  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${oc.env:KEDRO_CONFIG_RUN_ID,unknown}/05_model_input/X_train.pickle
 
 y_train:
   type: pickle.PickleDataSet
-  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/05_model_input/y_train.pickle
-  layer: model_input
+  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${oc.env:KEDRO_CONFIG_RUN_ID,unknown}/05_model_input/y_train.pickle
 
 X_test:
   type: pickle.PickleDataSet
-  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/05_model_input/X_test.pickle
-  layer: model_input
+  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${oc.env:KEDRO_CONFIG_RUN_ID,unknown}/05_model_input/X_test.pickle
 
 y_test:
   type: pickle.PickleDataSet
-  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/05_model_input/y_test.pickle
-  layer: model_input
+  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${oc.env:KEDRO_CONFIG_RUN_ID,unknown}/05_model_input/y_test.pickle
 
 regressor:
   type: pickle.PickleDataSet
-  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${run_id}/06_models/regressor.pickle
+  filepath: gs://gid-ml-ops-sandbox-plugin-tests/kube_${oc.env:KEDRO_CONFIG_RUN_ID,unknown}/06_models/regressor.pickle
   versioned: true
-  layer: models

@@ -27,7 +27,7 @@ class PodPerNodePipelineGenerator(object):
         self.context: KedroContext = context
         dsl.ContainerOp._DISABLE_REUSABLE_COMPONENT_WARNING = True
         self.run_config = config.run_config
-        self.catalog = context.config_loader.get("catalog*")
+        self.catalog = context.config_loader.get("catalog")
 
     def configure_max_cache_staleness(self, kfp_ops):
         if self.run_config.max_cache_staleness not in [None, ""]:
@@ -128,7 +128,7 @@ class PodPerNodePipelineGenerator(object):
                         "run "
                         f"--env {self.context.env} "
                         f"--pipeline {pipeline} "
-                        f"--node {node.name} "
+                        f"--nodes {node.name} "
                         f"--config config.yaml"
                     ),
                     arguments=create_arguments_from_parameters(params.keys()),
