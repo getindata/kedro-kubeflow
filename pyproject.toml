@@ -1,9 +1,9 @@
 [tool.poetry]
 name = "kedro-kubeflow"
-version = "0.7.4"
+version = "0.8.0"
 description = "Kedro plugin with Kubeflow Pipelines support"
 readme = "README.md"
-authors = ['Mateusz Pytel <mateusz.pytel@getindata.com>', 'Mariusz Strzelecki <mariusz.strzelecki@getindata.com>']
+authors = ['Mateusz Pytel <mateusz.pytel@getindata.com>', 'Mariusz Strzelecki <mariusz.strzelecki@getindata.com>, Artur Dobrogowski <artur.dobrogowski@getindata.com']
 maintainers = ['GetInData MLOPS <mlops@getindata.com>']
 homepage = "https://github.com/getindata/kedro-kubeflow"
 repository = "https://github.com/getindata/kedro-kubeflow"
@@ -27,33 +27,37 @@ exclude_lines = [
     "pragma: no cover",
     "raise NotImplementedError"
 ]
+[tool.flake8]
+line-length = 121
 
 [tool.black]
-line-length = 79
+line-length = 121
 
 [tool.isort]
-known_third_party = ["click", "google", "kedro", "kfp", "kubernetes", "tabulate", "pydantic","semver", "setuptools"]
+known_third_party = ["click", "google", "kedro", "kfp", "kubernetes", "tabulate", "pydantic", "semver", "setuptools"]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.11"
-kedro = ">=0.18.1, <0.19.0"
+python = ">=3.8,<3.12"
+kedro = ">0.18.4, <=0.19.8"
+# kedro-viz = { version = "<8", optional = true} # because of pydantic conflict
 click = ">=8.0.4"
-kfp = ">=1.8.12,<2.0"
+kfp = ">=1.8.12,<2.0" # blocking pydantic upgrade
 tabulate = ">=0.8.7"
 semver = "~=2.10"
-fsspec = "<=2022.1,>=2021.4"
+fsspec = ">=2021.4"
+pyyaml = ">=6.0,<7.0"
 google-auth = { version = "<3", optional = true}
-gcsfs = { version = "<=2022.1,>=2021.4", optional = true}
-kedro-mlflow = { version = "~=0.11.1", optional = true }
+gcsfs = { version = ">=2021.4", optional = true}
+kedro-mlflow = { version = ">=0.11.0", optional = true }
 
 [tool.poetry.extras]
 mlflow = ["kedro-mlflow"]
 gcp = ["google-auth", "gcsfs"]
 
 [tool.poetry.dev-dependencies]
-pytest = "<7"
+pytest = "<8"
 pytest-cov = ">=2.8.0, <4.0.0"
-tox = ">=3.25.1"
+tox = ">=3.25.1, <4.0.0"
 pre-commit = "2.20.0"
 pytest-subtests = ">=0.5.0, <1.0.0"
 responses = ">=0.13.4"

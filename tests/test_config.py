@@ -57,11 +57,7 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
             PluginConfig(**{})
 
     def test_resources_default_only(self):
-        cfg = PluginConfig(
-            **self.minimal_config(
-                {"run_config": {"resources": {"__default__": {"cpu": "100m"}}}}
-            )
-        )
+        cfg = PluginConfig(**self.minimal_config({"run_config": {"resources": {"__default__": {"cpu": "100m"}}}}))
         self.assertEqual(cfg.run_config.resources["node2"]["cpu"], "100m")
         self.assertEqual(cfg.run_config.resources["node3"]["cpu"], "100m")
 
@@ -81,19 +77,11 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
                 }
             )
         )
-        self.assertEqual(
-            cfg.run_config.resources["__default__"]["nvidia.com/gpu"], "1"
-        )
-        self.assertEqual(
-            cfg.run_config.resources["node3"]["nvidia.com/tpu"], "1"
-        )
+        self.assertEqual(cfg.run_config.resources["__default__"]["nvidia.com/gpu"], "1")
+        self.assertEqual(cfg.run_config.resources["node3"]["nvidia.com/tpu"], "1")
 
     def test_resources_no_default(self):
-        cfg = PluginConfig(
-            **self.minimal_config(
-                {"run_config": {"resources": {"node2": {"cpu": "100m"}}}}
-            )
-        )
+        cfg = PluginConfig(**self.minimal_config({"run_config": {"resources": {"node2": {"cpu": "100m"}}}}))
         self.assertEqual(cfg.run_config.resources["node2"]["cpu"], "100m")
         self.assertDictEqual(
             cfg.run_config.resources["node3"],
@@ -137,22 +125,10 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
                 "effect": "NoSchedule",
             }
         ]
-        cfg = PluginConfig(
-            **self.minimal_config(
-                {
-                    "run_config": {
-                        "tolerations": {"__default__": toleration_config}
-                    }
-                }
-            )
-        )
+        cfg = PluginConfig(**self.minimal_config({"run_config": {"tolerations": {"__default__": toleration_config}}}))
 
-        self.assertDictEqual(
-            cfg.run_config.tolerations["node2"][0].dict(), toleration_config[0]
-        )
-        self.assertDictEqual(
-            cfg.run_config.tolerations["node3"][0].dict(), toleration_config[0]
-        )
+        self.assertDictEqual(cfg.run_config.tolerations["node2"][0].dict(), toleration_config[0])
+        self.assertDictEqual(cfg.run_config.tolerations["node3"][0].dict(), toleration_config[0])
 
     def test_tolerations_no_default(self):
         toleration_config = [
@@ -163,24 +139,16 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
                 "effect": "NoSchedule",
             }
         ]
-        cfg = PluginConfig(
-            **self.minimal_config(
-                {"run_config": {"tolerations": {"node2": toleration_config}}}
-            )
-        )
+        cfg = PluginConfig(**self.minimal_config({"run_config": {"tolerations": {"node2": toleration_config}}}))
 
-        self.assertDictEqual(
-            cfg.run_config.tolerations["node2"][0].dict(), toleration_config[0]
-        )
+        self.assertDictEqual(cfg.run_config.tolerations["node2"][0].dict(), toleration_config[0])
 
         self.assertEqual(
-            isinstance(cfg.run_config.tolerations["node2"], list)
-            and len(cfg.run_config.tolerations["node2"]),
+            isinstance(cfg.run_config.tolerations["node2"], list) and len(cfg.run_config.tolerations["node2"]),
             1,
         )
         self.assertEqual(
-            isinstance(cfg.run_config.tolerations["node3"], list)
-            and len(cfg.run_config.tolerations["node3"]),
+            isinstance(cfg.run_config.tolerations["node3"], list) and len(cfg.run_config.tolerations["node3"]),
             0,
         )
 
@@ -214,24 +182,18 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
             )
         )
 
-        self.assertDictEqual(
-            cfg.run_config.tolerations["node2"][0].dict(), toleration_config[0]
-        )
+        self.assertDictEqual(cfg.run_config.tolerations["node2"][0].dict(), toleration_config[0])
         self.assertDictEqual(
             cfg.run_config.tolerations["node3"][0].dict(),
             default_toleration_config[0],
         )
 
     def test_do_not_keep_volume_by_default(self):
-        cfg = PluginConfig(
-            **self.minimal_config(override={"run_config": {"volume": {}}})
-        )
+        cfg = PluginConfig(**self.minimal_config(override={"run_config": {"volume": {}}}))
         assert cfg.run_config.volume.keep is False
 
     def test_reuse_run_name_for_scheduled_run_name(self):
-        cfg = PluginConfig(
-            **self.minimal_config({"run_config": {"run_name": "some run"}})
-        )
+        cfg = PluginConfig(**self.minimal_config({"run_config": {"run_name": "some run"}}))
         self.assertEqual(cfg.run_config.run_name, "some run")
         self.assertEqual(cfg.run_config.scheduled_run_name, "some run")
 

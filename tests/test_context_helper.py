@@ -1,8 +1,11 @@
+import json
 import os
 import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock, Mock, patch
 
+import yaml
 from kedro.framework.session import KedroSession
 
 from kedro_kubeflow.config import PluginConfig
@@ -32,7 +35,7 @@ class TestContextHelper(unittest.TestCase, MinimalConfigMixin):
 
     def test_context(self):
         metadata = Mock()
-        metadata.package_name = "test_package"
+        metadata.project_path = "test_package"
         kedro_session = MagicMock(KedroSession)
         kedro_session.load_context.return_value = "sample_context"
 
@@ -42,30 +45,69 @@ class TestContextHelper(unittest.TestCase, MinimalConfigMixin):
             assert helper.context == "sample_context"
             create.assert_called_with("test_package", env="test")
 
+    # def test_config(self):
+    #     metadata = Mock()
+    #     metadata.package_name = "test_package"
+    #     session = MagicMock()
+    #     cfg = self.minimal_config()
+    #     session.load_context().config_loader.return_value = cfg.dict()
+    #     with patch.object(KedroSession, "create", return_value=session), patch(
+    #         "kedro_kubeflow.context_helper.EnvTemplatedConfigLoader"
+    #     ) as config_loader:
+    #         config_loader.return_value.get.return_value =
+    #         helper = ContextHelper.init(metadata, "test")
+    #         assert helper.config == PluginConfig(**self.minimal_config())
+    #         assert config_loader.call_args.kwargs["env"] == "test"
+
     def test_config(self):
         metadata = Mock()
         metadata.package_name = "test_package"
-        context = MagicMock()
-        context.config_loader.return_value.get.return_value = ["one", "two"]
-        with patch.object(KedroSession, "create", context), patch(
-            "kedro_kubeflow.context_helper.EnvTemplatedConfigLoader"
-        ) as config_loader:
-            config_loader.return_value.get.return_value = self.minimal_config()
+        session = MagicMock()
+        cfg = PluginConfig.parse_obj(self.minimal_config())
+        session.load_context().config_loader.get.return_value = cfg.dict()
+        with patch.object(KedroSession, "create", return_value=session):
             helper = ContextHelper.init(metadata, "test")
-            assert helper.config == PluginConfig(**self.minimal_config())
-            assert config_loader.call_args.kwargs["env"] == "test"
+            assert helper.config == cfg
+
+    # TODO debug and fix omegaconf test
+    def test_config_with_omegaconf(self):
+        from kedro.config import OmegaConfigLoader
+
+        with TemporaryDirectory() as tmp_dir_raw:
+            tmp_dir = Path(tmp_dir_raw)
+            (tmp_dir / "conf" / "base").mkdir(parents=True, exist_ok=False)
+            (conf_dir := tmp_dir / "conf" / "local").mkdir(parents=True, exist_ok=False)
+            cfg = PluginConfig.parse_obj(self.minimal_config())
+            (conf_dir / "kubeflow.yml").write_text(
+                yaml.dump(json.loads(json.dumps(cfg.dict()))), None
+            )  # because enums are not
+
+            metadata = Mock()
+            metadata.package_name = "test_package"
+            for config_pattern in [{"kubeflow": ["kubeflow*"]}]:
+                session = MagicMock()
+                session.load_context().config_loader = OmegaConfigLoader(
+                    str(tmp_dir / "conf"),
+                    config_patterns=config_pattern,
+                    default_run_env="local",
+                    base_env="local",
+                )
+                with patch.object(KedroSession, "create", return_value=session):
+                    helper = ContextHelper.init(metadata, "test")
+                    assert helper.config == cfg
 
 
 class TestEnvTemplatedConfigLoader(unittest.TestCase):
     @staticmethod
     def get_config():
-        config_path = str(
-            Path(os.path.dirname(os.path.abspath(__file__))) / "conf"
-        )
+        config_path = str(Path(os.path.dirname(os.path.abspath(__file__))) / "conf")
         loader = EnvTemplatedConfigLoader(
-            config_path, env="unittests", default_run_env="base"
+            config_path,
+            env="unittests",
+            default_run_env="base",
+            config_patterns={"test_config": ["test_config.yml"]},
         )
-        return loader.get("test_config.yml")
+        return loader.get("test_config")
 
     def test_loader_with_defaults(self):
         config = self.get_config()

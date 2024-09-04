@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2024-09-04
+
+-   Added support for python 3.11. Python 3.12 is still blocked by kedro-mlflow
+-   Deprecated EnvTemplatedConfigLoader, use OmegaConfigLoader with oc.env resolver
+-   Updated dependencies updated mlflow to 2.3.2
+-   Added support for `kedro>0.18.4,<=0.19.8`
+
 ## [0.7.4] - 2023-02-27
 
 -   Removed field validation from resources configuration field - now it can take any custom parameters such as "nvidia.com/gpu":1
@@ -172,7 +179,9 @@
 -   Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 -   Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.7.4...HEAD
+[Unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.8.0...HEAD
+
+[0.8.0]: https://github.com/getindata/kedro-kubeflow/compare/0.7.4...0.8.0
 
 [0.7.4]: https://github.com/getindata/kedro-kubeflow/compare/0.7.3...0.7.4
 

@@ -8,7 +8,7 @@ description: Kedro plugin with Kubeflow Pipelines support
 docs_url: https://kedro-kubeflow.readthedocs.io/
 full_name: Kedro Kubeflow Plugin
 github_url: https://github.com/getindata/kedro-kubeflow
-initial_version: 0.7.4
+initial_version: 0.8.0
 keywords:
 - kedro-plugin
 - kubeflow

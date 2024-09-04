@@ -32,30 +32,20 @@ class KubeflowClient(object):
             kfp_api=config.host,
         )
         if dex_authservice_session is not None:
-            client_params = {
-                "cookies": f"authservice_session={dex_authservice_session}"
-            }
+            client_params = {"cookies": f"authservice_session={dex_authservice_session}"}
         self.host = config.host
         self.client = Client(host=self.host, **client_params)
 
         self.project_name = project_name
         self.pipeline_description = config.run_config.description
         if config.run_config.node_merge_strategy == NodeMergeStrategyEnum.none:
-            self.generator = PodPerNodePipelineGenerator(
-                config, project_name, context
-            )
-        elif (
-            config.run_config.node_merge_strategy == NodeMergeStrategyEnum.full
-        ):
-            self.generator = OnePodPipelineGenerator(
-                config, project_name, context
-            )
+            self.generator = PodPerNodePipelineGenerator(config, project_name, context)
+        elif config.run_config.node_merge_strategy == NodeMergeStrategyEnum.full:
+            self.generator = OnePodPipelineGenerator(config, project_name, context)
 
     def list_pipelines(self):
         pipelines = self.client.list_pipelines(page_size=30).pipelines
-        return tabulate(
-            map(lambda x: [x.name, x.id], pipelines), headers=["Name", "ID"]
-        )
+        return tabulate(map(lambda x: [x.name, x.id], pipelines), headers=["Name", "ID"])
 
     def run_once(
         self,
@@ -70,9 +60,7 @@ class KubeflowClient(object):
         parameters={},
     ) -> Optional[Dict[str, str]]:
         run = self.client.create_run_from_pipeline_func(
-            self.generator.generate_pipeline(
-                pipeline, image, image_pull_policy
-            ),
+            self.generator.generate_pipeline(pipeline, image, image_pull_policy),
             arguments=parameters,
             experiment_name=experiment_name,
             namespace=experiment_namespace,
@@ -84,13 +72,9 @@ class KubeflowClient(object):
             return {"status": ret.run.status, "error": ret.run.error}
         return None
 
-    def compile(
-        self, pipeline, image, output, image_pull_policy="IfNotPresent"
-    ):
+    def compile(self, pipeline, image, output, image_pull_policy="IfNotPresent"):
         Compiler().compile(
-            self.generator.generate_pipeline(
-                pipeline, image, image_pull_policy
-            ),
+            self.generator.generate_pipeline(pipeline, image, image_pull_policy),
             output,
         )
         self.log.info("Generated pipeline definition was saved to %s" % output)
@@ -99,9 +83,7 @@ class KubeflowClient(object):
         return f"[{self.project_name}] {pipeline_name} (env: {env})"[:100]
 
     def upload(self, pipeline_name, image, image_pull_policy, env):
-        pipeline = self.generator.generate_pipeline(
-            pipeline_name, image, image_pull_policy
-        )
+        pipeline = self.generator.generate_pipeline(pipeline_name, image, image_pull_policy)
 
         full_pipeline_name = self.get_full_pipeline_name(pipeline_name, env)
         if self._pipeline_exists(full_pipeline_name):
@@ -109,9 +91,7 @@ class KubeflowClient(object):
             version_id = self._upload_pipeline_version(pipeline, pipeline_id)
             self.log.info("New version of pipeline created: %s", version_id)
         else:
-            (pipeline_id, version_id) = self._upload_pipeline(
-                pipeline, full_pipeline_name
-            )
+            (pipeline_id, version_id) = self._upload_pipeline(pipeline, full_pipeline_name)
             self.log.info("Pipeline created")
 
         self.log.info(
@@ -156,9 +136,7 @@ class KubeflowClient(object):
             if not str(e).startswith("No experiment is found"):
                 raise
 
-            experiment = self.client.create_experiment(
-                experiment_name, namespace=experiment_namespace
-            )
+            experiment = self.client.create_experiment(experiment_name, namespace=experiment_namespace)
             self.log.info(f"New experiment created: {experiment.id}")
 
         return experiment.id
@@ -173,12 +151,8 @@ class KubeflowClient(object):
         parameters,
         env,
     ):
-        experiment_id = self._ensure_experiment_exists(
-            experiment_name, experiment_namespace
-        )
-        pipeline_id = self.client.get_pipeline_id(
-            self.get_full_pipeline_name(pipeline, env)
-        )
+        experiment_id = self._ensure_experiment_exists(experiment_name, experiment_namespace)
+        pipeline_id = self.client.get_pipeline_id(self.get_full_pipeline_name(pipeline, env))
         formatted_run_name = run_name.format(**parameters)
         self._disable_runs(experiment_id, formatted_run_name)
         self.client.create_recurring_run(

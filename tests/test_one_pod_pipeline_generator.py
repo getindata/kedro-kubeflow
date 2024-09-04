@@ -30,22 +30,14 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             "kedro.framework.project.pipelines",
             new=self.pipelines_under_test,
         ):
-            pipeline = self.generator_under_test.generate_pipeline(
-                "pipeline", "unittest-image", "Never"
-            )
+            pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Never")
             with kfp.dsl.Pipeline(None) as dsl_pipeline:
                 pipeline()
 
             # then
             assert len(dsl_pipeline.ops) == 1
-            assert (
-                dsl_pipeline.ops["pipeline"].container.image
-                == "unittest-image"
-            )
-            assert (
-                dsl_pipeline.ops["pipeline"].container.image_pull_policy
-                == "Never"
-            )
+            assert dsl_pipeline.ops["pipeline"].container.image == "unittest-image"
+            assert dsl_pipeline.ops["pipeline"].container.image_pull_policy == "Never"
 
     def test_should_support_params_and_inject_them_to_the_node(self):
         # given
@@ -63,9 +55,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             new=self.pipelines_under_test,
         ):
             with kfp.dsl.Pipeline(None) as dsl_pipeline:
-                pipeline = self.generator_under_test.generate_pipeline(
-                    "pipeline", "unittest-image", "Always"
-                )
+                pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
                 default_params = signature(pipeline).parameters
                 pipeline()
 
@@ -99,17 +89,13 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             new=self.pipelines_under_test,
         ):
             with kfp.dsl.Pipeline(None) as dsl_pipeline:
-                pipeline = self.generator_under_test.generate_pipeline(
-                    "pipeline", "unittest-image", "Always"
-                )
+                pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
                 default_params = signature(pipeline).parameters
                 pipeline()
 
             # then
             assert len(default_params) == 3
-            assert default_params["param1"].default == {
-                "nested1": {"nested2": 1, "nested3": 2}
-            }
+            assert default_params["param1"].default == {"nested1": {"nested2": 1, "nested3": 2}}
             assert default_params["param2"].default == 42
             assert default_params["param3"].default == "2022-02-24"
             assert dsl_pipeline.ops["pipeline"].container.args[1:] == [
@@ -142,9 +128,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             new=self.pipelines_under_test,
         ):
             with kfp.dsl.Pipeline(None) as dsl_pipeline:
-                pipeline = self.generator_under_test.generate_pipeline(
-                    "pipeline", "unittest-image", "Always"
-                )
+                pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
                 default_params = signature(pipeline).parameters
                 pipeline()
 
@@ -178,20 +162,14 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             "kedro.framework.project.pipelines",
             new=self.pipelines_under_test,
         ):
-            pipeline = self.generator_under_test.generate_pipeline(
-                "pipeline", "unittest-image", "Always"
-            )
+            pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
             with kfp.dsl.Pipeline(None) as dsl_pipeline:
                 pipeline()
 
             # then
             assert dsl_pipeline.ops["pipeline"].container.resources is not None
-            assert dsl_pipeline.ops["pipeline"].container.resources.limits[
-                "cpu"
-            ]
-            assert dsl_pipeline.ops["pipeline"].container.resources.limits[
-                "memory"
-            ]
+            assert dsl_pipeline.ops["pipeline"].container.resources.limits["cpu"]
+            assert dsl_pipeline.ops["pipeline"].container.resources.limits["memory"]
 
     def test_should_add_resources_spec(self):
         # given
@@ -209,9 +187,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             "kedro.framework.project.pipelines",
             new=self.pipelines_under_test,
         ):
-            pipeline = self.generator_under_test.generate_pipeline(
-                "pipeline", "unittest-image", "Always"
-            )
+            pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
             with kfp.dsl.Pipeline(None) as dsl_pipeline:
                 pipeline()
 
@@ -229,9 +205,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             "kedro.framework.project.pipelines",
             new=self.pipelines_under_test,
         ):
-            pipeline = self.generator_under_test.generate_pipeline(
-                "pipeline", "unittest-image", "Always"
-            )
+            pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
             with kfp.dsl.Pipeline(None) as dsl_pipeline:
                 pipeline()
 
@@ -267,9 +241,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             "kedro.framework.project.pipelines",
             new=self.pipelines_under_test,
         ):
-            pipeline = self.generator_under_test.generate_pipeline(
-                "pipeline", "unittest-image", "Always"
-            )
+            pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
             with kfp.dsl.Pipeline(None) as dsl_pipeline:
                 pipeline()
 
@@ -286,9 +258,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
         self.create_generator(config={"description": "DESC"})
 
         # when
-        pipeline = self.generator_under_test.generate_pipeline(
-            "pipeline", "unittest-image", "Never"
-        )
+        pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Never")
 
         # then
         assert pipeline._component_description == "DESC"
@@ -309,16 +279,12 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             "kedro.framework.project.pipelines",
             new=self.pipelines_under_test,
         ):
-            pipeline = self.generator_under_test.generate_pipeline(
-                "pipeline", "unittest-image", "Always"
-            )
+            pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
             with kfp.dsl.Pipeline(None) as dsl_pipeline:
                 pipeline()
 
             # then
-            assert dsl_pipeline.ops["pipeline"].file_outputs == {
-                "B": "/home/kedro/data/02_intermediate/b.csv"
-            }
+            assert dsl_pipeline.ops["pipeline"].file_outputs == {"B": "/home/kedro/data/02_intermediate/b.csv"}
 
     def test_should_skip_artifact_registration_if_requested(self):
         # given
@@ -337,9 +303,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             "kedro.framework.project.pipelines",
             new=self.pipelines_under_test,
         ):
-            pipeline = self.generator_under_test.generate_pipeline(
-                "pipeline", "unittest-image", "Always"
-            )
+            pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
             with kfp.dsl.Pipeline(None) as dsl_pipeline:
                 pipeline()
 
@@ -358,17 +322,12 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
                 "kedro.framework.project.pipelines",
                 new=self.pipelines_under_test,
             ):
-                pipeline = self.generator_under_test.generate_pipeline(
-                    "pipeline", "unittest-image", "Always"
-                )
+                pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
                 with kfp.dsl.Pipeline(None) as dsl_pipeline:
                     pipeline()
 
                 # then
-                env_values = {
-                    e.name: e.value
-                    for e in dsl_pipeline.ops["pipeline"].container.env
-                }
+                env_values = {e.name: e.value for e in dsl_pipeline.ops["pipeline"].container.env}
                 assert "KEDRO_CONFIG_MY_KEY" in env_values
                 assert env_values["KEDRO_CONFIG_MY_KEY"] == "42"
                 assert "SOME_VALUE" not in env_values
@@ -385,17 +344,12 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             "kedro.framework.project.pipelines",
             new=self.pipelines_under_test,
         ):
-            pipeline = self.generator_under_test.generate_pipeline(
-                "pipeline", "unittest-image", "Always"
-            )
+            pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
             with kfp.dsl.Pipeline(None) as dsl_pipeline:
                 pipeline()
 
             # then
-            env_values = {
-                e.name: e.value
-                for e in dsl_pipeline.ops["pipeline"].container.env
-            }
+            env_values = {e.name: e.value for e in dsl_pipeline.ops["pipeline"].container.env}
             assert "KUBEFLOW_RUN_ID" in env_values
             assert env_values["KUBEFLOW_RUN_ID"] == "{{workflow.uid}}"
 
@@ -408,9 +362,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             "kedro.framework.project.pipelines",
             new=self.pipelines_under_test,
         ):
-            pipeline = self.generator_under_test.generate_pipeline(
-                "pipeline", "unittest-image", "Always"
-            )
+            pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
             with kfp.dsl.Pipeline(None) as dsl_pipeline:
                 pipeline()
 
@@ -420,10 +372,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             assert (
                 dsl_pipeline.ops["on-exit"]
                 .container.command[-1]
-                .endswith(
-                    "kedro run --config config.yaml "
-                    "--env unittests --pipeline notify_via_slack"
-                )
+                .endswith("kedro run --config config.yaml " "--env unittests --pipeline notify_via_slack")
             )
 
     def test_should_generate_exit_handler_with_max_staleness(self):
@@ -437,17 +386,10 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
 
         # when
         with kfp.dsl.Pipeline(None) as dsl_pipeline:
-            pipeline = self.generator_under_test.generate_pipeline(
-                "pipeline", "unittest-image", "Always"
-            )
+            pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
             pipeline()
 
-            assert (
-                dsl_pipeline.ops[
-                    "on-exit"
-                ].execution_options.caching_strategy.max_cache_staleness
-                == "P0D"
-            )
+            assert dsl_pipeline.ops["on-exit"].execution_options.caching_strategy.max_cache_staleness == "P0D"
 
     def create_generator(self, config=None, params=None, catalog=None):
         if config is None:
@@ -476,11 +418,7 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
             )
         }
         self.generator_under_test = OnePodPipelineGenerator(
-            config=PluginConfig(
-                **self.minimal_config(
-                    {"host": "http://unittest", "run_config": config}
-                )
-            ),
+            config=PluginConfig(**self.minimal_config({"host": "http://unittest", "run_config": config})),
             project_name="my-awesome-project",
             context=context,
         )

@@ -27,9 +27,7 @@ class TestAuthHandler(unittest.TestCase):
         assert token is None
 
     @patch("google.oauth2.id_token.fetch_id_token")
-    def test_should_warn_if_trying_to_use_default_creds(
-        self, fetch_id_token_mock
-    ):
+    def test_should_warn_if_trying_to_use_default_creds(self, fetch_id_token_mock):
         # given
         os.environ["IAP_CLIENT_ID"] = "unittest-client-id"
         fetch_id_token_mock.side_effect = DefaultCredentialsError()
@@ -39,10 +37,7 @@ class TestAuthHandler(unittest.TestCase):
             token = AuthHandler().obtain_id_token()
 
             # then
-            assert (
-                "this authentication method does not work with default credentials"
-                in cm.output[0]
-            )
+            assert "this authentication method does not work with default credentials" in cm.output[0]
             assert token is None
 
     @patch("google.oauth2.id_token.fetch_id_token")
@@ -103,16 +98,11 @@ class TestAuthHandler(unittest.TestCase):
         )
 
         # when
-        session = AuthHandler().obtain_dex_authservice_session(
-            "https://kubeflow.local/pipeline"
-        )
+        session = AuthHandler().obtain_dex_authservice_session("https://kubeflow.local/pipeline")
 
         # then
         assert session == "sessionID"
-        assert (
-            responses.calls[1].request.body
-            == "login=user%40example.com&password=pa%24%24"
-        )
+        assert responses.calls[1].request.body == "login=user%40example.com&password=pa%24%24"
 
     @responses.activate
     def test_should_get_cookie_from_dex_secured_system_with_kubeflow_1_6(self):
@@ -137,13 +127,8 @@ class TestAuthHandler(unittest.TestCase):
         )
 
         # when
-        session = AuthHandler().obtain_dex_authservice_session(
-            "https://kubeflow.local/pipeline"
-        )
+        session = AuthHandler().obtain_dex_authservice_session("https://kubeflow.local/pipeline")
 
         # then
         assert session == "sessionID"
-        assert (
-            responses.calls[2].request.body
-            == "login=user%40example.com&password=pa%24%24"
-        )
+        assert responses.calls[2].request.body == "login=user%40example.com&password=pa%24%24"

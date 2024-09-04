@@ -27,25 +27,19 @@ class TestMlflowTagsHook(unittest.TestCase):
 
         mlflow_set_tag.assert_called_with("kubeflow_run_id", "KFP_123")
 
-    def test_should_not_set_mlflow_tags_when_kubeflow_run_id_env_is_not_set(
-        self, mlflow_set_tag
-    ):
+    def test_should_not_set_mlflow_tags_when_kubeflow_run_id_env_is_not_set(self, mlflow_set_tag):
         with environment({}, delete_keys=["KUBEFLOW_RUN_ID"]):
             MlflowTagsHook().before_node_run()
 
         mlflow_set_tag.assert_not_called()
 
-    def test_should_not_set_mlflow_tags_when_kubeflow_run_id_env_is_empty(
-        self, mlflow_set_tag
-    ):
+    def test_should_not_set_mlflow_tags_when_kubeflow_run_id_env_is_empty(self, mlflow_set_tag):
         with environment({"KUBEFLOW_RUN_ID": ""}):
             MlflowTagsHook().before_node_run()
 
         mlflow_set_tag.assert_not_called()
 
-    def test_should_not_set_mlflow_tags_when_mlflow_is_not_enabled(
-        self, mlflow_set_tag
-    ):
+    def test_should_not_set_mlflow_tags_when_mlflow_is_not_enabled(self, mlflow_set_tag):
         # given
         real_import = __builtins__["__import__"]
 
