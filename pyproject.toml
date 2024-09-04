@@ -38,7 +38,7 @@ known_third_party = ["click", "google", "kedro", "kfp", "kubernetes", "tabulate"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
-kedro = ">0.18.4, <=0.19.6"
+kedro = ">0.18.4, <=0.19.8"
 # kedro-viz = { version = "<8", optional = true} # because of pydantic conflict
 click = ">=8.0.4"
 kfp = ">=1.8.12,<2.0" # blocking pydantic upgrade
