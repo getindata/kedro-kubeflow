@@ -259,6 +259,25 @@ class ExtraVolumeConfig(BaseModel):
         return value
 
 
+class AffinityConfig(defaultdict):
+    def __init__(self, default_factory=None, *args, **kwargs):
+        super().__init__(default_factory, *args, **kwargs)
+
+    def is_set_for(self, node_name):
+        return bool(self.get_for(node_name))
+
+    def get_for(self, node_name):
+        node_value = self._get_or_default(node_name, None)
+        if node_value is not None:
+            return node_value
+        return self._get_or_default("__default__", None)
+
+    def _get_or_default(self, node_name, default):
+        if node_name in self:
+            return self[node_name]
+        return self.get("__default__", default)
+
+
 class RunConfig(BaseModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -293,6 +312,10 @@ class RunConfig(BaseModel):
     def _validate_extra_volumes(cls, value):
         return RunConfig._create_default_dict_with(value, [], defaultdict)
 
+    @validator("affinity", always=True)
+    def _validate_affinity(cls, value):
+        return RunConfig._create_default_dict_with(value, None, AffinityConfig)
+
     image: str
     image_pull_policy: str = "IfNotPresent"
     root: Optional[str]
@@ -305,6 +328,7 @@ class RunConfig(BaseModel):
     retry_policy: Optional[Dict[str, Optional[RetryPolicyConfig]]]
     volume: Optional[VolumeConfig] = None
     extra_volumes: Optional[Dict[str, List[ExtraVolumeConfig]]] = None
+    affinity: Optional[Dict[str, Any]] = None
     wait_for_completion: bool = False
     store_kedro_outputs_as_kfp_artifacts: bool = True
     max_cache_staleness: Optional[str] = None

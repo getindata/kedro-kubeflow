@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Add support for setting Kubernetes affinity in pipeline configuration
+
 ## [0.8.0] - 2024-09-04
 
 -   Added support for python 3.11. Python 3.12 is still blocked by kedro-mlflow
