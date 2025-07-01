@@ -10,6 +10,9 @@ on:
 
 jobs:
   prepare-release:
+    permissions:
+      pull-requests: write
+      contents: write
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4.7.1
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Validate inputs
@@ -33,7 +36,7 @@ jobs:
           bumpversion ${{ github.event.inputs.version_part }}
           echo "::set-output name=package_version::$(cat $PYTHON_PACKAGE/__init__.py | grep -Po  '\d+\.\d+\.\d+')"
       - name: Update the CHANGELOG according to 'Keep a Changelog' guidelines
-        uses: thomaseizinger/keep-a-changelog-new-release@v1
+        uses: thomaseizinger/keep-a-changelog-new-release@v3
         with:
           version: ${{ steps.bump_version.outputs.package_version }}
       - name: Create a new release branch
