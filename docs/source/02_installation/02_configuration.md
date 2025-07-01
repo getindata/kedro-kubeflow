@@ -104,6 +104,25 @@ run_config:
       value: "gpu_workload"
       effect: "NoSchedule"
 
+  # Optional section allowing adjustment of the affinity for the nodes
+  affinity:
+    __default__:
+      node_affinity:
+        required_during_scheduling_ignored_during_execution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: "node-type"
+                  operator: "In"
+                  values: ["general"]
+    node_a:
+      node_affinity:
+        required_during_scheduling_ignored_during_execution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: "gpu"
+                  operator: "In"
+                  values: ["true"]
+
   # Optional section to allow mounting additional volumes (such as EmptyDir)
   # to specific nodes
   extra_volumes:

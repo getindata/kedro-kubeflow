@@ -145,6 +145,29 @@ def create_pipeline_exit_handler(pipeline, image, image_pull_policy, run_config,
     return dsl.ExitHandler(customize_op(exit_container_op, image_pull_policy, run_config))
 
 
+def dict_to_v1affinity(affinity_dict):
+    def convert_node_affinity(na):
+        if not na:
+            return None
+        return k8s.V1NodeAffinity(**na)
+
+    def convert_pod_affinity(pa):
+        if not pa:
+            return None
+        return k8s.V1PodAffinity(**pa)
+
+    def convert_pod_anti_affinity(paa):
+        if not paa:
+            return None
+        return k8s.V1PodAntiAffinity(**paa)
+
+    return k8s.V1Affinity(
+        node_affinity=convert_node_affinity(affinity_dict.get("node_affinity")),
+        pod_affinity=convert_pod_affinity(affinity_dict.get("pod_affinity")),
+        pod_anti_affinity=convert_pod_anti_affinity(affinity_dict.get("pod_anti_affinity")),
+    )
+
+
 def customize_op(op, image_pull_policy, run_config: RunConfig):
     op.container.set_image_pull_policy(image_pull_policy)
     if run_config.volume and run_config.volume.owner is not None:
@@ -161,6 +184,12 @@ def customize_op(op, image_pull_policy, run_config: RunConfig):
 
     for toleration in run_config.tolerations[op.name]:
         op.add_toleration(k8s.V1Toleration(**toleration.dict()))
+
+    if run_config.affinity.is_set_for(op.name):
+        affinity_dict = run_config.affinity.get_for(op.name)
+        if affinity_dict:
+            affinity_obj = dict_to_v1affinity(affinity_dict)
+            op.add_affinity(affinity_obj)
 
     if extra_volumes := run_config.extra_volumes[op.name]:
         op.add_pvolumes({ev.mount_path: dsl.PipelineVolume(volume=ev.as_v1volume()) for ev in extra_volumes})
