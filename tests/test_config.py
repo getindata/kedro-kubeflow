@@ -22,6 +22,23 @@ run_config:
     size: 3Gi
     access_modes: [ReadWriteOnce]
     keep: True
+  affinity:
+    __default__:
+      node_affinity:
+        required_during_scheduling_ignored_during_execution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: "default-key"
+                  operator: "In"
+                  values: ["default-value"]
+    node1:
+      node_affinity:
+        required_during_scheduling_ignored_during_execution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: "node1-key"
+                  operator: "In"
+                  values: ["node1-value"]
 """
 
 
@@ -264,3 +281,48 @@ class TestPluginConfig(unittest.TestCase, MinimalConfigMixin):
         )
 
         self.assertIsNone(cfg.run_config.retry_policy["node2"])
+
+    def test_affinity_node_specific(self):
+        cfg = PluginConfig(**yaml.safe_load(CONFIG_YAML))
+        affinity = cfg.run_config.affinity.get_for("node1")
+        assert affinity is not None
+        assert "node_affinity" in affinity
+        assert (
+            affinity["node_affinity"]["required_during_scheduling_ignored_during_execution"]["nodeSelectorTerms"][0][
+                "matchExpressions"
+            ][0]["key"]
+            == "node1-key"
+        )
+
+    def test_affinity_default(self):
+        cfg = PluginConfig(**yaml.safe_load(CONFIG_YAML))
+        affinity = cfg.run_config.affinity.get_for("node2")
+        assert affinity is not None
+        assert "node_affinity" in affinity
+        assert (
+            affinity["node_affinity"]["required_during_scheduling_ignored_during_execution"]["nodeSelectorTerms"][0][
+                "matchExpressions"
+            ][0]["key"]
+            == "default-key"
+        )
+
+    def test_affinity_is_set_for(self):
+        cfg = PluginConfig(**yaml.safe_load(CONFIG_YAML))
+        assert cfg.run_config.affinity.is_set_for("node1")
+        assert cfg.run_config.affinity.is_set_for("node2")  # falls back to default
+        # Should be False if neither node nor default is set
+        empty_affinity = PluginConfig(
+            **yaml.safe_load(
+                """
+        host: https://example.com
+        run_config:
+          image: "gcr.io/project-image/test"
+          image_pull_policy: "Always"
+          experiment_name: "Test Experiment"
+          run_name: "test run"
+          scheduled_run_name: "scheduled run"
+          affinity: {}
+        """
+            )
+        )
+        assert not empty_affinity.run_config.affinity.is_set_for("unknown_node")

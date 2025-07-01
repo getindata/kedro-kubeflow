@@ -44,7 +44,7 @@ jobs:
         tox -v
 
     - name: Store coverage reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-${{ matrix.python-version }}
         path: coverage.xml
@@ -59,7 +59,7 @@ jobs:
       with:
         fetch-depth: 0
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: coverage-3.9
         path: .
