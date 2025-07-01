@@ -7,6 +7,9 @@ on:
 
 jobs:
   deploy:
+    permissions:
+      pull-requests: write
+      contents: write
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,7 +22,7 @@ jobs:
         with:
           fetch-depth: 0  # necessary to enable merging, all the history is needed
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4.7.1
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Build package dist from source # A better way will be : https://packaging.python.org/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/ but pep 517 is still marked as experimental
