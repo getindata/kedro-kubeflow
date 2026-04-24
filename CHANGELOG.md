@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+- Add support for `kedro 0.19.9`
 
 ## [0.9.0] - 2025-07-01
 
