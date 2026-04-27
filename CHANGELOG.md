@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-04-27
+
+- Add support for `kedro 0.19.9`
+
 ## [0.9.0] - 2025-07-01
 
 - Add support for setting Kubernetes affinity in pipeline configuration
@@ -183,7 +187,8 @@
 - Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 - Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.9.0...HEAD
+[unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.10.0...HEAD
+[0.10.0]: https://github.com/getindata/kedro-kubeflow/compare/0.9.0...0.10.0
 [0.9.0]: https://github.com/getindata/kedro-kubeflow/compare/0.8.0...0.9.0
 [0.8.0]: https://github.com/getindata/kedro-kubeflow/compare/0.7.4...0.8.0
 [0.7.4]: https://github.com/getindata/kedro-kubeflow/compare/0.7.3...0.7.4

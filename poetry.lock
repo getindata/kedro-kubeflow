@@ -2639,8 +2639,8 @@ files = [
 [package.dependencies]
 numpy = [
     {version = ">=1.20.3", markers = "python_version < \"3.10\""},
-    {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
     {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
+    {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -4348,4 +4348,4 @@ mlflow = ["kedro-mlflow"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "8ec877e86dc4c6a6999b4606757b00c4bb3623a2ea47e860124cc44c95847945"
+content-hash = "68914f1b85ad30a5a5de7957830346353d8bf42f53fb27ee89a0033590e23e3d"
