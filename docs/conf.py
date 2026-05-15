@@ -28,7 +28,7 @@ copyright = "2020, GetInData"
 author = "GetInData"
 
 myst_substitutions = {
-    "tested_kedro": "0.17.7",
+    "tested_kedro": "1.0.0",
     "release": release,
 }
 
