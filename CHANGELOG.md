@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Widened Kedro dependency to `>0.18.4, <2.0` to support both Kedro 0.19.x and 1.x
+- Updated minimum Python version to 3.9 and upper bound to <3.13
+- Added compatibility shim for `AbstractConfigLoader` removal in Kedro 1.x
+- Updated documentation: dynamic configuration examples now use `OmegaConfigLoader` with `oc.env` resolver instead of deprecated `TemplatedConfigLoader`
+
+### Removed
+
+- Removed `ContextHelper16` class (Kedro 0.16 compatibility — dead code since minimum is 0.18.4)
+- Removed `semver` dependency (only used for obsolete version check)
+
+### Fixed
+
+- Replaced Pydantic v1-only `pydantic.utils.deep_update` import in tests with stdlib implementation
+- Fixed internal module path in `test_kfpclient.py` for `KedroContext` mock patch
+- Fixed mlflow-related tests to not require `mlflow`/`kedro_mlflow` packages installed (using `sys.modules` stubbing)
+
 ## [0.10.0] - 2026-04-27
 
 - Add support for `kedro 0.19.9`

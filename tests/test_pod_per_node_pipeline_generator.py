@@ -180,13 +180,12 @@ class TestGenerator(unittest.TestCase, MinimalConfigMixin):
     def test_should_add_mlflow_init_step_if_enabled(self):
         # given
         self.create_generator()
-        self.mock_mlflow(True)
+        mlflow_mock = MagicMock()
 
         # when
-        with patch(
-            "kedro.framework.project.pipelines",
-            new=self.pipelines_under_test,
-        ):
+        with patch("builtins.__import__", self.realimport), patch.dict(
+            "sys.modules", {"mlflow": mlflow_mock, "kedro_mlflow": MagicMock()}
+        ), patch("kedro.framework.project.pipelines", new=self.pipelines_under_test):
             pipeline = self.generator_under_test.generate_pipeline("pipeline", "unittest-image", "Always")
             with kfp.dsl.Pipeline(None) as dsl_pipeline:
                 pipeline()

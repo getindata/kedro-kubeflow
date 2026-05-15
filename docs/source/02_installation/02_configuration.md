@@ -176,12 +176,14 @@ run_config:
 
 ## Dynamic configuration support
 
-`kedro-kubeflow` contains hook that enables [TemplatedConfigLoader](https://kedro.readthedocs.io/en/stable/kedro.config.TemplatedConfigLoader.html).
-It allows passing environment variables to configuration files. It reads all environment variables following `KEDRO_CONFIG_<NAME>` pattern, which you 
-can later inject in configuration file using `${name}` syntax. 
+`kedro-kubeflow` supports dynamic configuration via Kedro's `OmegaConfigLoader` with the `oc.env` resolver.
+It allows passing environment variables to configuration files. It reads all environment variables following `KEDRO_CONFIG_<NAME>` pattern, which you
+can later inject in configuration file using `${oc.env:KEDRO_CONFIG_NAME}` syntax.
 
-There are two special variables `KEDRO_CONFIG_COMMIT_ID`, `KEDRO_CONFIG_BRANCH_NAME` with support specifying default when variable is not set, 
-e.g. `${commit_id|dirty}`   
+There are two special variables `KEDRO_CONFIG_COMMIT_ID`, `KEDRO_CONFIG_BRANCH_NAME` with support specifying default when variable is not set,
+e.g. `${oc.env:KEDRO_CONFIG_COMMIT_ID, dirty}`
+
+> **Note:** The legacy `EnvTemplatedConfigLoader` is deprecated and will be removed in a future release. Please migrate to `OmegaConfigLoader` with `oc.env` resolver.   
 
 ## Extra volumes
 You can mount additional volumes (such as `emptyDir`) to specific nodes by using `extra_volumes` config node.

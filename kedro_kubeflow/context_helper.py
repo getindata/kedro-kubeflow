@@ -2,16 +2,21 @@ import os
 from functools import cached_property, lru_cache
 from typing import Any, Dict
 
-from kedro import __version__ as kedro_version
 from kedro.config import (
-    AbstractConfigLoader,
     MissingConfigException,
     OmegaConfigLoader,
 )
+
+try:
+    from kedro.config import AbstractConfigLoader
+except ImportError:
+    # AbstractConfigLoader was removed in Kedro 1.0;
+    # OmegaConfigLoader is the only config loader from that version on.
+    AbstractConfigLoader = OmegaConfigLoader
+
 from kedro.framework.session import KedroSession
 from omegaconf import DictConfig, OmegaConf
 from omegaconf.resolvers import oc
-from semver import VersionInfo
 
 from .config import PluginConfig
 
@@ -146,20 +151,4 @@ CONFIG_LOADER_ARGS = {
 
     @staticmethod
     def init(metadata, env):
-        version = VersionInfo.parse(kedro_version)
-        if version.match(">=0.17.0"):
-            return ContextHelper(metadata, env)
-        else:
-            return ContextHelper16(metadata, env)
-
-
-class ContextHelper16(ContextHelper):
-    """KedroKubeflowConfig vairant for compatibility with Kedro 1.6"""
-
-    @property
-    def project_name(self):
-        return self.context.project_path.name
-
-    @property
-    def context(self):
-        return self.session.load_context()
+        return ContextHelper(metadata, env)
