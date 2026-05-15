@@ -11,7 +11,6 @@ from kedro.framework.session import KedroSession
 from kedro_kubeflow.config import PluginConfig
 from kedro_kubeflow.context_helper import (
     ContextHelper,
-    ContextHelper16,
     EnvTemplatedConfigLoader,
 )
 
@@ -20,11 +19,6 @@ from .utils import environment
 
 
 class TestContextHelper(unittest.TestCase, MinimalConfigMixin):
-    def test_init_different_kedro_versions(self):
-
-        with patch("kedro_kubeflow.context_helper.kedro_version", "0.16.0"):
-            ch = ContextHelper.init(None, None)
-            assert isinstance(ch, ContextHelper16)
 
     def test_project_name(self):
         metadata = Mock()
