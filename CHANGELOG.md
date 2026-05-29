@@ -2,10 +2,12 @@
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-05-29
+
 ### Changed
 
 - Widened Kedro dependency to `>0.18.4, <2.0` to support both Kedro 0.19.x and 1.x
-- Updated minimum Python version to 3.9 and upper bound to <3.13
+- Updated minimum Python version to 3.9 and upper bound to &lt;3.13
 - Added compatibility shim for `AbstractConfigLoader` removal in Kedro 1.x
 - Updated documentation: dynamic configuration examples now use `OmegaConfigLoader` with `oc.env` resolver instead of deprecated `TemplatedConfigLoader`
 
@@ -205,7 +207,8 @@
 - Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 - Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.10.0...HEAD
+[unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.11.0...HEAD
+[0.11.0]: https://github.com/getindata/kedro-kubeflow/compare/0.10.0...0.11.0
 [0.10.0]: https://github.com/getindata/kedro-kubeflow/compare/0.9.0...0.10.0
 [0.9.0]: https://github.com/getindata/kedro-kubeflow/compare/0.8.0...0.9.0
 [0.8.0]: https://github.com/getindata/kedro-kubeflow/compare/0.7.4...0.8.0
