@@ -305,7 +305,7 @@ class TestKubeflowClient(unittest.TestCase, MinimalConfigMixin):
         assert kwargs["description"] == "Very Important Pipeline"
 
     @patch("kedro_kubeflow.kfpclient.Client")
-    @patch("kedro.framework.context.context.KedroContext")
+    @patch("kedro.framework.context.KedroContext")
     def test_can_create_client_with_node_strategy_full(self, context, _):
         client = KubeflowClient(
             PluginConfig(
