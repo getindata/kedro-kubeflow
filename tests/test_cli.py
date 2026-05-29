@@ -270,19 +270,17 @@ class TestPluginCLI(unittest.TestCase):
                 assert "kedro kubeflow upload-pipeline" in content
                 assert "kedro kubeflow schedule" in content
 
-    @patch("mlflow.start_run")
-    @patch("mlflow.set_tag")
-    @patch("mlflow.get_experiment_by_name")
-    def test_mlflow_start(self, get_experiment_by_name_mock, set_tag_mock, start_run_mock):
+    def test_mlflow_start(self):
         context_helper = MagicMock(ContextHelper)
         config = dict(context_helper=context_helper)
         runner = CliRunner()
-        get_experiment_by_name_mock.return_value = type("obj", (object,), {"experiment_id": 47})
-        start_run_mock.return_value = namedtuple("InfoObject", "info")(
+        mlflow_mock = MagicMock()
+        mlflow_mock.get_experiment_by_name.return_value = type("obj", (object,), {"experiment_id": 47})
+        mlflow_mock.start_run.return_value = namedtuple("InfoObject", "info")(
             namedtuple("RunIdObject", "run_id")("MLFLOW_RUN_ID")
         )
 
-        with TemporaryDirectory() as temp_dir:
+        with patch.dict("sys.modules", {"mlflow": mlflow_mock}), TemporaryDirectory() as temp_dir:
             run_id_file_path = f"{temp_dir}/run_id"
             result = runner.invoke(
                 mlflow_start,
@@ -295,7 +293,7 @@ class TestPluginCLI(unittest.TestCase):
             with open(run_id_file_path) as f:
                 assert f.read() == "MLFLOW_RUN_ID"
 
-        set_tag_mock.assert_called_with("kubeflow_run_id", "KUBEFLOW_RUN_ID")
+        mlflow_mock.set_tag.assert_called_with("kubeflow_run_id", "KUBEFLOW_RUN_ID")
 
     @patch("kubernetes.client")
     @patch("kubernetes.config")

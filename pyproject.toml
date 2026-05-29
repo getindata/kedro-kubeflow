@@ -34,16 +34,15 @@ line-length = 121
 line-length = 121
 
 [tool.isort]
-known_third_party = ["click", "google", "kedro", "kfp", "kubernetes", "tabulate", "pydantic", "semver", "setuptools"]
+known_third_party = ["click", "google", "kedro", "kfp", "kubernetes", "tabulate", "pydantic", "setuptools"]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.12"
-kedro = ">0.18.4, <=0.19.9"
+python = ">=3.9,<3.13"
+kedro = ">0.18.4, <2.0"
 # kedro-viz = { version = "<8", optional = true} # because of pydantic conflict
 click = ">=8.0.4"
 kfp = ">=1.8.12,<2.0" # blocking pydantic upgrade
 tabulate = ">=0.8.7"
-semver = "~=2.10"
 fsspec = ">=2021.4"
 pyyaml = ">=6.0,<7.0"
 google-auth = { version = "<3", optional = true}
