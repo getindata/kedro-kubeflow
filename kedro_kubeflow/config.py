@@ -10,7 +10,7 @@ from kubernetes.client import V1Volume
 
 try:
     from pydantic.v1 import BaseModel, validator
-except ImportError:  # pydantic < 1.10.17 has no pydantic.v1
+except ImportError:  # pydantic < 1.10.15 has no pydantic.v1
     from pydantic import BaseModel, validator
 
 logger = logging.getLogger(__name__)

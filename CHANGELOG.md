@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Import Pydantic's v1 API from `pydantic.v1` when it is available, so the plugin works when Pydantic 2 is installed (for example next to MLflow >= 3.6)
+- Fixed importing the plugin when Pydantic 2 is installed: the Pydantic v1 API is now imported from `pydantic.v1` when available. kfp 1.8 still requires `pydantic<2`, so installing Pydantic 2 next to it needs a resolver override
 
 ## [0.11.0] - 2026-05-29
 
