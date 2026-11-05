@@ -1,7 +1,11 @@
 import unittest
 
 import yaml
-from pydantic import ValidationError
+
+try:
+    from pydantic.v1 import ValidationError
+except ImportError:  # pydantic < 1.10.17 has no pydantic.v1
+    from pydantic import ValidationError
 
 from kedro_kubeflow.config import PluginConfig
 from tests.common import MinimalConfigMixin

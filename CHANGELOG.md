@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Import Pydantic's v1 API from `pydantic.v1` when it is available, so the plugin works when Pydantic 2 is installed (for example next to MLflow >= 3.6)
+
 ## [0.11.0] - 2026-05-29
 
 ### Changed
