@@ -7,7 +7,11 @@ from typing import Any, Dict, List, Optional, Type, Union
 
 from kubernetes import client as k8s_client
 from kubernetes.client import V1Volume
-from pydantic import BaseModel, validator
+
+try:
+    from pydantic.v1 import BaseModel, validator
+except ImportError:  # pydantic < 1.10.15 has no pydantic.v1
+    from pydantic import BaseModel, validator
 
 logger = logging.getLogger(__name__)
 

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed importing the plugin when Pydantic 2 is installed: the Pydantic v1 API is now imported from `pydantic.v1` when available. kfp 1.8 still requires `pydantic<2`, so installing Pydantic 2 next to it needs a resolver override
+
 ## [0.11.0] - 2026-05-29
 
 ### Changed
