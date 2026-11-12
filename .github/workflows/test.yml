@@ -15,7 +15,7 @@ on:
       - "docs/**"
 jobs:
   unit_tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # setup-python has no Python 3.9 build for ubuntu-26.04 (ubuntu-latest)
     strategy:
       matrix:
         python-version: [ '3.9', '3.10', '3.11', '3.12']
