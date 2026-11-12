@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-06
+
+### Fixed
+
+- Fixed importing the plugin when Pydantic 2 is installed: the Pydantic v1 API is now imported from `pydantic.v1` when available. kfp 1.8 still requires `pydantic<2`, so installing Pydantic 2 next to it needs a resolver override
+
 ## [0.11.0] - 2026-05-29
 
 ### Changed
@@ -207,7 +213,8 @@
 - Method to schedule runs for most recent version of given pipeline `kedro kubeflow schedule` 
 - Shortcut to open UI for pipelines using `kedro kubeflow ui` 
 
-[unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.11.0...HEAD
+[unreleased]: https://github.com/getindata/kedro-kubeflow/compare/0.12.0...HEAD
+[0.12.0]: https://github.com/getindata/kedro-kubeflow/compare/0.11.0...0.12.0
 [0.11.0]: https://github.com/getindata/kedro-kubeflow/compare/0.10.0...0.11.0
 [0.10.0]: https://github.com/getindata/kedro-kubeflow/compare/0.9.0...0.10.0
 [0.9.0]: https://github.com/getindata/kedro-kubeflow/compare/0.8.0...0.9.0
